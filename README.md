@@ -1,6 +1,13 @@
 # Timewarp
 Welcome to Timewarp, a repository hosting a campsite reservation application.
 
+## Table of Contents
+- [Compatibility](#compatibility)
+- [Overview](#overview)
+- [Features](#features)
+- [Repository Wiki](#repository-wiki)
+- [License](#license)
+
 ## Team Members
 | Name  | Github Username |
 | :------------- | :------------- |
