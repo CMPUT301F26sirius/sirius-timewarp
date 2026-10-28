@@ -67,7 +67,7 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.60.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.4.0")
     testImplementation("com.google.dagger:hilt-android-testing:2.60.1")
-    kspTest("com.google.dagger:hilt-android-compiler:2.60.1")
+    kspTest("com.google.dagger:hilt-android-compiler:2.57.1")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.60.1")
     kspAndroidTest("com.google.dagger:hilt-android-compiler:2.60.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
