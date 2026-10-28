@@ -12,7 +12,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class ExampleModule {
+abstract class FirebaseExampleModule {
     @Binds
     @Singleton
     abstract fun bindExampleRepository(
