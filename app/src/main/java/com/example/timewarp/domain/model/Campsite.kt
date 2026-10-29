@@ -1,8 +1,7 @@
 package com.example.timewarp.domain.model
 
-@kotlin.uuid.ExperimentalUuidApi
-class Campsite(
-    val id: String,
+data class Campsite(
+    val campsiteId: String,
     val ownerId: String,
 
     var name: String,

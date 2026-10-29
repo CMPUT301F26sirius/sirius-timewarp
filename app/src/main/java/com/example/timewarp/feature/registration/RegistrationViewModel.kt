@@ -39,7 +39,7 @@ class RegistrationViewModel @Inject constructor(
             _state.value = RegistrationState.Loading
 
             try {
-                val userId = authRepository.signInAnonymously()
+                val userId = authRepository.signIn()
 
                 val existingUser = userRepository.getUser(userId)
 

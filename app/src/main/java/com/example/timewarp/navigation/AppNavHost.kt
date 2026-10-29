@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.timewarp.feature.example.ExampleScreen
+import com.example.timewarp.feature.browse.BrowseScreen
 import com.example.timewarp.feature.startup.StartupScreen
 import com.example.timewarp.feature.registration.RegistrationScreen
 import com.example.timewarp.navigation.Screen
@@ -19,7 +19,6 @@ fun AppNavHost() {
     ) {
         composable(Screen.Startup.route) { StartupScreen(navController = navController) }
         composable(Screen.Registration.route) { RegistrationScreen(navController = navController) }
-        composable(Screen.Home.route) { ExampleScreen() }
-        composable(Screen.Example.route) { ExampleScreen() }
+        composable(Screen.Home.route) { BrowseScreen(navController = navController) }
     }
 }
