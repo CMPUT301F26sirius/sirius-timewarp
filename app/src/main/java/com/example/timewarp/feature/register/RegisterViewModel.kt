@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 data class RegisterState(
-    val example: String = "",
+    val registering: String = "registering",
 )
 
 @HiltViewModel
