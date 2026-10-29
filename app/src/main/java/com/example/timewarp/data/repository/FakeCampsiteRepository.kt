@@ -2,10 +2,11 @@ package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.repository.CampsiteRepository
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-class FakeCampsiteRepository: CampsiteRepository {
+class FakeCampsiteRepository @Inject constructor(): CampsiteRepository {
     override fun getCampsites(): Flow<List<Campsite>> {
         return flowOf(
             listOf(

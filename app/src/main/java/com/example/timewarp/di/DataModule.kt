@@ -1,6 +1,8 @@
 package com.example.timewarp.di
 
+import com.example.timewarp.data.repository.FakeCampsiteRepository
 import com.example.timewarp.data.repository.FirebaseExampleRepository
+import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.ExampleRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -18,6 +20,12 @@ abstract class ExampleModule {
     abstract fun bindExampleRepository(
         implementation: FirebaseExampleRepository
     ): ExampleRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCampsiteRepository(
+        implementation: FakeCampsiteRepository
+    ): CampsiteRepository
 }
 
 @Module
