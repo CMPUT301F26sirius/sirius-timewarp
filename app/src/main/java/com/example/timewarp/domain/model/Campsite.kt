@@ -1,15 +1,25 @@
 package com.example.timewarp.domain.model
 
+@kotlin.uuid.ExperimentalUuidApi
+class Campsite(
+    val id: String,
+    val ownerId: String,
 
-// This data class tells what a campsite needs.
-data class Campsite(
-    val id: String = "", // This will be the Firestore document ID
+    var name: String,
+    var description: String,
 
-    val name: String = "",
+    val amenities: List<String> = emptyList<String>(),
+    val tags: List<String> = emptyList<String>(),
 
-    val location: String = "" , // This will tell the location of the campsite
+    var location: Location = Location(),
 
-    val maximumOccupancy: Int = 0, // Total number of guests
+    val occupancy: Occupancy = Occupancy(),
+    val pricing: Pricing = Pricing(),
 
-    val rating: Double = 0.0 // over all rating for the campsite. example = 4.9 out of 5
-)
+    val rules: List<String> = emptyList(),
+    val cancellationPolicy: CancellationPolicy = CancellationPolicy(),
+
+    val images: List<String> = emptyList<String>()
+) {
+
+}
