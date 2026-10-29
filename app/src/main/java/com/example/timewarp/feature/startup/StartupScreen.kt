@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.example
+package com.example.timewarp.feature.startup
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -83,10 +83,6 @@ fun StartupScreen(
         }
     }
 
-    if (state is StartupState.Home) {
-        Text("goon")
-    }
-
     // User Interface
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -141,7 +137,7 @@ fun StartupScreen(
                 CircularProgressIndicator(
                     modifier = modifier.size(24.dp).align(alignment = Alignment.CenterHorizontally),
                     color = PitchCream,
-                    trackColor = PitchForest,
+                    trackColor = Color.Transparent,
                     strokeWidth = 4.dp,
                 )
 

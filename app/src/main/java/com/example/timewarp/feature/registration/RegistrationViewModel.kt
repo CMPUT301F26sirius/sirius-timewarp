@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.example
+package com.example.timewarp.feature.registration
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

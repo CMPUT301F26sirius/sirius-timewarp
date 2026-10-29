@@ -26,6 +26,6 @@ class FirebaseUserRepository @Inject constructor(
             .await()
 
         return document.toObject(User::class.java)
-//            ?.copy(id = document.id)
+            ?.copy(userId = document.id)
     }
 }

@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.example
+package com.example.timewarp.feature.registration
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -109,7 +109,7 @@ fun RegistrationScreen(
         }
 
         // Remember
-        var userType by remember {mutableStateOf("Entrant")}
+        var userType by remember {mutableStateOf("Camper")}
         var adminCode by remember {mutableStateOf("")}
 
         Column(
@@ -235,7 +235,7 @@ fun RegistrationScreen(
                         value = userType,
                         placeholder = "",
                         onValueChange = {userType = it},
-                        type = BaseInputType.Dropdown(listOf<String>("Entrant", "Campsite Owner", "Admin"))
+                        type = BaseInputType.Dropdown(listOf<String>("Camper", "Campsite Owner", "Admin"))
                     )
                     if (userType == "Admin") {
                         BaseInput(
@@ -257,7 +257,14 @@ fun RegistrationScreen(
                 ) {
                     IconButton(
                         onClick = {
-                            viewModel.register(UserType.valueOf(userType))
+                            if (userType == "Admin" && adminCode == "1234") {
+                                // Very secure :thumbs_up:
+                                viewModel.register(UserType.Admin)
+                            } else if (userType == "Camper") {
+                                viewModel.register(UserType.Entrant)
+                            } else if (userType == "Campsite Owner") {
+                                viewModel.register(UserType.CampsiteOwner)
+                            }
                         },
                         icon = Icons.Outlined.VerifiedUser,
                         text = "Register this device",

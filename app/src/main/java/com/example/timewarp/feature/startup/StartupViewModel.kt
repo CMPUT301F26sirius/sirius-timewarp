@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.example
+package com.example.timewarp.feature.startup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,8 +16,8 @@ import kotlin.time.Duration.Companion.milliseconds
 sealed interface StartupState {
     data object Loading : StartupState
     data object Registration : StartupState
-    data class Home(val user: User) : StartupState
     data object ProfileSetup : StartupState
+    data class Home(val user: User) : StartupState
     data class Error(val message: String) : StartupState
 }
 
@@ -35,7 +35,8 @@ class StartupViewModel @Inject constructor(
 
     private fun checkAuth() {
         viewModelScope.launch() {
-            delay(3000L.milliseconds)
+            delay(1000L.milliseconds)
+
             try {
                 val userId = authRepository.getCurrentUserId()
 
@@ -51,8 +52,6 @@ class StartupViewModel @Inject constructor(
                 } else {
                     StartupState.ProfileSetup
                 }
-//            } catch (e: CancellationException) {
-//                throw e
             } catch (e: Exception) {
                 _state.value = StartupState.Error(
                     e.message ?: "Unable to check your session."

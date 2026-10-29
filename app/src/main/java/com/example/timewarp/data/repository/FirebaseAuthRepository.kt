@@ -17,10 +17,7 @@ class FirebaseAuthRepository @Inject constructor(
 
     override suspend fun signInAnonymously(): String {
         val existingUser = auth.currentUser
-
-        if (existingUser != null) {
-            return existingUser.uid
-        }
+        if (existingUser != null) { return existingUser.uid }
 
         return auth.signInAnonymously()
             .await()
