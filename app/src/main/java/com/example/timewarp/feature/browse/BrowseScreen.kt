@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,12 +16,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.timewarp.ui.template.MainPage
+import com.example.timewarp.feature.navigation.NavigationScreen
+import com.example.timewarp.navigation.Screen
+import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 
 @Composable
 fun BrowseScreen(
     modifier: Modifier = Modifier,
+    screen: Screen = Screen.Browse,
     navController: NavController = rememberNavController(),
     viewModel: BrowseViewModel = hiltViewModel(),
 ) {
@@ -33,20 +38,18 @@ fun BrowseScreen(
     }
 
     // User Interface
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            MainPage(
-                title = "A good day starts\noutside.",
-                subtitle = "PITCH/BROWSE",
-                navController = navController,
-            ) {
-                // Other stuff
-            }
-        }
+    NavigationScreen(
+        screen = screen,
+        modifier = modifier,
+        navController = navController,
+    ) {
+        IconButton(
+            text = "View Campsite Details",
+            icon = Icons.Outlined.Terrain,
+            onClick = {
+                navController.navigate(Screen.CampsiteDetails.createRoute("0"))
+            },
+        )
     }
 }
 
@@ -57,3 +60,4 @@ fun BrowseScreenPreview() {
         BrowseScreen()
     }
 }
+

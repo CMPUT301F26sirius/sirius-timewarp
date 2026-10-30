@@ -1,7 +1,11 @@
 package com.example.timewarp.domain.repository
 
+import kotlinx.coroutines.flow.Flow
+
 interface AuthRepository {
-    fun getCurrentUserId(): String?
+    val currentUserId: Flow<String?>
+
+    fun getUserId(): String?
 
     suspend fun signIn(): String
 }

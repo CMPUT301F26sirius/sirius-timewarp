@@ -21,6 +21,15 @@ class FirebaseCampsiteRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : CampsiteRepository {
     /**
+     * Gets all campsites from Firestore.
+     *
+     * @returns A list of campsite objects.
+     */
+    override suspend fun getCampsites(): MutableList<Campsite>? {
+        TODO("Not yet implemented")
+    }
+
+    /**
      * Writes to a campsites Firestore document.
      *
      * @param campsite Campsite object to write.

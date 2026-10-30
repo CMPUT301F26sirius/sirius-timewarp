@@ -7,6 +7,8 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+fun kotlinOptions(function: () -> Unit) {}
+
 android {
     namespace = "com.example.timewarp"
     compileSdk {
@@ -82,4 +84,7 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
 
     implementation("androidx.compose.material:material-icons-extended")
+
+    implementation(libs.kotlin.csv)
 }
+
