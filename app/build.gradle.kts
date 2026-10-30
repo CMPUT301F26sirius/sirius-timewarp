@@ -7,6 +7,8 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+fun kotlinOptions(function: () -> Unit) {}
+
 android {
     namespace = "com.example.timewarp"
     compileSdk {
@@ -41,6 +43,12 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
     }
 }
 

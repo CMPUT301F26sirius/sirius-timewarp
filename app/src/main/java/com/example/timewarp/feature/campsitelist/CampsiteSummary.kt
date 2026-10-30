@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.campsitelist
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.timewarp.domain.model.Campsite
+import com.example.timewarp.domain.model.Location
 
 @Composable
 fun CampsiteSummary (
@@ -33,7 +35,7 @@ fun CampsiteSummary (
 
             Spacer(modifier = Modifier.height(5.dp))
             Text(
-                text = campsite.location,
+                text = campsite.location.address,
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -43,7 +45,7 @@ fun CampsiteSummary (
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Maximum Occupancy: ${campsite.maximumOccupancy}",
+                    text = "Maximum Occupancy: ${campsite.occupancy.maxGuests}",
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -62,10 +64,11 @@ private fun SummaryPreview() {
     CampsiteSummary(
         campsite = Campsite(
             id = "1",
+            ownerId = "",
             name = "Townsite Campground",
-            location = "Waterton Park, Alberta",
-            maximumOccupancy = 10,
-            rating = 4.5
+            description = "A quite Campground for families",
+            location = Location("Waterton Park, Alberta"),
+            rating = 3.7
         )
     )
 }
