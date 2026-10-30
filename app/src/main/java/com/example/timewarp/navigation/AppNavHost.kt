@@ -9,7 +9,7 @@ import com.example.timewarp.feature.example.RegisterScreen
 import com.example.timewarp.navigation.Screen
 
 @Composable
-fun TimewarpNavigation() {
+fun AppNavHost() {
     val navController = rememberNavController()
 
     NavHost(
