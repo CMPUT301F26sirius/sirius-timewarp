@@ -10,6 +10,7 @@ data class Campsite(
     val amenities: List<String> = emptyList<String>(),
     val tags: List<String> = emptyList<String>(),
 
+    val rating: Double = 0.0,
     var location: Location = Location(),
 
     val occupancy: Occupancy = Occupancy(),
