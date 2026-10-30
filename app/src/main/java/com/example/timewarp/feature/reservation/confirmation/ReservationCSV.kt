@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalUuidApi::class)
 
-package com.example.timewarp.feature.reservation.conformation
+package com.example.timewarp.feature.reservation.confirmation
 
 import com.example.timewarp.domain.model.Eric_Reservation
 import com.jsoizo.kotlincsv.csvWriter

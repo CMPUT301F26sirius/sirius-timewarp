@@ -49,7 +49,7 @@ class Eric_MockReservationRepository @Inject constructor(
         )
     }
 
-    override fun getReservation(id: String): Reservation? {
+    override fun getReservation(id: String): Eric_Reservation? {
         TODO("Not yet implemented")
     }
 }

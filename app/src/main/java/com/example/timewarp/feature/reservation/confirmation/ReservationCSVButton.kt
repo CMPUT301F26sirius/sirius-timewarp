@@ -2,7 +2,7 @@
 
 // I understand this code very poorly and am uncertain if it even works. Likely needs review/revise/re-visit/refactor
 
-package com.example.timewarp.feature.reservation.conformation
+package com.example.timewarp.feature.reservation.confirmation
 
 import android.content.Context
 import android.net.Uri

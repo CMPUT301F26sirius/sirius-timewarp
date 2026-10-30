@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.reservation.conformation
+package com.example.timewarp.feature.reservation.confirmation
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
