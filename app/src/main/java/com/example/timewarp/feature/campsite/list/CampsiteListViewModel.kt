@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.campsitelist
+package com.example.timewarp.feature.campsite.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,14 +24,14 @@ class CampsiteListViewModel @Inject constructor (
     val uiState = _uiState.asStateFlow()
 
 
-    // This code will run only when the ViewModel is created
-    // Init will help with UI not calling the ViewModel everytime a user change the screen
-    init {
-        viewModelScope.launch {
-            campsiteRepository.getCampsites().collect {
-                list -> _uiState.update { it.copy(campsites = list,
-                    isLoading = false) }
-            }
-        }
-    }
+//    // This code will run only when the ViewModel is created
+//    // Init will help with UI not calling the ViewModel everytime a user change the screen
+//    init {
+//        viewModelScope.launch {
+//            campsiteRepository.getCampsites().collect {
+//                list -> _uiState.update { it.copy(campsites = list,
+//                    isLoading = false) }
+//            }
+//        }
+//    }
 }

@@ -1,6 +1,5 @@
-package com.example.timewarp.feature.campsitelist
+package com.example.timewarp.feature.campsite.list
 
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,14 +60,14 @@ fun CampsiteSummary (
 @Preview(showBackground = true)
 @Composable
 private fun SummaryPreview() {
-    CampsiteSummary(
-        campsite = Campsite(
-            id = "1",
-            ownerId = "",
-            name = "Townsite Campground",
-            description = "A quite Campground for families",
-            location = Location("Waterton Park, Alberta"),
-            rating = 3.7
-        )
-    )
+//    CampsiteSummary(
+//        campsite = Campsite(
+//            id = "1",
+//            ownerId = "",
+//            name = "Townsite Campground",
+//            description = "A quite Campground for families",
+//            location = Location("Waterton Park, Alberta"),
+//            rating = 3.7
+//        )
+//    )
 }
