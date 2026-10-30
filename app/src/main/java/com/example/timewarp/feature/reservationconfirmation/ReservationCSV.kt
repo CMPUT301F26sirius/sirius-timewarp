@@ -1,5 +1,10 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package com.example.timewarp.feature.reservationconfirmation
+
+import com.example.timewarp.domain.model.Reservation
 import com.jsoizo.kotlincsv.csvWriter
+import kotlin.uuid.ExperimentalUuidApi
 
 val csvHeader = listOf(
     "Reservation #",
@@ -11,15 +16,15 @@ val csvHeader = listOf(
     "Location"
 )
 
-fun reservationCSV(confirmation: ReservationConfirmation): String {
+fun reservationCSV(reservation: Reservation): String {
     val row = listOf(
-        confirmation.reservationId,
-        confirmation.reservationTimestamp.toString(),
-        confirmation.reservationStartDate,
-        confirmation.reservationEndDate,
-        confirmation.entrantName,
-        confirmation.campsiteName,
-        confirmation.campsiteLocation
+        reservation.reservationId,
+        reservation.timestamp.toString(),
+        reservation.startDate,
+        reservation.endDate,
+        reservation.entrant.name,
+        reservation.campsite.name,
+        reservation.campsite.location.address
     )
     return csvWriter().writeAll(listOf(csvHeader, row))
 }
