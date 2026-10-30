@@ -18,7 +18,7 @@ class FakeAuthRepository @Inject constructor() : AuthRepository {
      *
      * @return the current user's ID, and `null` if no user is signed in.
      */
-    override fun getCurrentUserId(): String? {
+    override fun getUserId(): String? {
         return "0"
     }
 

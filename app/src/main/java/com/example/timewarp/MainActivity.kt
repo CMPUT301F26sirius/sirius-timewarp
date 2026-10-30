@@ -19,11 +19,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TimewarpTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    innerPadding -> CampsiteListScreen(modifier = Modifier.padding(innerPadding))
-                }
-
-               // AppNavHost()
+                AppNavHost()
             }
         }
     }

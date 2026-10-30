@@ -38,7 +38,7 @@ class StartupViewModel @Inject constructor(
             delay(1000L.milliseconds)
 
             try {
-                val userId = authRepository.getCurrentUserId()
+                val userId = authRepository.getUserId()
 
                 if (userId == null) {
                     _state.value = StartupState.Registration

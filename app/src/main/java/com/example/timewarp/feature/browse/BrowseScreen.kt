@@ -42,6 +42,7 @@ fun BrowseScreen(
             MainPage(
                 title = "A good day starts\noutside.",
                 subtitle = "PITCH/BROWSE",
+                modifier = modifier,
                 navController = navController,
             ) {
                 // Other stuff

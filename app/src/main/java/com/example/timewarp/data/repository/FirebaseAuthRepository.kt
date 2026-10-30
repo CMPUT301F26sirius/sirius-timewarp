@@ -27,7 +27,7 @@ class FirebaseAuthRepository @Inject constructor(
      *
      * @return the current Firebase user's ID, and `null` if no user is signed in.
      */
-    override fun getCurrentUserId(): String? {
+    override fun getUserId(): String? {
         return auth.currentUser?.uid
     }
 

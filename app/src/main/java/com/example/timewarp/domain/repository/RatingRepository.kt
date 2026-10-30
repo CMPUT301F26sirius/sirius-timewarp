@@ -9,6 +9,8 @@ interface RatingRepository {
 
     suspend fun getUserRatings(userId: String): MutableList<Rating>?
 
+    suspend fun getRatings(): MutableList<Rating>?
+
     suspend fun createRating(rating: Rating)
 
     suspend fun getRating(ratingId: String): Rating?

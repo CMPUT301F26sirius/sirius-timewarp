@@ -18,6 +18,21 @@ import javax.inject.Singleton
 class FirebaseUserRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : UserRepository {
+    override suspend fun getCampsiteOwners(): MutableList<User>? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getAdmins(): MutableList<User>? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getEntrants(): MutableList<User>? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getUsers(): MutableList<User>? {
+        TODO("Not yet implemented")
+    }
 
     /**
      * Writes to a user's Firestore document.

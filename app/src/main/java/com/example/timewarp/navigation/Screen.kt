@@ -4,4 +4,7 @@ sealed class Screen(val route: String) {
     data object Startup : Screen("startup")
     data object Registration : Screen("registration")
     data object Home : Screen("home")
+    data object CampsiteDetails : Screen("campsite/details") {
+        fun createRoute(campsiteId: String) = "$route/$campsiteId"
+    }
 }
