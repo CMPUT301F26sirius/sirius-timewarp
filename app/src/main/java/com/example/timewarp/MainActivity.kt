@@ -4,6 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
+import com.example.timewarp.feature.campsite.list.CampsiteListScreen
 import com.example.timewarp.ui.theme.TimewarpTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -14,7 +19,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TimewarpTheme {
-                AppNavHost()
+                Scaffold(modifier = Modifier.fillMaxSize()) {
+                    innerPadding -> CampsiteListScreen(modifier = Modifier.padding(innerPadding))
+                }
+
+               // AppNavHost()
             }
         }
     }
