@@ -45,6 +45,10 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
 //        )
 //    }
 
+    override suspend fun getCampsites(): MutableList<Campsite>? {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun createCampsite(campsite: Campsite) {
         TODO("Not yet implemented")
     }

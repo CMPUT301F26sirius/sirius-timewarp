@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.R
@@ -61,6 +62,7 @@ import com.example.timewarp.ui.theme.PitchLink
 @Composable
 fun RegistrationScreen(
     modifier: Modifier = Modifier,
+    screen: Screen = Screen.Registration,
     navController: NavController = rememberNavController(),
     viewModel: RegistrationViewModel = hiltViewModel(),
 ) {
@@ -76,10 +78,13 @@ fun RegistrationScreen(
             RegistrationState.Loading -> Unit
 
             is RegistrationState.Success -> {
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(Screen.Home.route) {
-                        inclusive = true
+                navController.navigate(Screen.Browse.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = false
+                        saveState = false
                     }
+                    launchSingleTop = true
+                    restoreState = false
                 }
             }
 

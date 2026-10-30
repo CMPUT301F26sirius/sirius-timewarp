@@ -17,7 +17,7 @@ sealed interface StartupState {
     data object Loading : StartupState
     data object Registration : StartupState
     data object ProfileSetup : StartupState
-    data class Home(val user: User) : StartupState
+    data object Browse : StartupState
     data class Error(val message: String) : StartupState
 }
 
@@ -38,7 +38,7 @@ class StartupViewModel @Inject constructor(
             delay(1000L.milliseconds)
 
             try {
-                val userId = authRepository.getCurrentUserId()
+                val userId = authRepository.getUserId()
 
                 if (userId == null) {
                     _state.value = StartupState.Registration
@@ -48,7 +48,7 @@ class StartupViewModel @Inject constructor(
                 val user = userRepository.getUser(userId)
 
                 _state.value = if (user != null) {
-                    StartupState.Home(user)
+                    StartupState.Browse
                 } else {
                     StartupState.ProfileSetup
                 }
