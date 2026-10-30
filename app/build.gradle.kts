@@ -84,4 +84,7 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
 
     implementation("androidx.compose.material:material-icons-extended")
+
+    implementation(libs.kotlin.csv)
 }
+

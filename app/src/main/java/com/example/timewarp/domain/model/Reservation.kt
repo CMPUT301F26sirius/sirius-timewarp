@@ -3,6 +3,7 @@ package com.example.timewarp.domain.model
 data class Reservation (
     val reservationId: String = "",
     val reservationState: ReservationState = ReservationState.Waitlisted,
+    val timestamp: Int,
 
     val campsiteId: String = "",
     val userId: String = "",
