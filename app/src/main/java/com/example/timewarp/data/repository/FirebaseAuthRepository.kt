@@ -1,10 +1,15 @@
 package com.example.timewarp.data.repository
 
+import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.repository.AuthRepository
+import com.example.timewarp.domain.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,13 +26,16 @@ import javax.inject.Singleton
  */
 @Singleton
 class FirebaseAuthRepository @Inject constructor(
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val userRepository: UserRepository
 ) : AuthRepository {
     override val currentUserId: Flow<String?> = callbackFlow {
         val listener = FirebaseAuth.AuthStateListener { auth ->
             trySend(auth.currentUser?.uid)
         }
+
         auth.addAuthStateListener(listener)
+
         awaitClose {
             auth.removeAuthStateListener(listener)
         }

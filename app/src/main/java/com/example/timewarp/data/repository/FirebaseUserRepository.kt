@@ -70,7 +70,6 @@ class FirebaseUserRepository @Inject constructor(
             .collection("users")
             .document(userId)
             .addSnapshotListener { snapshot, error ->
-
                 if (error != null) {
                     close(error)
                     return@addSnapshotListener

@@ -1,10 +1,11 @@
 package com.example.timewarp.data.repository
 
-import androidx.compose.runtime.mutableStateOf
 import com.example.timewarp.domain.model.Campsite
-import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,5 +67,27 @@ class FirebaseCampsiteRepository @Inject constructor(
      */
     override suspend fun queryCampsites(query: String): MutableList<Campsite> {
         TODO("Not yet implemented")
+    }
+
+    override fun observeCampsite(campsiteId: String): Flow<Campsite?> = callbackFlow {
+        val listener = firestore.collection("campsite")
+            .document(campsiteId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val campsite = snapshot
+                    ?.takeIf { it.exists() }
+                    ?.toObject(Campsite::class.java)
+                    ?.copy(campsiteId = campsiteId)
+
+                trySend(campsite)
+            }
+
+        awaitClose {
+            listener.remove()
+        }
     }
 }

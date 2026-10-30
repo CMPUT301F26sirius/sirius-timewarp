@@ -6,6 +6,7 @@ import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.UserRepository
+import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import com.example.timewarp.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,22 +29,12 @@ sealed interface NavigationState {
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class NavigationViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val userRepository: UserRepository
+    private val observeCurrentUser: ObserveCurrentUserUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow<NavigationState>(NavigationState.Idle)
     val state: StateFlow<NavigationState> = _state.asStateFlow()
 
-    val currentUser: Flow<User?> = authRepository.currentUserId
-        .flatMapLatest { userId ->
-            if (userId == null) {
-                flowOf(null)
-            } else {
-                userRepository.observeUser(userId)
-            }
-        }
-
-    val navigationItems: StateFlow<List<Screen>> = currentUser
+    val navigationItems: StateFlow<List<Screen>> = observeCurrentUser()
         .map { user ->
             if (user == null) {
                 emptyList<Screen>()
