@@ -2,7 +2,7 @@
 
 // I understand this code very poorly and am uncertain if it even works. Likely needs review/revise/re-visit/refactor
 
-package com.example.timewarp.feature.reservationconfirmation
+package com.example.timewarp.feature.reservation.conformation
 
 import android.content.Context
 import android.net.Uri
@@ -15,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.example.timewarp.domain.model.Reservation
+import com.example.timewarp.domain.model.Eric_Reservation
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun ReservationCSVButton(
-    reservation: Reservation,
+    reservation: Eric_Reservation,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
