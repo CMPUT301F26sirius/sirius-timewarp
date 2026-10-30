@@ -1,18 +1,13 @@
 package com.example.timewarp.domain.model
 
-import java.time.LocalDate
-import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
-
-data class Reservation @OptIn(ExperimentalUuidApi::class) constructor(
+data class Reservation (
     val reservationId: String = "",
-    val timestamp: Instant,
-    val startDate: String,
-    val endDate: String,
-    val entrant: Entrant,
-    val campsite: Campsite,
-<<<<<<< Updated upstream
+    val reservationState: ReservationState = ReservationState.Waitlisted,
+    val timestamp: Int,
 
-=======
+    val campsiteId: String = "",
+    val userId: String = "",
+
+    val datesBooked: Availability = Availability(),
+    val pricingUsed: Pricing = Pricing()
 )
->>>>>>> Stashed changes
