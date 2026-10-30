@@ -5,7 +5,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun SubPageTemplate(
+fun SubPage(
     title: String = "",
     navController: NavController = rememberNavController(),
     content: @Composable () -> Unit

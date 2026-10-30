@@ -40,7 +40,8 @@ fun BrowseScreen(
             modifier = Modifier.padding(paddingValues)
         ) {
             MainPage(
-                title = "Browse",
+                title = "A good day starts\noutside.",
+                subtitle = "PITCH/BROWSE",
                 navController = navController,
             ) {
                 // Other stuff
