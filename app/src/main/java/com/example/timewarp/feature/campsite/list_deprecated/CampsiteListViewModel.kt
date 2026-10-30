@@ -1,14 +1,11 @@
-package com.example.timewarp.feature.campsite.list
+package com.example.timewarp.feature.campsite.list_deprecated
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.repository.CampsiteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class CampsiteListState (

@@ -2,6 +2,9 @@ package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,6 +23,15 @@ import javax.inject.Singleton
 class FirebaseAuthRepository @Inject constructor(
     private val auth: FirebaseAuth
 ) : AuthRepository {
+    override val currentUserId: Flow<String?> = callbackFlow {
+        val listener = FirebaseAuth.AuthStateListener { auth ->
+            trySend(auth.currentUser?.uid)
+        }
+        auth.addAuthStateListener(listener)
+        awaitClose {
+            auth.removeAuthStateListener(listener)
+        }
+    }
 
     /**
      * Returns the ID of the currently signed-in Firebase user, and `null` when
@@ -27,7 +39,7 @@ class FirebaseAuthRepository @Inject constructor(
      *
      * @return the current Firebase user's ID, and `null` if no user is signed in.
      */
-    override fun getCurrentUserId(): String? {
+    override fun getUserId(): String? {
         return auth.currentUser?.uid
     }
 

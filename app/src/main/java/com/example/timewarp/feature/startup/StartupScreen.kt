@@ -31,6 +31,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.R
 import com.example.timewarp.navigation.Screen
@@ -42,6 +43,7 @@ import com.example.timewarp.ui.theme.PitchForest
 @Composable
 fun StartupScreen(
     modifier: Modifier = Modifier,
+    screen: Screen = Screen.Startup,
     navController: NavController = rememberNavController(),
     viewModel: StartupViewModel = hiltViewModel(),
 ) {
@@ -55,25 +57,34 @@ fun StartupScreen(
 
             StartupState.Registration -> {
                 navController.navigate(Screen.Registration.route) {
-                    popUpTo(Screen.Startup.route) {
-                        inclusive = true
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = false
+                        saveState = false
                     }
+                    launchSingleTop = true
+                    restoreState = false
                 }
             }
 
-            is StartupState.Home -> {
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(Screen.Home.route) {
-                        inclusive = true
+            is StartupState.Browse -> {
+                navController.navigate(Screen.Browse.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = false
+                        saveState = false
                     }
+                    launchSingleTop = true
+                    restoreState = false
                 }
             }
 
             StartupState.ProfileSetup -> {
                 navController.navigate(Screen.Registration.route) {
-                    popUpTo(Screen.Registration.route) {
-                        inclusive = true
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = false
+                        saveState = false
                     }
+                    launchSingleTop = true
+                    restoreState = false
                 }
             }
 

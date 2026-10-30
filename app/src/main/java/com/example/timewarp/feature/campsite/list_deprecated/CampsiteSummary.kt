@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.campsite.list
+package com.example.timewarp.feature.campsite.list_deprecated
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.timewarp.domain.model.Campsite
-import com.example.timewarp.domain.model.Location
 
 @Composable
 fun CampsiteSummary (
