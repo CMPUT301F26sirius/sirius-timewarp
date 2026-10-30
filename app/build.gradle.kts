@@ -46,12 +46,6 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
-    }
-}
-
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
