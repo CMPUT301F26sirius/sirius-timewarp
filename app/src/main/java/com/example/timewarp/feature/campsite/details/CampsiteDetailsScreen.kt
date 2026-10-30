@@ -15,14 +15,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.timewarp.ui.template.MainPage
-import com.example.timewarp.ui.template.SubPage
+import com.example.timewarp.feature.navigation.NavigationScreen
+import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.theme.TimewarpTheme
 
 @Composable
 fun CampsiteDetailsScreen(
     campsiteId: String,
     modifier: Modifier = Modifier,
+    screen: Screen = Screen.CampsiteDetails,
     navController: NavController = rememberNavController(),
     viewModel: CampsiteDetailsViewModel = hiltViewModel()
 ) {
@@ -36,21 +37,14 @@ fun CampsiteDetailsScreen(
     }
 
     // User Interface
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            SubPage(
-                title = "A good day starts\noutside.",
-                subtitle = "PITCH/CAMPSITE/DETAILS",
-                navController = navController,
-            ) {
-                // Other stuff
-                Text(campsiteId)
-            }
-        }
+    NavigationScreen(
+        screen = screen,
+        modifier = modifier,
+        navController = navController,
+    ) {
+        Text(
+            text = "Campsite details"
+        )
     }
 }
 

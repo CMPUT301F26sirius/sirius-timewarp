@@ -3,6 +3,9 @@ package com.example.timewarp.data.repository
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.repository.UserRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -60,5 +63,29 @@ class FirebaseUserRepository @Inject constructor(
 
         return document.toObject(User::class.java)
             ?.copy(userId = document.id)
+    }
+
+    override fun observeUser(userId: String): Flow<User?> = callbackFlow {
+        val listener = firestore
+            .collection("users")
+            .document(userId)
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val user = snapshot
+                    ?.takeIf { it.exists() }
+                    ?.toObject(User::class.java)
+                    ?.copy(userId = userId)
+
+                trySend(user)
+            }
+
+        awaitClose {
+            listener.remove()
+        }
     }
 }

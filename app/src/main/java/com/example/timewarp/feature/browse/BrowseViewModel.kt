@@ -17,9 +17,6 @@ import kotlinx.coroutines.launch
 
 sealed interface RegistrationState {
     data object Idle : RegistrationState
-    data object Loading : RegistrationState
-    data class Success(val user: User) : RegistrationState
-    data class Error(val message: String) : RegistrationState
 }
 
 @HiltViewModel
