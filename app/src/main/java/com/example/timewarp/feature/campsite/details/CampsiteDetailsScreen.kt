@@ -1,10 +1,8 @@
 package com.example.timewarp.feature.campsite.details
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,8 +13,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
+import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.ui.theme.TimewarpTheme
 
 @Composable
@@ -32,8 +30,8 @@ fun CampsiteDetailsScreen(
     val scrollState = rememberScrollState()
 
     // State Interpretation & Navigation
-    LaunchedEffect(state) {
-
+    LaunchedEffect(campsiteId) {
+        viewModel.observe(campsiteId)
     }
 
     // User Interface
@@ -42,9 +40,55 @@ fun CampsiteDetailsScreen(
         modifier = modifier,
         navController = navController,
     ) {
-        Text(
-            text = "Campsite details"
-        )
+        Column(
+            modifier = Modifier.verticalScroll(scrollState)
+        ) {
+            when (val currentState = state) {
+                CampsiteDetailsState.Loading -> Text("Loading campsite details...")
+                is CampsiteDetailsState.Error -> Text("Error: ${currentState.message}")
+
+                is CampsiteDetailsState.Content -> {
+                    // Campsite
+                    val campsite = currentState.campsite
+                    Text(text = "Name: ${campsite.name}")
+                    Text(text = "Description: ${campsite.description}")
+                    Text(text = "Address: ${campsite.location.address}")
+                    Text(text = "Rating: ${campsite.rating}")
+                    Text(text = "Amenities: ${campsite.amenities.joinToString()}")
+                    Text(text = "Tags: ${campsite.tags.joinToString()}")
+
+                    // Owner info
+                    Text("Owner")
+                    Text(text = currentState.ownerUser?.let { "User ID: ${it.userId}, Role: ${it.userType}" } ?: "Owner information unavailable")
+                    currentState.ownerProfile?.let {
+                        Text(text = "Profile: ${it.firstName} ${it.lastName}\nEmail: ${it.email}\nPhone: ${it.phoneNumber}")
+                    }
+
+                    // Your type
+                    Text(text = "Viewing as: ${currentState.currentUser?.userType ?: "Signed out"}")
+
+                    // Ratings
+                    Text(text = "Ratings (${currentState.ratings.size})")
+                    if (currentState.ratings.isEmpty()) {
+                        Text(text = "No ratings yet")
+                    } else {
+                        currentState.ratings.forEach {
+                            Text(text = "${it.rating}/5 - ${it.review}")
+                        }
+                    }
+
+                    // Lotteries
+                    Text(text = "Lotteries (${currentState.lotteries.size})")
+                    if (currentState.lotteries.isEmpty()) {
+                        Text(text = "No lotteries")
+                    } else {
+                        currentState.lotteries.forEach {
+                            Text(text = "${it.lotteryId}: ${it.winnerCount} winners, ${it.waitlistCapacity} waitlist spaces")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

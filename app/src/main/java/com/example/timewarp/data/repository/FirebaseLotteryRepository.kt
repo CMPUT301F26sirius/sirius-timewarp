@@ -5,6 +5,9 @@ import com.example.timewarp.domain.model.Rating
 import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.RatingRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,5 +36,27 @@ class FirebaseLotteryRepository @Inject constructor(
 
     override suspend fun getLottery(lotteryId: String): Lottery? {
         TODO("Not yet implemented")
+    }
+
+    override fun observeCampsiteLotteries(campsiteId: String): Flow<List<Lottery>> = callbackFlow {
+        val listener = firestore.collection("lottery")
+            .whereArrayContains("campsiteIds", campsiteId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val lotteries = snapshot
+                    ?.documents
+                    .orEmpty()
+                    .mapNotNull { it.toObject(Lottery::class.java)?.copy(lotteryId = it.id) }
+
+                trySend(lotteries)
+            }
+
+        awaitClose {
+            listener.remove()
+        }
     }
 }
