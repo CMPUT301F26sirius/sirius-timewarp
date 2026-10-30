@@ -1,40 +1,34 @@
-package com.example.timewarp.feature.example
+package com.example.timewarp.feature.registration
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material.icons.outlined.VerifiedUser
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -50,8 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.R
+import com.example.timewarp.domain.model.UserType
+import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.BaseInput
 import com.example.timewarp.ui.component.BaseInputType
 import com.example.timewarp.ui.component.IconPill
@@ -61,15 +59,41 @@ import com.example.timewarp.ui.theme.BrandGradient
 import com.example.timewarp.ui.theme.PitchLink
 
 @Composable
-fun RegisterScreen(
+fun RegistrationScreen(
     modifier: Modifier = Modifier,
-    viewModel: RegisterViewModel = hiltViewModel(),
+    navController: NavController = rememberNavController(),
+    viewModel: RegistrationViewModel = hiltViewModel(),
 ) {
+    // State
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val scrollState = rememberScrollState()
+
+    // State Interpretation & Navigation
+    LaunchedEffect(state) {
+        when (val current = state) {
+            RegistrationState.Idle -> Unit
+
+            RegistrationState.Loading -> Unit
+
+            is RegistrationState.Success -> {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Home.route) {
+                        inclusive = true
+                    }
+                }
+            }
+
+            is RegistrationState.Error -> {
+                // Show an error and provide a retry action.
+            }
+        }
+    }
+
+    // User Interface
     Scaffold(
         modifier = modifier.fillMaxSize(),
     ) { paddingValues ->
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        val scrollState = rememberScrollState()
+        // string building
         val termsString = buildAnnotatedString {
             append("By continuing, you agree to our ")
             withLink(
@@ -83,6 +107,10 @@ fun RegisterScreen(
             }
             append(".")
         }
+
+        // Remember
+        var userType by remember {mutableStateOf("Camper")}
+        var adminCode by remember {mutableStateOf("")}
 
         Column(
             modifier = modifier
@@ -204,18 +232,20 @@ fun RegisterScreen(
                 ) {
                     BaseInput(
                         label = "What kind of user are you?",
-                        value = "Entrant",
+                        value = userType,
                         placeholder = "",
-                        onValueChange = {},
-                        type = BaseInputType.Dropdown(listOf<String>("Entrant", "Campsite Owner", "Admin"))
+                        onValueChange = {userType = it},
+                        type = BaseInputType.Dropdown(listOf<String>("Camper", "Campsite Owner", "Admin"))
                     )
-                    BaseInput(
-                        label = "Please enter the admin code",
-                        value = "",
-                        placeholder = "",
-                        onValueChange = {},
-                        type = BaseInputType.Text(4, 20)
-                    )
+                    if (userType == "Admin") {
+                        BaseInput(
+                            label = "Please enter the admin code",
+                            value = adminCode,
+                            placeholder = "",
+                            onValueChange = {adminCode = it},
+                            type = BaseInputType.Text(4, 20)
+                        )
+                    }
                 }
 
                 // Registering
@@ -226,7 +256,16 @@ fun RegisterScreen(
                         .fillMaxWidth()
                 ) {
                     IconButton(
-                        onClick = {},
+                        onClick = {
+                            if (userType == "Admin" && adminCode == "1234") {
+                                // Very secure :thumbs_up:
+                                viewModel.register(UserType.Admin)
+                            } else if (userType == "Camper") {
+                                viewModel.register(UserType.Entrant)
+                            } else if (userType == "Campsite Owner") {
+                                viewModel.register(UserType.CampsiteOwner)
+                            }
+                        },
                         icon = Icons.Outlined.VerifiedUser,
                         text = "Register this device",
                         modifier = Modifier.fillMaxWidth()
@@ -252,13 +291,10 @@ fun RegisterScreen(
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun RegisterScreenPreview() {
     TimewarpTheme() {
-        RegisterScreen(
-            viewModel = RegisterViewModel()
-        )
+        RegistrationScreen()
     }
 }
