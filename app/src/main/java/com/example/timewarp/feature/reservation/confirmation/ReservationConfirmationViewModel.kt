@@ -1,31 +1,26 @@
-package com.example.timewarp.feature.reservationconfirmation
+package com.example.timewarp.feature.reservation.confirmation
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.timewarp.data.repository.FakeReservationRepository
-import com.example.timewarp.domain.model.Reservation
-import com.example.timewarp.domain.repository.ReservationRepository
-import com.example.timewarp.feature.startup.StartupState
+import com.example.timewarp.domain.model.Eric_Reservation
+import com.example.timewarp.domain.repository.Eric_ReservationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.uuid.Uuid
 
 sealed interface ReservationConfirmationState {
     data object Loading : ReservationConfirmationState
     data object  Empty : ReservationConfirmationState
-    data class Success(val reservation: Reservation) : ReservationConfirmationState
+    data class Success(val reservation: Eric_Reservation) : ReservationConfirmationState
     data class Error(val message: String): ReservationConfirmationState
 }
 
 @HiltViewModel
 class ReservationConfirmationViewModel @Inject constructor(
-    private val reservationRepository: ReservationRepository,
+    private val reservationRepository: Eric_ReservationRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow<ReservationConfirmationState>(
