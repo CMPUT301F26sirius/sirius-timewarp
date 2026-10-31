@@ -3,6 +3,8 @@ package com.example.timewarp.data.repository
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.repository.CampsiteRepository
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
 //    override fun getCampsites(): Flow<List<Campsite>> {
@@ -64,4 +66,8 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
     override suspend fun queryCampsites(query: String): MutableList<Campsite> {
         TODO("Not yet implemented")
     }
+
+    override fun observeCampsite(campsiteId: String): Flow<Campsite?> = flowOf(
+        null
+    )
 }

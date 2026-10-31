@@ -3,6 +3,9 @@ package com.example.timewarp.data.repository
 import com.example.timewarp.domain.model.Profile
 import com.example.timewarp.domain.repository.ProfileRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,5 +34,27 @@ class FirebaseProfileRepository @Inject constructor(
 
     override suspend fun getProfile(userId: String): Profile? {
         TODO("Not yet implemented")
+    }
+
+    override fun observeProfile(userId: String): Flow<Profile?> = callbackFlow {
+        val listener = firestore.collection("profile")
+            .document(userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val profile = snapshot
+                    ?.takeIf { it.exists() }
+                    ?.toObject(Profile::class.java)
+                    ?.copy(userId = userId)
+
+                trySend(profile)
+            }
+
+        awaitClose {
+            listener.remove()
+        }
     }
 }
