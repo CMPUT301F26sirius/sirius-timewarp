@@ -1,6 +1,9 @@
 package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Campsite
+import com.example.timewarp.domain.model.Location
+import com.example.timewarp.domain.model.Occupancy
+import com.example.timewarp.domain.model.Pricing
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
@@ -27,7 +30,11 @@ class FirebaseCampsiteRepository @Inject constructor(
      * @returns A list of campsite objects.
      */
     override suspend fun getCampsites(): MutableList<Campsite>? {
-        TODO("Not yet implemented")
+        val snapshot = firestore.collection("campsite").get().await()
+        return snapshot.documents.mapNotNull {
+            doc -> doc.toObject(Campsite::class.java)?.copy(campsiteId = doc.id)
+        }
+            .toMutableList()
     }
 
     /**
