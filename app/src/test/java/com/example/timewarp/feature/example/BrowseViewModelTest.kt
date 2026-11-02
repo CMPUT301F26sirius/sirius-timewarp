@@ -2,11 +2,11 @@ package com.example.timewarp.feature.example
 
 import com.example.timewarp.data.repository.MockCampsiteRepository
 import com.example.timewarp.domain.model.Campsite
+import com.example.timewarp.domain.model.CampsiteFilter
 import com.example.timewarp.domain.model.Rating
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.RatingRepository
 import com.example.timewarp.feature.browse.BrowseViewModel
-import com.example.timewarp.feature.browse.FilterCampsite
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNotNull
@@ -46,22 +46,22 @@ class BrowseViewModelTest {
     @Test
     fun sevenGuests_returnEmpty() {
         val vm = viewModel()
-        vm.onFiltersChanged(FilterCampsite(guests = 7))
+        vm.onFiltersChanged(CampsiteFilter(guests = 7))
         assertTrue(vm.state.value.campsites.isEmpty())
     }
 
     @Test
     fun sixGuests_returnBoth() {
         val vm = viewModel()
-        vm.onFiltersChanged(FilterCampsite(guests = 6))
+        vm.onFiltersChanged(CampsiteFilter(guests = 6))
         assertEquals(2, vm.state.value.campsites.size)
     }
 
     @Test
     fun clearFilters_restoresList() {
         val vm = viewModel()
-        vm.onFiltersChanged(FilterCampsite(guests = 7))
-        vm.onFiltersChanged(FilterCampsite())
+        vm.onFiltersChanged(CampsiteFilter(guests = 7))
+        vm.onFiltersChanged(CampsiteFilter())
         assertEquals(2, vm.state.value.campsites.size)
     }
 

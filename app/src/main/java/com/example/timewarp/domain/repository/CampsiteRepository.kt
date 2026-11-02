@@ -2,7 +2,6 @@ package com.example.timewarp.domain.repository
 
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Location
-import com.example.timewarp.feature.browse.FilterCampsite
 import kotlinx.coroutines.flow.Flow
 
 interface CampsiteRepository {

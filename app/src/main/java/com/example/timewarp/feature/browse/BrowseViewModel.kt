@@ -3,6 +3,7 @@ package com.example.timewarp.feature.browse
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.Campsite
+import com.example.timewarp.domain.model.CampsiteFilter
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.RatingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,7 @@ data class BrowseState(
     val campsites: List<Campsite> = emptyList(),
     val isLoading: Boolean = true,
     val error: String? = null,
-    val filters: FilterCampsite = FilterCampsite()
+    val filters: CampsiteFilter = CampsiteFilter()
 )
 @HiltViewModel
 class BrowseViewModel @Inject constructor(
@@ -38,7 +39,7 @@ class BrowseViewModel @Inject constructor(
         onFiltersChanged(state.value.filters)
     }
 
-    fun onFiltersChanged(newFilters: FilterCampsite) {
+    fun onFiltersChanged(newFilters: CampsiteFilter) {
         filterJob?.cancel()
         filterJob = viewModelScope.launch {
             _state.update { it.copy(filters = newFilters, isLoading = true, error = null) }
