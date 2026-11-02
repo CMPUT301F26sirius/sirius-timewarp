@@ -25,7 +25,7 @@ sealed class Screen(
     data object Alerts : Screen("alerts", "Alerts", "Alerts", Icons.Outlined.Alarm)
     data object Account : Screen("account", "Account", "Account", Icons.Outlined.AccountBox)
     data object Moderate : Screen("moderate", "Moderate", "Moderate", Icons.Outlined.AddModerator)
-    data object UpdateProfile : Screen("update_profile", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
+    data object UpdateProfile : Screen("update", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
 
     // Dynamic routes.
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {

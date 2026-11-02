@@ -1,6 +1,5 @@
-package com.example.timewarp.feature.profile
+package com.example.timewarp.feature.profile.update
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.Profile
@@ -20,17 +19,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// TEMP: true to test the UI without Firebase. Set to false before committing.
-private const val USE_FAKE_DATA = true
-
-private val fakeProfile = Profile(
-    userId = "fake-user",
-    firstName = "John",
-    lastName = "Doe",
-    email = "johndoe@gmail.com",
-    phoneNumber = "5870000000"
-)
-
+private val TEST_USER_ID: String? = null // set to "test-user" during testing
+/*
+Main Responsibility: Every state the update profile screen can be in
+ */
 sealed interface UpdateProfileState {
     data object Loading: UpdateProfileState
     data class Content (
@@ -48,7 +40,14 @@ sealed interface UpdateProfileState {
     }
     data class Error (val message: String) : UpdateProfileState
 }
+/*
+Main responsibility: View model for the update profile screen. Load the signed-in users profile,
+                     into an editable form. Tracks changes, validates changes, and saves results
 
+Parameters: profileRepository: Saves the edited profile
+            observeCurrentUser: Provides the signed=in user, or null if not signed in
+            observeUserProfile: Provides the profile for given UserID
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class UpdateProfileViewModel @Inject constructor(
@@ -56,6 +55,7 @@ class UpdateProfileViewModel @Inject constructor(
     private val observeCurrentUser: ObserveCurrentUserUseCase,
     private val observeUserProfile: ObserveUserProfileUseCase
 ) : ViewModel() {
+    // Current Screen state
     private val _state = MutableStateFlow<UpdateProfileState>(UpdateProfileState.Loading)
     val state: StateFlow<UpdateProfileState> = _state.asStateFlow()
 
@@ -66,38 +66,31 @@ class UpdateProfileViewModel @Inject constructor(
         load()
     }
 
-    // Loads the signed-in user's profile once. Not observed, so live
-    // updates don't overwrite what the user is typing.
+
+    /*
+    Main Responsibility: Reads the profile. Sets state when loaded, or when no user is signed in,
+                         or loading fails. If the user has no profile, the form starts blank and
+                         saving creates one.
+     */
     fun load() {
         viewModelScope.launch {
             _state.value = UpdateProfileState.Loading
 
-            if (USE_FAKE_DATA) {
-                delay(500)  // So the loading state is visible
-                showProfile(fakeProfile)
-                return@launch
-            }
-
             try {
-                val userProfile = observeCurrentUser()
-                    .flatMapLatest { user ->
-                        if (user == null) flowOf(null) else observeUserProfile(user.userId)
-                    }
-                    .first()
-
-                val profile = userProfile?.profile
-                if (profile == null) {
-                    _state.value = UpdateProfileState.Error("Profile not found.")
+                val userId = TEST_USER_ID ?: observeCurrentUser().first()?.userId
+                if (userId == null) {
+                    _state.value = UpdateProfileState.Error("You need to be signed in to update your profile.")
                     return@launch
                 }
 
-                originalProfile = profile
-                _state.value = UpdateProfileState.Content(
-                    firstName = profile.firstName,
-                    lastName = profile.lastName,
-                    email = profile.email,
-                    phoneNumber = profile.phoneNumber
-                )
+                val profile = if (TEST_USER_ID != null) {
+                    profileRepository.getProfile(userId)
+                } else {
+                    observeUserProfile(userId).first()?.profile
+                }
+
+                // No profile yet: start blank, and saving creates it
+                showProfile(profile ?: Profile(userId = userId))
             } catch (error: Exception) {
                 _state.value = UpdateProfileState.Error(
                     error.message ?: "Unable to load profile."
@@ -105,7 +98,11 @@ class UpdateProfileViewModel @Inject constructor(
             }
         }
     }
+    /*
+    Main Responsibility: Fills form with loaded profile
 
+    Parameters: profile: Profile, whose values are the form's starting values.
+     */
     private fun showProfile(profile: Profile) {
         originalProfile = profile
         _state.value = UpdateProfileState.Content(
@@ -116,12 +113,17 @@ class UpdateProfileViewModel @Inject constructor(
         )
     }
 
-    // Form events
+    // Form events which update each field
     fun onFirstNameChange(value: String) = updateContent { copy(firstName = value) }
     fun onLastNameChange(value: String) = updateContent { copy(lastName = value) }
     fun onEmailChange(value: String) = updateContent { copy(email = value) }
     fun onPhoneNumberChange(value: String) = updateContent { copy(phoneNumber = value) }
 
+    /*
+    Main Responsibility: Trim each field (in case of whitespaces), copies values into profile.
+                         While saving sends message that it's saving. Sets profile when saving
+                         succeeds. On failure sends error so user can try again.
+     */
     fun save() {
         val current = _state.value as? UpdateProfileState.Content ?: return
         val profile = originalProfile ?: return
@@ -131,29 +133,7 @@ class UpdateProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
 
-            try {
-                val updated = profile.copy(
-                    firstName = current.firstName.trim(),
-                    lastName = current.lastName.trim(),
-                    email = current.email.trim(),
-                    phoneNumber = current.phoneNumber.trim()
-                )
-
-                if (USE_FAKE_DATA) {
-                    delay(1000)  // Pretend to save, so "Saving..." is visible
-                    Log.d("UpdateProfile", "Fake save: $updated")
-                } else {
-                    profileRepository.editProfile(userId = profile.userId, profile = updated)
-                }
-
-                updateContent { copy(isSaving = false, isSaved = true) }
-            } catch (error: Exception) {
-                updateContent {
-                    copy(isSaving = false, saveError = error.message ?: "Unable to save profile.")
-                }
-            }
-
-          /*  try {
+          try {
                 profileRepository.editProfile(
                     userId = profile.userId,
                     profile = profile.copy(
@@ -170,7 +150,6 @@ class UpdateProfileViewModel @Inject constructor(
                 }
             }
 
-           */
         }
     }
 

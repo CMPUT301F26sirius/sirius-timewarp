@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.profile
+package com.example.timewarp.feature.profile.update
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,13 +18,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -39,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -51,8 +50,15 @@ import com.example.timewarp.ui.component.BaseInput
 import com.example.timewarp.ui.component.BaseInputType
 import com.example.timewarp.ui.theme.TimewarpTheme
 /*
-Main Responsibility: Get profile data, update user profile (Name, email, phone number,
-                     profile picture, etc.)
+Main Responsibility: Screen where we connect UpdateProfileViewModel to the UI. It collects
+                     the view model's state, shows a loading message, an error, or updateProfileForm
+                     to match. Returns to previous screen once save is successful.
+
+Parameters: - Modifier: Modifier applied to the surrounding (NavigationScreen)
+            - screen: Navigation destination for this screen, used for the title and bottom bar
+            - navController: Controller used to go back if either saved or canceled update
+            - viewModel: Holds the state of the screen and loads and saves profile. (provided by\
+            hilt)
  */
 
 @Composable
@@ -98,7 +104,6 @@ fun UpdateProfileScreen(
                     onLastNameChange = viewModel::onLastNameChange,
                     onEmailChange = viewModel::onEmailChange,
                     onPhoneNumberChange = viewModel::onPhoneNumberChange,
-                    onBack = { navController.popBackStack() },
                     onSave = viewModel::save,
                     onCancel = { navController.popBackStack() }
                 )
@@ -106,15 +111,27 @@ fun UpdateProfileScreen(
         }
     }
 }
+/*
+Main Responsibility: Displays the current fields, as well as placeholder for things such as
+                     interests, and photos. Reports user action through callback.
+Important Note: This function holds no profile data itself. Designed this way so that we could
+                preview and test with any state. Also use internal so we can do testing
 
+Parameters: state: Current state
+            onFirstNameChange: Called when new text
+            onLastNameChange: Called when new text
+            onEmailChange: Called when new text
+            onPhoneNumberChange: Called when new text
+            onSave: Called when update is pressed
+            onCancel: Called when cancel is pressed
+ */
 @Composable
-private fun UpdateProfileForm(
+internal fun UpdateProfileForm(
     state: UpdateProfileState.Content,
     onFirstNameChange: (String) -> Unit,
     onLastNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPhoneNumberChange: (String) -> Unit,
-    onBack: () -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit
 ){
@@ -133,7 +150,11 @@ private fun UpdateProfileForm(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // BaseInput's Text type ignores `modifier`, so weight goes on a wrapper
-            Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                .weight(1f)
+                .testTag("updateFirstName")
+            ) {
                 BaseInput(
                     label = "First Name",
                     value = state.firstName,
@@ -142,7 +163,11 @@ private fun UpdateProfileForm(
                     placeholder = "John"
                 )
             }
-            Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                .weight(1f)
+                .testTag("updateLastName")
+            ) {
                 BaseInput(
                     label = "Last Name",
                     value = state.lastName,
@@ -152,22 +177,25 @@ private fun UpdateProfileForm(
                 )
             }
         }
+        Box(modifier = Modifier.testTag("updateEmail")) {
+            BaseInput(
+                label = "Email",
+                value = state.email,
+                onValueChange = onEmailChange,
+                type = BaseInputType.Text(maxChars = 100),
+                placeholder = "johndoe@gmail.com"
+            )
+        }
 
-        BaseInput(
-            label = "Email",
-            value = state.email,
-            onValueChange = onEmailChange,
-            type = BaseInputType.Text(maxChars = 100),
-            placeholder = "johndoe@gmail.com"
-        )
-
-        BaseInput(
-            label = "Phone",
-            value = state.phoneNumber,
-            onValueChange = onPhoneNumberChange,
-            type = BaseInputType.Text(minChars = 10, maxChars = 15),
-            placeholder = "+1 (587) 000-0000"
-        )
+        Box(modifier = Modifier.testTag("updatePhoneNumber")) {
+            BaseInput(
+                label = "Phone",
+                value = state.phoneNumber,
+                onValueChange = onPhoneNumberChange,
+                type = BaseInputType.Text(minChars = 10, maxChars = 15),
+                placeholder = "+1 (587) 000-0000"
+            )
+        }
 
         // Photo
         Text("Update photo", style = MaterialTheme.typography.titleMedium)
@@ -247,7 +275,8 @@ private fun UpdateProfileForm(
             enabled = state.canSave,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(48.dp)
+                .testTag("updateButton"),
             shape = RoundedCornerShape(10.dp)
         ) {
             Text(if (state.isSaving) "Saving..." else "Update")
@@ -257,7 +286,8 @@ private fun UpdateProfileForm(
             onClick = onCancel,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(48.dp)
+                .testTag("cancelButton"),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = MaterialTheme.colorScheme.surface,
@@ -271,6 +301,14 @@ private fun UpdateProfileForm(
 
 }
 
+/*
+Main responsibility: Display one singular interest and makes it clickable with a checkbox
+
+Parameters: text: name of interest
+            checked: whether the interest is selected
+            onToggle: Called when the box or checkbox is tapped
+            modifier: modifier applied to the entire box
+ */
 @Composable
 private fun InterestOption(
     text: String,
@@ -299,6 +337,10 @@ private fun InterestOption(
     }
 }
 
+/*
+Main Responsibility: Used to preview layout without running. So no need for firebase or hilt.
+                     Information provided simply for previewing the layout.
+ */
 @Preview(showBackground = true)
 @Composable
 fun UpdateProfilePreview() {
@@ -314,7 +356,6 @@ fun UpdateProfilePreview() {
             onLastNameChange = {},
             onEmailChange = {},
             onPhoneNumberChange = {},
-            onBack = {},
             onSave = {},
             onCancel = {}
         )

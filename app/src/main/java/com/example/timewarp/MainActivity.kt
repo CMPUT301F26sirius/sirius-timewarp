@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.timewarp.feature.profile.UpdateProfileScreen
+import com.example.timewarp.feature.profile.update.UpdateProfileScreen
 import com.example.timewarp.ui.theme.TimewarpTheme
 import dagger.hilt.android.AndroidEntryPoint
 
