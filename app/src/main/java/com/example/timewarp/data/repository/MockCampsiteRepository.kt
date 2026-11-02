@@ -95,4 +95,11 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
     override fun observeCampsite(campsiteId: String): Flow<Campsite?> = flowOf(
         null
     )
+
+    override suspend fun filterCampsites(location: String, guests: Int?): MutableList<Campsite>? {
+        return getCampsites().orEmpty().filter {
+            campsite -> (guests == null || campsite.occupancy.maxGuests >= guests) &&
+                (location.isBlank() || campsite.location.address.contains(location.trim(), ignoreCase = true))
+        }.toMutableList()
+    }
 }

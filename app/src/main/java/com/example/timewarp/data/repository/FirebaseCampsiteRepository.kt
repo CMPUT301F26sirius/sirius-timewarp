@@ -1,9 +1,6 @@
 package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Campsite
-import com.example.timewarp.domain.model.Location
-import com.example.timewarp.domain.model.Occupancy
-import com.example.timewarp.domain.model.Pricing
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
@@ -12,6 +9,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+
 
 /**
  * Firebase-backed implementation of [CampsiteRepository].
@@ -97,4 +95,22 @@ class FirebaseCampsiteRepository @Inject constructor(
             listener.remove()
         }
     }
+
+    /**
+     * Returns campsites which holds at least # of guests and whose address contain "location"
+     * Guests are filtered by FireStore
+     */
+    override suspend fun filterCampsites(location: String, guests: Int?): MutableList<Campsite>? {
+        val collection = firestore.collection("campsite")
+        val query = if (guests != null) {
+            collection.whereGreaterThanOrEqualTo("occupancy.maxGuests", guests)
+        } else  {
+            collection
+        }
+        val snapshot = query.get().await()
+        return snapshot.documents.mapNotNull { it.toObject(Campsite::class.java)?.copy(campsiteId = it.id) }
+            .filter { location.isBlank() || it.location.address.contains(location.trim(), ignoreCase = true) }
+            .toMutableList()
+    }
+
 }

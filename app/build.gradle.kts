@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.timewarp"
-        minSdk = 26
+        minSdk = 24
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -86,5 +86,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     implementation(libs.kotlin.csv)
+
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }
 

@@ -130,28 +130,3 @@ private fun BrowseContentPreview() {
 }
 
 
-//    val scrollState = rememberScrollState()
-//
-//    // State Interpretation & Navigation
-//    LaunchedEffect(state) {
-//
-//    }
-//
-//    // User Interface
-//    NavigationScreen(
-//        screen = screen,
-//        modifier = modifier,
-//        navController = navController,
-//    ) {
-//        IconButton(
-//            text = "View Campsite Details",
-//            icon = Icons.Outlined.Terrain,
-//            onClick = {
-//                navController.navigate(Screen.CampsiteDetails.createRoute("0"))
-//            },
-//        )
-//    }
-//}
-//
-
-
