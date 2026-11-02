@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
+import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 
 @Composable
@@ -36,7 +37,11 @@ fun ReservationsScreen(
         modifier = modifier,
         navController = navController,
     ) {
-
+        // TODO: temporary until the reservations list (US 01.06.01) exists
+        BaseButton(
+            onClick = { navController.navigate(Screen.ReservationDetails.createRoute("test-reservation")) },
+            text = "Open test reservation"
+        )
     }
 }
 

@@ -26,8 +26,14 @@ sealed class Screen(
     data object Account : Screen("account", "Account", "Account", Icons.Outlined.AccountBox)
     data object Moderate : Screen("moderate", "Moderate", "Moderate", Icons.Outlined.AddModerator)
 
-    // Dynamic routes.
+
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {
         fun createRoute(campsiteId: String) = "$route/$campsiteId"
+    }
+    data object ReservationDetails : Screen("reservation/details", "Details", "Manage reservation", Icons.Outlined.CalendarMonth) {
+        fun createRoute(reservationId: String) = "$route/$reservationId"
+    }
+    data object ReservationCancellation : Screen("reservation/cancellation", "Cancellation", "Cancellation registered", Icons.Outlined.CalendarMonth) {
+        fun createRoute(reservationId: String) = "$route/$reservationId"
     }
 }
