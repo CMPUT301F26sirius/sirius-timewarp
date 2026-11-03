@@ -1,6 +1,9 @@
 package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Campsite
+import com.example.timewarp.domain.model.Location
+import com.example.timewarp.domain.model.Occupancy
+import com.example.timewarp.domain.model.Pricing
 import com.example.timewarp.domain.repository.CampsiteRepository
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -48,8 +51,30 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
 //    }
 
     override suspend fun getCampsites(): MutableList<Campsite>? {
-        TODO("Not yet implemented")
+        return mutableListOf(
+            Campsite(
+                campsiteId = "1",
+                ownerUserId = "owner_1",
+                name = "Townsite Campground",
+                description = "",
+                rating = 4.6,
+                location = Location(address = ""),
+                occupancy = Occupancy(maxGuests = 6),
+                pricing = Pricing(costPerNight = 45.0)
+            ),
+            Campsite(
+                campsiteId = "2",
+                ownerUserId = "owner_2",
+                name = "Two Jack Main",
+                description = "",
+                rating = 4.6,
+                location = Location(address = ""),
+                occupancy = Occupancy(maxGuests = 6),
+                pricing = Pricing(costPerNight = 45.0)
+            )
+        )
     }
+
 
     override suspend fun createCampsite(campsite: Campsite) {
         TODO("Not yet implemented")
@@ -70,4 +95,11 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
     override fun observeCampsite(campsiteId: String): Flow<Campsite?> = flowOf(
         null
     )
+
+    override suspend fun filterCampsites(location: String, guests: Int?): MutableList<Campsite>? {
+        return getCampsites().orEmpty().filter {
+            campsite -> (guests == null || campsite.occupancy.maxGuests >= guests) &&
+                (location.isBlank() || campsite.location.address.contains(location.trim(), ignoreCase = true))
+        }.toMutableList()
+    }
 }
