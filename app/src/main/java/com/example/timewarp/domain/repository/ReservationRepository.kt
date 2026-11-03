@@ -8,7 +8,7 @@ interface ReservationRepository {
 
     suspend fun createReservation(reservation: Reservation)
 
-    suspend fun editReservation(campsiteId: String, campsite: Reservation)
+    suspend fun editReservation(reservationId: String, campsite: Reservation)
 
     suspend fun getReservation(reservationId: String): Reservation?
 
