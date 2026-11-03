@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.BaseButton
+import com.example.timewarp.ui.component.BaseButtonType
 import com.example.timewarp.ui.theme.PitchLink
 import com.example.timewarp.ui.theme.PitchMutedText
 import com.example.timewarp.ui.theme.TimewarpTheme
@@ -83,6 +84,7 @@ fun AccountScreen(
                 }
             )
             BaseButton(
+                type = BaseButtonType.Critical,
                 text = "Delete profile",
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {}

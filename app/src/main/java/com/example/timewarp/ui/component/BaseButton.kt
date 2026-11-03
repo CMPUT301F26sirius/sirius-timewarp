@@ -10,11 +10,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.timewarp.ui.theme.ComponentStyles
 
+sealed interface BaseButtonType {
+    data object Default : BaseButtonType
+    data object Outlined : BaseButtonType
+    data object Passive : BaseButtonType
+    data object Critical : BaseButtonType
+}
+
 @Composable
 fun BaseButton(
     onClick: () -> Unit,
     text: String,
     modifier: Modifier = Modifier,
+    type: BaseButtonType = BaseButtonType.Default,
     enabled: Boolean = true,
 //    content: @Composable RowScope.() -> Unit
 ) {
