@@ -57,4 +57,14 @@ class FakeCampsiteRepository @Inject constructor() : CampsiteRepository {
     override fun observeCampsite(campsiteId: String): Flow<Campsite?> = callbackFlow {
         TODO("Not yet implemented")
     }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    override suspend fun filterCampsites(
+        location: String,
+        guests: Int?
+    ): MutableList<Campsite>? {
+        TODO("Not yet implemented")
+    }
 }

@@ -39,7 +39,7 @@ fun ReservationsScreen(
     ) {
         // TODO: temporary until the reservations list (US 01.06.01) exists
         BaseButton(
-            onClick = { navController.navigate(Screen.ReservationDetails.createRoute("test-reservation")) },
+            onClick = { navController.navigate(Screen.ReservationDetails.createRoute("0")) },
             text = "Open test reservation"
         )
     }
