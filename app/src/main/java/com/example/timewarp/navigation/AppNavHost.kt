@@ -11,8 +11,11 @@ import com.example.timewarp.feature.browse.BrowseScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
+import com.example.timewarp.feature.profile.update.UpdateProfileScreen
 import com.example.timewarp.feature.startup.StartupScreen
 import com.example.timewarp.feature.registration.RegistrationScreen
+import com.example.timewarp.feature.reservation.cancellation.CancellationScreen
+import com.example.timewarp.feature.reservation.details.ReservationDetailsScreen
 import com.example.timewarp.feature.reservations.ReservationsScreen
 import com.example.timewarp.navigation.Screen
 
@@ -74,11 +77,31 @@ fun AppNavHost() {
             )
         }
 
+        composable(Screen.UpdateProfile.route) {
+            UpdateProfileScreen(
+                screen = Screen.UpdateProfile,
+                navController = navController)
+        }
+
         // Dynamic routes.
         deepComposable(Screen.CampsiteDetails.route) { campsiteId ->
             CampsiteDetailsScreen(
                 screen = Screen.CampsiteDetails,
                 campsiteId = campsiteId,
+                navController = navController
+            )
+        }
+        deepComposable(Screen.ReservationDetails.route) { reservationId ->
+            ReservationDetailsScreen(
+                screen = Screen.ReservationDetails,
+                reservationId = reservationId,
+                navController = navController
+            )
+        }
+        deepComposable(Screen.ReservationCancellation.route) { reservationId ->
+            CancellationScreen(
+                screen = Screen.ReservationCancellation,
+                reservationId = reservationId,
                 navController = navController
             )
         }

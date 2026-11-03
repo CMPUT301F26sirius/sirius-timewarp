@@ -3,6 +3,8 @@ package com.example.timewarp.data.repository
 import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.timewarp.domain.model.ReservationState
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,6 +22,39 @@ class FirebaseReservationRepository @Inject constructor(
     /**
      * NEEDS_DOCUMENTATION
      */
+    override suspend fun getReservation(reservationId: String): Reservation? {
+        val snapshot = firestore.collection("reservation")
+            .document(reservationId)
+            .get()
+            .await()
+
+        // No document with this id
+        if (!snapshot.exists()) {
+            return null
+        }
+
+        val reservation = snapshot.toObject(Reservation::class.java)
+        if (reservation == null) {
+            return null
+        }
+
+        // The id is the document name, not a field inside it
+        return reservation.copy(reservationId = reservationId)
+    }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    override suspend fun updateReservationState(reservationId: String, state: ReservationState) {
+        firestore.collection("reservation")
+            .document(reservationId)
+            .update("reservationState", state.name)
+            .await()
+    }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getReservations(): MutableList<Reservation>? {
         TODO("Not yet implemented")
     }
@@ -34,7 +69,7 @@ class FirebaseReservationRepository @Inject constructor(
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun editReservation(campsiteId: String, campsite: Reservation) {
+    override suspend fun editReservation(reservationId: String, campsite: Reservation) {
         TODO("Not yet implemented")
     }
 

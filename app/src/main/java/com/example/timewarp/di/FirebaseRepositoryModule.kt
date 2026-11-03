@@ -10,6 +10,7 @@ import com.example.timewarp.data.repository.FirebaseProfileRepository
 import com.example.timewarp.data.repository.FirebaseRatingRepository
 import com.example.timewarp.data.repository.FirebaseReservationRepository
 import com.example.timewarp.data.repository.FirebaseUserRepository
+import com.example.timewarp.data.repository.fakeProfileRespository
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.ImageRepository
@@ -137,7 +138,7 @@ abstract class FirebaseRepositoryModule {
     @Binds
     @Singleton
     abstract fun bindProfileRepository(
-        implementation: FirebaseProfileRepository
+        implementation: FirebaseProfileRepository // during testing should be fakeProfileRespository
     ): ProfileRepository
 
     /**
