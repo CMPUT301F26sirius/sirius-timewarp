@@ -297,7 +297,7 @@ fun BaseInput(
                 Column(
                     verticalArrangement =  Arrangement.spacedBy(7.dp),
                     horizontalAlignment = Alignment.Start,
-                    modifier = modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = label,
@@ -305,7 +305,7 @@ fun BaseInput(
                     )
 
                     Box(
-                        modifier = modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
                             value = value,
@@ -344,6 +344,7 @@ fun BaseInput(
                         Box(
                             modifier = Modifier
                                 .matchParentSize()
+                                .then(modifier)
                                 .clickable() { expanded = true }
                         ) {
 
