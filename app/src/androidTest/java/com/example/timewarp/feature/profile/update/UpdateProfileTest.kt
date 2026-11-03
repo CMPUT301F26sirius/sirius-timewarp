@@ -1,4 +1,4 @@
-package com.example.timewarp.tests.updateProfile
+package com.example.timewarp.feature.profile.update
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,17 +19,13 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextReplacement
-import com.example.timewarp.feature.profile.update.UpdateProfileForm
-import com.example.timewarp.feature.profile.update.UpdateProfileState
 import com.example.timewarp.ui.theme.TimewarpTheme
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNull
-import junit.framework.TestCase.assertTrue
+import junit.framework.TestCase
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class UpdateProfileScreenTest {
+class UpdateProfileTest {
     @get:Rule
     val composeTestRule: ComposeContentTestRule = createComposeRule()
 
@@ -120,10 +116,10 @@ class UpdateProfileScreenTest {
         updateButton().performClick()
 
         val saved = savedState!!
-        assertEquals("Jordan", saved.firstName)
-        assertEquals("Smith", saved.lastName)
-        assertEquals("jordan@test.com", saved.email)
-        assertEquals("7801234567", saved.phoneNumber)
+        TestCase.assertEquals("Jordan", saved.firstName)
+        TestCase.assertEquals("Smith", saved.lastName)
+        TestCase.assertEquals("jordan@test.com", saved.email)
+        TestCase.assertEquals("7801234567", saved.phoneNumber)
     }
 
     @Test
@@ -141,8 +137,8 @@ class UpdateProfileScreenTest {
 
         cancelButton().performClick()
 
-        assertTrue(cancelled)
-        assertNull(savedState)
+        TestCase.assertTrue(cancelled)
+        TestCase.assertNull(savedState)
     }
 
 }
