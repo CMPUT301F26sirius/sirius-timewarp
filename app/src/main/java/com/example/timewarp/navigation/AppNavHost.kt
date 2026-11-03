@@ -11,6 +11,7 @@ import com.example.timewarp.feature.browse.BrowseScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
+import com.example.timewarp.feature.profile.update.UpdateProfileScreen
 import com.example.timewarp.feature.startup.StartupScreen
 import com.example.timewarp.feature.registration.RegistrationScreen
 import com.example.timewarp.feature.reservation.cancellation.CancellationScreen
@@ -74,6 +75,12 @@ fun AppNavHost() {
                 screen = Screen.Moderate,
                 navController = navController
             )
+        }
+
+        composable(Screen.UpdateProfile.route) {
+            UpdateProfileScreen(
+                screen = Screen.UpdateProfile,
+                navController = navController)
         }
 
         // Dynamic routes.
