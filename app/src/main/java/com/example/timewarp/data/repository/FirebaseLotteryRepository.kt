@@ -22,22 +22,38 @@ import javax.inject.Singleton
 class FirebaseLotteryRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : LotteryRepository {
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun createLottery(lottery: Lottery) {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun editLottery(lotteryId: String, lottery: Lottery) {
         TODO("Not yet implemented")
+
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getLotteries(): MutableList<Lottery>? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getLottery(lotteryId: String): Lottery? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override fun observeCampsiteLotteries(campsiteId: String): Flow<List<Lottery>> = callbackFlow {
         val listener = firestore.collection("lottery")
             .whereArrayContains("campsiteIds", campsiteId)

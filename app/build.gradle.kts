@@ -86,5 +86,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     implementation(libs.kotlin.csv)
+
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }
 
