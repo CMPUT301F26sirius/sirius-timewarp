@@ -42,6 +42,9 @@ class FirebaseReservationRepository @Inject constructor(
         return reservation.copy(reservationId = reservationId)
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun updateReservationState(reservationId: String, state: ReservationState) {
         firestore.collection("reservation")
             .document(reservationId)
@@ -49,6 +52,9 @@ class FirebaseReservationRepository @Inject constructor(
             .await()
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getReservations(): MutableList<Reservation>? {
         TODO("Not yet implemented")
     }
@@ -63,7 +69,14 @@ class FirebaseReservationRepository @Inject constructor(
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun editReservation(campsiteId: String, campsite: Reservation) {
+    override suspend fun editReservation(reservationId: String, campsite: Reservation) {
+        TODO("Not yet implemented")
+    }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    override suspend fun getReservation(reservationId: String): Reservation? {
         TODO("Not yet implemented")
     }
 }

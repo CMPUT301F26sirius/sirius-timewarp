@@ -73,9 +73,12 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
      * NEEDS_DOCUMENTATION
      */
     override fun observeCampsite(campsiteId: String): Flow<Campsite?> = flowOf(
-        null
+        TODO("Not yet implemented")
     )
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun filterCampsites(location: String, guests: Int?): MutableList<Campsite>? {
         return getCampsites().orEmpty().filter {
             campsite -> (guests == null || campsite.occupancy.maxGuests >= guests) &&
