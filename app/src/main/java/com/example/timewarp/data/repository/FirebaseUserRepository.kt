@@ -15,6 +15,9 @@ import javax.inject.Singleton
  *
  * Stores and retrieves users from the Firestore `users` collection.
  *
+ * **Issues**
+ * - Not fully implemented or documented.
+ *
  * @property firestore Firestore instance used to access user documents.
  */
 @Singleton
@@ -78,7 +81,9 @@ class FirebaseUserRepository @Inject constructor(
     }
 
     /**
-     * NEEDS_DOCUMENTATION
+     * Sets up a flow to observe changes to a user object given a userId
+     *
+     * @param userId [String] - The userId to observe.
      */
     override fun observeUser(userId: String): Flow<User?> = callbackFlow {
         val listener = firestore

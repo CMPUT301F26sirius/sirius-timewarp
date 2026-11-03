@@ -2,8 +2,6 @@ package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.repository.CampsiteRepository
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
@@ -16,6 +14,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class FakeCampsiteRepository @Inject constructor() : CampsiteRepository {
+    private val campsites = mutableListOf<Campsite>()
+
     /**
      * NEEDS_DOCUMENTATION
      */
@@ -61,10 +61,14 @@ class FakeCampsiteRepository @Inject constructor() : CampsiteRepository {
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun filterCampsites(
-        location: String,
-        guests: Int?
-    ): MutableList<Campsite>? {
-        TODO("Not yet implemented")
+    override suspend fun filterCampsites(location: String, guests: Int?): MutableList<Campsite>? {
+        return campsites
+            .filter { campsite ->
+                val locationMatches = location.isBlank() ||
+                    campsite.location.address.contains(location, ignoreCase = true)
+                val guestsMatch = guests == null || campsite.occupancy.maxGuests >= guests
+                locationMatches && guestsMatch
+            }
+            .toMutableList()
     }
 }
