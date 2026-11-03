@@ -1,6 +1,7 @@
 package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Reservation
+import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import javax.inject.Inject
@@ -38,6 +39,13 @@ class FakeReservationRepository @Inject constructor() : ReservationRepository {
      * NEEDS_DOCUMENTATION
      */
     override suspend fun getReservation(reservationId: String): Reservation? {
+        TODO("Not yet implemented")
+    }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    override suspend fun updateReservationState(reservationId: String, state: ReservationState) {
         TODO("Not yet implemented")
     }
 }

@@ -38,6 +38,7 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -59,6 +60,12 @@ import com.example.timewarp.ui.theme.TimewarpTheme
 import com.example.timewarp.ui.theme.BrandGradient
 import com.example.timewarp.ui.theme.PitchLink
 
+/**
+ * [RegistrationScreen]
+ *
+ * Displayed when the user has not registered yet. Allows them to select who they wish
+ * to register as.
+ */
 @Composable
 fun RegistrationScreen(
     modifier: Modifier = Modifier,
@@ -240,7 +247,8 @@ fun RegistrationScreen(
                         value = userType,
                         placeholder = "",
                         onValueChange = {userType = it},
-                        type = BaseInputType.Dropdown(listOf<String>("Camper", "Campsite Owner", "Admin"))
+                        type = BaseInputType.Dropdown(listOf<String>("Camper", "Campsite Owner", "Admin")),
+                        modifier = Modifier.testTag("registration_user_type")
                     )
                     if (userType == "Admin") {
                         BaseInput(
@@ -273,7 +281,9 @@ fun RegistrationScreen(
                         },
                         icon = Icons.Outlined.VerifiedUser,
                         text = "Register this device",
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("registration_button")
                     )
                     Text(
                         text = "Next time, pitch will authenticate this device automatically. No username, no password, no hassle.",
