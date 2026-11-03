@@ -105,7 +105,9 @@ fun RegistrationScreen(
                 LinkAnnotation.Clickable(
                     tag = "terms_and_conditions",
                     styles = TextLinkStyles(style = SpanStyle(color = PitchLink)),
-                    linkInteractionListener = {}
+                    linkInteractionListener = {
+                        navController.navigate(Screen.Policy.route);
+                    }
                 )
             ) {
                 append("Terms & Privacy Policy")
