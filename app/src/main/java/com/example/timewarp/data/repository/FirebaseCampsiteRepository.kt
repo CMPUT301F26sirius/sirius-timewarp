@@ -10,6 +10,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+
 /**
  * Firebase-backed implementation of [CampsiteRepository].
  *
@@ -27,7 +28,11 @@ class FirebaseCampsiteRepository @Inject constructor(
      * @returns A list of campsite objects.
      */
     override suspend fun getCampsites(): MutableList<Campsite>? {
-        TODO("Not yet implemented")
+        val snapshot = firestore.collection("campsite").get().await()
+        return snapshot.documents.mapNotNull {
+            doc -> doc.toObject(Campsite::class.java)?.copy(campsiteId = doc.id)
+        }
+            .toMutableList()
     }
 
     /**
@@ -93,4 +98,22 @@ class FirebaseCampsiteRepository @Inject constructor(
             listener.remove()
         }
     }
+
+    /**
+     * Returns campsites which holds at least # of guests and whose address contain "location"
+     * Guests are filtered by FireStore
+     */
+    override suspend fun filterCampsites(location: String, guests: Int?): MutableList<Campsite>? {
+        val collection = firestore.collection("campsite")
+        val query = if (guests != null) {
+            collection.whereGreaterThanOrEqualTo("occupancy.maxGuests", guests)
+        } else  {
+            collection
+        }
+        val snapshot = query.get().await()
+        return snapshot.documents.mapNotNull { it.toObject(Campsite::class.java)?.copy(campsiteId = it.id) }
+            .filter { location.isBlank() || it.location.address.contains(location.trim(), ignoreCase = true) }
+            .toMutableList()
+    }
+
 }
