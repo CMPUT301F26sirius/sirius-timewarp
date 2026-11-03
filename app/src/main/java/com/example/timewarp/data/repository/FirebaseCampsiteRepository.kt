@@ -74,6 +74,9 @@ class FirebaseCampsiteRepository @Inject constructor(
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override fun observeCampsite(campsiteId: String): Flow<Campsite?> = callbackFlow {
         val listener = firestore.collection("campsite")
             .document(campsiteId)

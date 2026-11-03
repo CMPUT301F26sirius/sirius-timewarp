@@ -483,6 +483,9 @@ fun CampsiteDetailsScreen(
 @Composable
 fun CampsiteDetailsPreview() {
     TimewarpTheme() {
-        CampsiteDetailsScreen("0")
+        CampsiteDetailsScreen(
+            campsiteId = "0",
+            viewModel = hiltViewModel()
+        )
     }
 }

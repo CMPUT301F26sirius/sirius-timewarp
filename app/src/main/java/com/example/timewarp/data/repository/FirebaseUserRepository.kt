@@ -21,18 +21,30 @@ import javax.inject.Singleton
 class FirebaseUserRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : UserRepository {
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getCampsiteOwners(): MutableList<User>? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getAdmins(): MutableList<User>? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getEntrants(): MutableList<User>? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getUsers(): MutableList<User>? {
         TODO("Not yet implemented")
     }
@@ -65,6 +77,9 @@ class FirebaseUserRepository @Inject constructor(
             ?.copy(userId = document.id)
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override fun observeUser(userId: String): Flow<User?> = callbackFlow {
         val listener = firestore
             .collection("users")
