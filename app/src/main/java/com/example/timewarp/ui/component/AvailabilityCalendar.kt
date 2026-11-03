@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.reservation.component
+package com.example.timewarp.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

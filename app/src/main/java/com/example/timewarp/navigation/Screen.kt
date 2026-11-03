@@ -26,7 +26,7 @@ sealed class Screen(
     data object Account : Screen("account", "Account", "Account", Icons.Outlined.AccountBox)
     data object Moderate : Screen("moderate", "Moderate", "Moderate", Icons.Outlined.AddModerator)
 
-
+    // Dynamic routes.
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {
         fun createRoute(campsiteId: String) = "$route/$campsiteId"
     }
