@@ -12,7 +12,7 @@ import javax.inject.Singleton
 /**
  * Firebase-backed implementation of [ProfileRepository].
  *
- * Stores and retrieves profiles from Firestore.
+ * Stores and retrieves profiles from the Firestore `profile` collection.
  *
  * @property firestore Firestore instance used to access profiles.
  */
@@ -20,22 +20,37 @@ import javax.inject.Singleton
 class FirebaseProfileRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ProfileRepository {
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getProfiles(): MutableList<Profile>? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun createProfile(profile: Profile) {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun editProfile(userId: String, profile: Profile) {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getProfile(userId: String): Profile? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override fun observeProfile(userId: String): Flow<Profile?> = callbackFlow {
         val listener = firestore.collection("profile")
             .document(userId)

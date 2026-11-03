@@ -20,26 +20,44 @@ import javax.inject.Singleton
 class FirebaseRatingRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : RatingRepository {
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getRatings(): MutableList<Rating>? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getCampsiteRatings(campsiteId: String): MutableList<Rating>? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getUserRatings(userId: String): MutableList<Rating>? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun createRating(rating: Rating) {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override suspend fun getRating(ratingId: String): Rating? {
         TODO("Not yet implemented")
     }
 
+    /**
+     * NEEDS_DOCUMENTATION
+     */
     override fun observeCampsiteRatings(campsiteId: String): Flow<List<Rating>> = callbackFlow {
         val listener = firestore.collection("rating")
             .whereEqualTo("campsiteId", campsiteId)

@@ -1,7 +1,11 @@
 package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.repository.AuthRepository
+import com.example.timewarp.domain.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -11,23 +15,26 @@ import javax.inject.Singleton
  */
 @Singleton
 class FakeAuthRepository @Inject constructor() : AuthRepository {
-
     /**
-     * Returns the ID of the currently signed-in Firebase user, and `null` when
-     * no user is authenticated.
+     * Flow for acquiring current user's ID
      *
-     * @return the current user's ID, and `null` if no user is signed in.
+     * @return callbackFlow for the user's ID.
      */
-    override fun getUserId(): String? {
-        return "0"
+    override val currentUserId: Flow<String?> = callbackFlow {
+        TODO("Not yet implemented")
     }
 
     /**
-     * Signs in anonymously and returns the resulting user ID.
-     *
-     * @return the signed-in Firebase user's ID.
+     * NEEDS_DOCUMENTATION
+     */
+    override fun getUserId(): String? {
+        TODO("Not yet implemented")
+    }
+
+    /**
+     * NEEDS_DOCUMENTATION
      */
     override suspend fun signIn(): String {
-        return "0"
+        TODO("Not yet implemented")
     }
 }

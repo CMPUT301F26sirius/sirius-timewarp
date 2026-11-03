@@ -27,8 +27,12 @@ import javax.inject.Singleton
 @Singleton
 class FirebaseAuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
-    private val userRepository: UserRepository
 ) : AuthRepository {
+    /**
+     * Flow for acquiring current user's ID
+     *
+     * @return callbackFlow for the user's ID.
+     */
     override val currentUserId: Flow<String?> = callbackFlow {
         val listener = FirebaseAuth.AuthStateListener { auth ->
             trySend(auth.currentUser?.uid)

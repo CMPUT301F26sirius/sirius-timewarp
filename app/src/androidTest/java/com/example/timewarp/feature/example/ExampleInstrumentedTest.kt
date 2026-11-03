@@ -14,7 +14,9 @@ import org.junit.runner.RunWith
  */
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class ExampleInstrumentedTest(
+    
+) {
     @Test
     fun useAppContext() {
         // Context of the app under test.
