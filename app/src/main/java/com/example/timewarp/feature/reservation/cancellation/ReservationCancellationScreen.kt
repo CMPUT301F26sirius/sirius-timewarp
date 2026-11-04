@@ -28,7 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.BaseButton
-import com.example.timewarp.ui.component.CsvDownloadButton
+import com.example.timewarp.ui.component.CSVButton
 import com.example.timewarp.ui.theme.PitchError
 import com.example.timewarp.ui.theme.PitchForest
 import com.example.timewarp.ui.theme.PitchMutedText
@@ -95,8 +95,8 @@ fun CancellationScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    CsvDownloadButton(
-                        csvText = cancellationCSV(current.reservation, current.campsite),
+                    CSVButton(
+                        csvText = createCancellationCSV(current.reservation, current.campsite),
                         fileName = "cancellation-${current.reservation.reservationId}",
                         text = "Download cancellation CSV",
                         modifier = Modifier

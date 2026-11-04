@@ -50,13 +50,22 @@ class FirebaseNotificationRepository @Inject constructor(
     }
 
     /**
-     * Saves a notification to the Firestore `notification` collection.
+     * Saves a notification to the Firestore `notification` collection,
+     * using its notificationId as the document name.
      *
      * @param notification notification to save.
      **/
     override suspend fun sendNotification(notification: Notification) {
+        if (notification.notificationId.isEmpty()) {
+            firestore.collection("notification")
+                .add(notification)
+                .await()
+            return
+        }
+
         firestore.collection("notification")
-            .add(notification)
+            .document(notification.notificationId)
+            .set(notification)
             .await()
     }
 

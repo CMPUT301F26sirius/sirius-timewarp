@@ -70,9 +70,14 @@ class FakeNotificationRepository @Inject constructor() : NotificationRepository 
     }
 
     /**
-     * Notifications have no ID field yet, so this always returns `null`.
+     * Retrieves a notification by its ID.
      **/
     override suspend fun getNotification(notificationId: String): Notification? {
+        for (notification in notifications) {
+            if (notification.notificationId == notificationId) {
+                return notification
+            }
+        }
         return null
     }
 

@@ -7,6 +7,7 @@ import com.example.timewarp.domain.model.ReservationState
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -103,5 +104,19 @@ class CancelReservationUseCaseTest {
         cancelReservation("r1")
 
         assertEquals(0, notificationRepository.getNotifications()?.size)
+    }
+
+    @Test
+    fun cancelNotifications_haveUniqueIds() = runBlocking {
+        addReservation("r1", ReservationState.Reserved)
+        addReservation("r2", ReservationState.Reserved)
+
+        cancelReservation("r1")
+        cancelReservation("r2")
+
+        val sent = notificationRepository.getNotifications()!!
+        assertEquals(2, sent.size)
+        assertTrue(sent[0].notificationId.isNotEmpty())
+        assertNotEquals(sent[0].notificationId, sent[1].notificationId)
     }
 }

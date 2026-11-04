@@ -6,6 +6,7 @@ import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.repository.NotificationRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import jakarta.inject.Inject
+import java.util.UUID
 
 /*
  * Cancels an entrant's reservation (US 01.07.01) and notifies them (US 01.07.02).
@@ -60,6 +61,7 @@ class CancelReservationUseCase @Inject constructor(
      */
     fun buildCancellationNotification(reservation: Reservation): Notification {
         return Notification(
+            notificationId = UUID.randomUUID().toString(),
             notification = "Your reservation #${reservation.reservationId} has been cancelled.",
             fromUserId = SYSTEM_SENDER,
             toUserId = reservation.userId
