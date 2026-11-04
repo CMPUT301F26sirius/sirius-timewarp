@@ -1,6 +1,7 @@
 package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Campsite
+import com.example.timewarp.domain.model.CampsiteFilter
 import com.example.timewarp.domain.repository.CampsiteRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -61,12 +62,12 @@ class FakeCampsiteRepository @Inject constructor() : CampsiteRepository {
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun filterCampsites(location: String, guests: Int?): MutableList<Campsite>? {
+    override suspend fun filterCampsites(filter: CampsiteFilter): MutableList<Campsite>? {
         return campsites
             .filter { campsite ->
-                val locationMatches = location.isBlank() ||
-                    campsite.location.address.contains(location, ignoreCase = true)
-                val guestsMatch = guests == null || campsite.occupancy.maxGuests >= guests
+                val locationMatches = filter.location.isBlank() ||
+                    campsite.location.address.contains(filter.location, ignoreCase = true)
+                val guestsMatch = filter.guests == null || campsite.occupancy.maxGuests >= filter.guests
                 locationMatches && guestsMatch
             }
             .toMutableList()
