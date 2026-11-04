@@ -1,4 +1,5 @@
 package com.example.timewarp.feature.campsite.details
+import android.net.Uri
 import androidx.compose.foundation.Image
 import com.example.timewarp.R
 import androidx.compose.ui.graphics.Color
@@ -22,6 +23,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -125,7 +127,6 @@ fun CampsiteDetailsScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-
 
 
 

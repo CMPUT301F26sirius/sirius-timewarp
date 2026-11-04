@@ -1,29 +1,43 @@
 package com.example.timewarp.feature.browse
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Terrain
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -36,9 +50,12 @@ import com.example.timewarp.domain.model.Occupancy
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.CampsiteCard
-import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.ui.theme.TimewarpTheme
-import com.google.firebase.annotations.concurrent.Background
+
+/*
+* This file holds the Browse Screen which has the search bar, the filter button and sheet and
+* the list of campsite results.
+*/
 
 @Composable
 fun BrowseScreen(
@@ -49,6 +66,9 @@ fun BrowseScreen(
 ) {
     // State
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // show filter
+    var showFilters by rememberSaveable {mutableStateOf(false)}
 
     NavigationScreen(
         screen = screen,
@@ -61,7 +81,16 @@ fun BrowseScreen(
                 navController.navigate(
                     Screen.CampsiteDetails.createRoute(id))
             },
+            query = state.filters.query,
+            onSearch = viewModel::onSearch,
+            onFilterClick = { showFilters = true }
         )
+        if (showFilters) {
+            FilterSheet(filter = state.filters,
+                onApply = {viewModel.onApplyFilters(it)
+                showFilters = false}, onDismiss = {showFilters = false}
+            )
+        }
     }
 }
 
@@ -70,38 +99,96 @@ fun BrowseContent(
     state: BrowseState,
     onCampsiteClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    query: String,
+    onSearch: (String) -> Unit,
+    onFilterClick: () -> Unit
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        when {
-            state.isLoading -> CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-            state.error != null ->
-                Text(
-                    text = state.error ?: "An Error Occurred",
+    Column(modifier = modifier.fillMaxSize()) {
+        SearchRow(query = query, onSearch = onSearch, onFilterClick = onFilterClick)
+
+        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            when {
+                state.isLoading -> CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
-
-            state.campsites.isEmpty() ->
-                Text(
-                    text = "No Matches Found",
-                    modifier = Modifier.align(Alignment.Center)
-                )
-
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(15.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(
-                    items = state.campsites,
-                    key = { campsite -> campsite.campsiteId }
-                ) { campsite ->
-                    CampsiteCard(
-                        campsite = campsite,
-                        onClick = { onCampsiteClick(campsite.campsiteId) },
+                state.error != null ->
+                    Text(
+                        text = state.error ?: "An Error Occurred",
+                        modifier = Modifier.align(Alignment.Center)
                     )
+
+                state.campsites.isEmpty() ->
+                    Text(
+                        text = "No Matches Found",
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(15.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(
+                        items = state.campsites,
+                        key = { campsite -> campsite.campsiteId }
+                    ) { campsite ->
+                        CampsiteCard(
+                            campsite = campsite,
+                            onClick = { onCampsiteClick(campsite.campsiteId) },
+                        )
+                    }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchRow(
+    query: String,
+    onSearch: (String) -> Unit,
+    onFilterClick: () -> Unit
+) {
+    var text by rememberSaveable(query) { mutableStateOf(query) }
+
+    Surface(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(15.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        ) {
+
+        Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = {onSearch(text)}
+            ) {
+                Icon(Icons.Default.Search, contentDescription = "Search")
+            }
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                modifier = Modifier.weight(1f),
+                label = { Text("Where to?") },
+                singleLine = true,
+                placeholder = { Text("Search Campsites") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = {onSearch(text)}),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                )
+            )
+
+            Box(
+                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer).clickable(onClick = onFilterClick),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Tune, contentDescription = "Filters")
             }
         }
     }
@@ -124,7 +211,10 @@ private fun BrowseContentPreview() {
                 ),
                 isLoading = false
             ),
-            onCampsiteClick = {}
+            onCampsiteClick = {},
+            query = "",
+            onSearch = {},
+            onFilterClick = {}
         )
     }
 }

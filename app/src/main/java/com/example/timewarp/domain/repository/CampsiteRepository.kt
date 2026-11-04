@@ -1,6 +1,7 @@
 package com.example.timewarp.domain.repository
 
 import com.example.timewarp.domain.model.Campsite
+import com.example.timewarp.domain.model.CampsiteFilter
 import com.example.timewarp.domain.model.Location
 import kotlinx.coroutines.flow.Flow
 
@@ -17,5 +18,5 @@ interface CampsiteRepository {
 
     fun observeCampsite(campsiteId: String): Flow<Campsite?>
 
-    suspend fun filterCampsites(location: String, guests: Int?): MutableList<Campsite>?
+    suspend fun filterCampsites(filter: CampsiteFilter): MutableList<Campsite>?
 }
