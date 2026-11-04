@@ -32,18 +32,10 @@ class PolicyTest {
 
     @get:Rule
     val composeRule = createEmptyComposeRule()
-
-    @Inject
-    lateinit var authRepository: AuthRepository
-
-    @Inject
-    lateinit var userRepository: UserRepository
-
+    
     @Before
     fun setUp() {
         hiltRule.inject()
-        (authRepository as FakeAuthRepository).setCurrentUserId(null)
-        (userRepository as FakeUserRepository).clear()
     }
 
     @Test
