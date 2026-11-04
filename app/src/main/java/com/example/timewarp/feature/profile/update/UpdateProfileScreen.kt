@@ -254,15 +254,17 @@ internal fun UpdateProfileForm(
                     Box(
                         modifier = Modifier.fillMaxWidth().weight(1f)
                     ) {
+                        var value by remember { mutableStateOf("False")}
                         BaseInput(
                             label = option,
-                            value = "False",
+                            value = value,
                             onValueChange = { newValue ->
                                 if (newValue.toBoolean()) {
                                     selectedInterests + option
                                 } else {
                                     selectedInterests - option
                                 }
+                                value = newValue
                             },
                             type = BaseInputType.Boolean,
                         )
