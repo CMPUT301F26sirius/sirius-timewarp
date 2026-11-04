@@ -10,10 +10,10 @@ import com.jsoizo.kotlincsv.csvWriter
 **/
 
 // Column names of the cancellation CSV.
-val cancellationCsvHeader = listOf("Reservation #", "Status", "Campsite", "Location", "Booked by")
+val cancellationCSVHeader = listOf("Reservation #", "Status", "Campsite", "Location", "Booked by")
 
 // Builds a CSV confirming a cancelled reservation
-fun cancellationCSV(reservation: Reservation, campsite: Campsite?): String {
+fun createCancellationCSV(reservation: Reservation, campsite: Campsite?): String {
     // Empty campsite columns if the campsite couldn't be loaded
     var campsiteName = ""
     var address = ""
@@ -29,5 +29,5 @@ fun cancellationCSV(reservation: Reservation, campsite: Campsite?): String {
         address,
         reservation.userId
     )
-    return csvWriter().writeAll(listOf(cancellationCsvHeader, row))
+    return csvWriter().writeAll(listOf(cancellationCSVHeader, row))
 }

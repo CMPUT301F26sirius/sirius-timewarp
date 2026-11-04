@@ -18,7 +18,7 @@ import java.io.IOException
 
 // Button that saves [csvText] as a CSV file the user picks a location for.
 @Composable
-fun CsvDownloadButton(
+fun CSVButton(
     csvText: String,
     fileName: String,
     text: String,
