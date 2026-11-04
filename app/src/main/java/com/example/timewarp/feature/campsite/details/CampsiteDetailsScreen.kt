@@ -1,5 +1,5 @@
 package com.example.timewarp.feature.campsite.details
-import android.net.Uri
+
 import androidx.compose.foundation.Image
 import com.example.timewarp.R
 import androidx.compose.ui.graphics.Color
@@ -153,7 +153,11 @@ fun CampsiteDetailsScreen(
 
                             BaseButton(
                                 onClick = {
-                                    // TODO: Generate QR code
+                                    navController.navigate(
+                                        Screen.GenerateQR.createRoute(
+                                            "pitch://${Screen.CampsiteDetails.createRoute(campsiteId)}"
+                                        )
+                                    )
                                 },
                                 text = "Generate QR Code",
                                 modifier = Modifier.fillMaxWidth()
