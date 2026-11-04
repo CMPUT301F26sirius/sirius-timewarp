@@ -34,12 +34,20 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.R
+import com.example.timewarp.feature.browse.BrowseScreen
+import com.example.timewarp.feature.registration.RegistrationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.theme.TimewarpTheme
 import com.example.timewarp.ui.theme.BrandGradient
 import com.example.timewarp.ui.theme.PitchCream
 import com.example.timewarp.ui.theme.PitchForest
 
+/**
+ * [StartupScreen]
+ *
+ * Displayed when the user first opens the app. Determines whether to send the user
+ * to [RegistrationScreen] or [BrowseScreen] depending on auth state.
+ */
 @Composable
 fun StartupScreen(
     modifier: Modifier = Modifier,

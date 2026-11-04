@@ -46,6 +46,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
+import com.example.timewarp.ui.component.BaseButton
+import com.example.timewarp.ui.component.BaseButtonType
 import com.example.timewarp.ui.component.BaseInput
 import com.example.timewarp.ui.component.BaseInputType
 import com.example.timewarp.ui.theme.TimewarpTheme
@@ -92,7 +94,6 @@ fun UpdateProfileScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(scrollState)
-                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             when (val currentState = state) {
                 UpdateProfileState.Loading -> Text("Loading profile...")
@@ -250,16 +251,34 @@ internal fun UpdateProfileForm(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 pair.forEach { option ->
-                    InterestOption(
-                        text = option,
-                        checked = option in selectedInterests,
-                        onToggle = {
-                            selectedInterests =
-                                if (option in selectedInterests) selectedInterests - option
-                                else selectedInterests + option
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxWidth().weight(1f)
+                    ) {
+                        var value by remember { mutableStateOf("False")}
+                        BaseInput(
+                            label = option,
+                            value = value,
+                            onValueChange = { newValue ->
+                                if (newValue.toBoolean()) {
+                                    selectedInterests + option
+                                } else {
+                                    selectedInterests - option
+                                }
+                                value = newValue
+                            },
+                            type = BaseInputType.Boolean,
+                        )
+                    }
+//                    InterestOption(
+//                        text = option,
+//                        checked = option in selectedInterests,
+//                        onToggle = {
+//                            selectedInterests =
+//                                if (option in selectedInterests) selectedInterests - option
+//                                else selectedInterests + option
+//                        },
+//                        modifier = Modifier.weight(1f)
+//                    )
                 }
                 if (pair.size == 1) Spacer(Modifier.weight(1f))
             }
@@ -270,71 +289,26 @@ internal fun UpdateProfileForm(
             Text(text = it, color = MaterialTheme.colorScheme.error)
         }
 
-        Button(
+        BaseButton(
+            text = if (state.isSaving) "Saving..." else "Update",
             onClick = onSave,
             enabled = state.canSave,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
                 .testTag("updateButton"),
-            shape = RoundedCornerShape(10.dp)
-        ) {
-            Text(if (state.isSaving) "Saving..." else "Update")
-        }
+        )
 
-        OutlinedButton(
+        BaseButton(
+            type = BaseButtonType.Outlined,
+            text = "Cancel",
             onClick = onCancel,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .testTag("cancelButton"),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
-        ) {
-            Text("Cancel")
-        }
-
+                .testTag("cancelButton")
+        )
     }
 
-}
-
-/*
-Main responsibility: Display one singular interest and makes it clickable with a checkbox
-
-Parameters: text: name of interest
-            checked: whether the interest is selected
-            onToggle: Called when the box or checkbox is tapped
-            modifier: modifier applied to the entire box
- */
-@Composable
-private fun InterestOption(
-    text: String,
-    checked: Boolean,
-    onToggle: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-            .clickable(onClick = onToggle)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Drop the 48dp touch padding; the whole row is clickable instead
-        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = { onToggle() },
-                modifier = Modifier.padding(end = 8.dp)
-            )
-        }
-        Text(text, style = MaterialTheme.typography.bodySmall)
-    }
 }
 
 /*

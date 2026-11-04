@@ -3,32 +3,39 @@ package com.example.timewarp.ui.component
 
 import android.R.style
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.timewarp.ui.theme.ComponentStyles
@@ -54,6 +61,8 @@ sealed interface BaseInputType {
     data class Dropdown(
         val options: List<String>
     ) : BaseInputType
+
+    data object Boolean : BaseInputType
 }
 
 @Composable
@@ -297,7 +306,7 @@ fun BaseInput(
                 Column(
                     verticalArrangement =  Arrangement.spacedBy(7.dp),
                     horizontalAlignment = Alignment.Start,
-                    modifier = modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = label,
@@ -305,7 +314,7 @@ fun BaseInput(
                     )
 
                     Box(
-                        modifier = modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
                             value = value,
@@ -344,6 +353,7 @@ fun BaseInput(
                         Box(
                             modifier = Modifier
                                 .matchParentSize()
+                                .then(modifier)
                                 .clickable() { expanded = true }
                         ) {
 
@@ -374,6 +384,57 @@ fun BaseInput(
                                 )
                             }
                         }
+                    }
+                }
+            }
+
+            is BaseInputType.Boolean -> {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(7.dp),
+                    horizontalAlignment = Alignment.Start,
+                    modifier = modifier.fillMaxWidth()
+                ) {
+//                    Text(
+//                        text = label,
+//                        style = MaterialTheme.typography.labelMedium
+//                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(ComponentStyles.InputHeight)
+                            .clip(ComponentStyles.InputShape)
+                            .background(ComponentStyles.InputBackgroundColor)
+                            .border(
+                                1.dp,
+                                ComponentStyles.InputBorderColor,
+                                ComponentStyles.InputShape
+                            )
+                            .clickable(enabled = enabled) {
+                                onValueChange((!value.toBoolean()).toString())
+                            }
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CompositionLocalProvider(
+                            LocalMinimumInteractiveComponentSize provides 0.dp
+                        ) {
+                            Checkbox(
+                                checked = value.toBoolean(),
+                                onCheckedChange = { checked ->
+                                    onValueChange(checked.toString())
+                                },
+                                enabled = enabled,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                        }
+
+                        Text(
+//                            text = if (value.toBoolean()) "Yes" else "No",
+                            text = label,
+                            style = ComponentStyles.InputTextStyle,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }

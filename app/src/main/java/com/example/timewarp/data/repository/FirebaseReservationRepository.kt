@@ -1,5 +1,7 @@
 package com.example.timewarp.data.repository
 
+import com.example.timewarp.domain.model.Availability
+import com.example.timewarp.domain.model.Pricing
 import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -70,13 +72,6 @@ class FirebaseReservationRepository @Inject constructor(
      * NEEDS_DOCUMENTATION
      */
     override suspend fun editReservation(reservationId: String, campsite: Reservation) {
-        TODO("Not yet implemented")
-    }
-
-    /**
-     * NEEDS_DOCUMENTATION
-     */
-    override suspend fun getReservation(reservationId: String): Reservation? {
         TODO("Not yet implemented")
     }
 }

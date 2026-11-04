@@ -11,7 +11,9 @@ import com.example.timewarp.feature.browse.BrowseScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
+import com.example.timewarp.feature.policy.PolicyScreen
 import com.example.timewarp.feature.profile.update.UpdateProfileScreen
+import com.example.timewarp.feature.qr.generate.GenerateQRScreen
 import com.example.timewarp.feature.startup.StartupScreen
 import com.example.timewarp.feature.registration.RegistrationScreen
 import com.example.timewarp.feature.reservation.cancellation.CancellationScreen
@@ -76,11 +78,17 @@ fun AppNavHost() {
                 navController = navController
             )
         }
-
         composable(Screen.UpdateProfile.route) {
             UpdateProfileScreen(
                 screen = Screen.UpdateProfile,
-                navController = navController)
+                navController = navController
+            )
+        }
+        composable(Screen.Policy.route) {
+            PolicyScreen(
+                screen = Screen.Policy,
+                navController = navController
+            )
         }
 
         // Dynamic routes.
@@ -102,6 +110,13 @@ fun AppNavHost() {
             CancellationScreen(
                 screen = Screen.ReservationCancellation,
                 reservationId = reservationId,
+                navController = navController
+            )
+        }
+        deepComposable(Screen.GenerateQR.route) { url ->
+            GenerateQRScreen(
+                screen = Screen.GenerateQR,
+                url = url,
                 navController = navController
             )
         }

@@ -2,6 +2,8 @@ package com.example.timewarp.feature.example
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.example.timewarp.domain.repository.CampsiteRepository
+import com.example.timewarp.domain.repository.RatingRepository
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Assert
 import org.junit.Test
@@ -14,9 +16,7 @@ import org.junit.runner.RunWith
  */
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest(
-    
-) {
+class ExampleInstrumentedTest() {
     @Test
     fun useAppContext() {
         // Context of the app under test.

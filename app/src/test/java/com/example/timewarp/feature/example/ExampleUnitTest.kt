@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.example
 
+import com.example.timewarp.domain.repository.UserRepository
 import org.junit.Assert
 import org.junit.Test
 

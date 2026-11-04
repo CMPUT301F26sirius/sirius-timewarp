@@ -1,6 +1,7 @@
 package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Campsite
+import com.example.timewarp.domain.model.CampsiteFilter
 import com.example.timewarp.domain.model.Location
 import com.example.timewarp.domain.model.Occupancy
 import com.example.timewarp.domain.model.Pricing
@@ -24,7 +25,7 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
                 name = "Townsite Campground",
                 description = "",
                 rating = 4.6,
-                location = Location(address = ""),
+                location = Location(address = "Townsite Road, Jasper, Alberta"),
                 occupancy = Occupancy(maxGuests = 6),
                 pricing = Pricing(costPerNight = 45.0)
             ),
@@ -34,7 +35,7 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
                 name = "Two Jack Main",
                 description = "",
                 rating = 4.6,
-                location = Location(address = ""),
+                location = Location(address = "Two Jack Lake Road, Banff, Alberta"),
                 occupancy = Occupancy(maxGuests = 6),
                 pricing = Pricing(costPerNight = 45.0)
             )
@@ -79,10 +80,6 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun filterCampsites(location: String, guests: Int?): MutableList<Campsite>? {
-        return getCampsites().orEmpty().filter {
-            campsite -> (guests == null || campsite.occupancy.maxGuests >= guests) &&
-                (location.isBlank() || campsite.location.address.contains(location.trim(), ignoreCase = true))
-        }.toMutableList()
-    }
+    override suspend fun filterCampsites(filter: CampsiteFilter): MutableList<Campsite>? =
+        getCampsites().orEmpty().filter { filter.matches(it) }.toMutableList()
 }

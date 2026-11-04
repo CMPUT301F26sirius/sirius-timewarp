@@ -16,6 +16,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/*
+* This file hold the state and logic for the Browse Screen.
+* The code loads campsites and apply search text and filters
+*/
 data class BrowseState(
     val campsites: List<Campsite> = emptyList(),
     val isLoading: Boolean = true,
@@ -44,7 +48,7 @@ class BrowseViewModel @Inject constructor(
         filterJob = viewModelScope.launch {
             _state.update { it.copy(filters = newFilters, isLoading = true, error = null) }
             try {
-                val list = campsiteRepository.filterCampsites(newFilters.location, newFilters.guests).orEmpty()
+                val list = campsiteRepository.filterCampsites(newFilters).orEmpty()
                 _state.update { it.copy(campsites = list, isLoading = false) }
             }
             catch (error: CancellationException) {
@@ -55,4 +59,9 @@ class BrowseViewModel @Inject constructor(
             }
         }
     }
+
+    fun onSearch(query: String) =
+        onFiltersChanged(state.value.filters.copy(query = query.trim()))
+
+    fun onApplyFilters(filter: CampsiteFilter) = onFiltersChanged(filter.copy(query = state.value.filters.query))
 }

@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * [RegistrationState] State of the ui
+ */
 sealed interface RegistrationState {
     data object Idle : RegistrationState
     data object Loading : RegistrationState
@@ -20,6 +23,14 @@ sealed interface RegistrationState {
     data class Error(val message: String) : RegistrationState
 }
 
+/**
+ * [RegistrationViewModel] for the [RegistrationScreen].
+ *
+ * Coordinates registration from the registration screen using the auth repository
+ * for fetching an anonymous user id.
+ *
+ * Once a user id is obtained, user type is pushed to the user repository.
+ */
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(
     private val authRepository: AuthRepository,
@@ -28,10 +39,13 @@ class RegistrationViewModel @Inject constructor(
     private val _state = MutableStateFlow<RegistrationState>(RegistrationState.Idle)
     val state: StateFlow<RegistrationState> = _state.asStateFlow()
 
-//    - User objects from aith
-//    - User objects in db (user cannot modify)
-//    - Profile objects in db (user CAN modify)
-
+    /**
+     * Lets a user register as the selected UserType, and modify their user document
+     * accordingly.
+     *
+     * @param userType [UserType] - Enum specifying the type of user, that the unauthenticated
+     * user wants to register as.
+     */
     fun register(userType: UserType) {
         if (_state.value == RegistrationState.Loading) return
 
