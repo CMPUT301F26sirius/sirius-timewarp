@@ -105,24 +105,24 @@ fun RegistrationScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
     ) { paddingValues ->
-        // string building
-        val termsString = buildAnnotatedString {
-            append("By continuing, you agree to our ")
+        // Remember
+        var userType by remember {mutableStateOf("Camper")}
+        var adminCode by remember {mutableStateOf("")}
+
+        // String building
+        val termString = buildAnnotatedString {
             withLink(
                 LinkAnnotation.Clickable(
                     tag = "terms_and_conditions",
                     styles = TextLinkStyles(style = SpanStyle(color = PitchLink)),
-                    linkInteractionListener = {}
+                    linkInteractionListener = {
+                        navController.navigate(Screen.Policy.route)
+                    }
                 )
             ) {
                 append("Terms & Privacy Policy")
             }
-            append(".")
         }
-
-        // Remember
-        var userType by remember {mutableStateOf("Camper")}
-        var adminCode by remember {mutableStateOf("")}
 
         Column(
             modifier = modifier
@@ -294,13 +294,26 @@ fun RegistrationScreen(
                     )
                 }
 
-                Text(
-                    text = termsString,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = PitchMutedText,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "By continuing, you agree to our ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = PitchMutedText
+                    )
+                    Text(
+                        text = termString,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.testTag("terms_and_privacy_policy")
+                    )
+                    Text(
+                        text = ".",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = PitchMutedText
+                    )
+                }
             }
         }
     }
