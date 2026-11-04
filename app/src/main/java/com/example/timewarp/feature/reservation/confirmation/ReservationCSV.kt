@@ -2,7 +2,6 @@
 
 package com.example.timewarp.feature.reservation.confirmation
 
-import com.example.timewarp.domain.model.Eric_Reservation
 import com.jsoizo.kotlincsv.csvWriter
 import kotlin.uuid.ExperimentalUuidApi
 
