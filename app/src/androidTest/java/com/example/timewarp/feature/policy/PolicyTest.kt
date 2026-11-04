@@ -32,7 +32,7 @@ class PolicyTest {
 
     @get:Rule
     val composeRule = createEmptyComposeRule()
-    
+
     @Before
     fun setUp() {
         hiltRule.inject()
