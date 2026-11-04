@@ -58,7 +58,18 @@ class FirebaseReservationRepository @Inject constructor(
      * NEEDS_DOCUMENTATION
      */
     override suspend fun getReservations(): MutableList<Reservation>? {
-        TODO("Not yet implemented")
+        val snapshot = firestore.collection("reservation")
+            .get()
+            .await()
+
+        val reservations = mutableListOf<Reservation>()
+        for (document in snapshot.documents) {
+            val reservation = document.toObject(Reservation::class.java) ?: continue
+
+
+            reservations.add(reservation.copy(reservationId = document.id))
+        }
+        return reservations
     }
 
     /**
