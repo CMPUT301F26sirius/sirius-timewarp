@@ -1,5 +1,6 @@
 package com.example.timewarp.navigation
 
+import android.net.Uri
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.AddModerator
@@ -7,6 +8,7 @@ import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Policy
+import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Token
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -38,5 +40,8 @@ sealed class Screen(
     }
     data object ReservationCancellation : Screen("reservation/cancellation", "Cancellation", "Cancellation registered", Icons.Outlined.CalendarMonth) {
         fun createRoute(reservationId: String) = "$route/$reservationId"
+    }
+    data object GenerateQR : Screen("qr/generate", "QR Generation", "Share your site!", Icons.Outlined.QrCode) {
+        fun createRoute(url: String) = "$route/${Uri.encode(url)}"
     }
 }

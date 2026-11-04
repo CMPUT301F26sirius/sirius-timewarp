@@ -27,7 +27,7 @@ class MockReservationRepository @Inject constructor() : ReservationRepository {
         reservations.add(reservation)
     }
 
-    override suspend fun editReservation(campsiteId: String, campsite: Reservation) {
+    override suspend fun editReservation(reservationId: String, campsite: Reservation) {
         for (i in reservations.indices) {
             if (reservations[i].reservationId == campsite.reservationId) {
                 reservations[i] = campsite
