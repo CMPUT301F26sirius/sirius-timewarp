@@ -28,6 +28,10 @@ import org.junit.runner.RunWith
 
 private const val ENTRANT_ID = "fake-entrant"
 
+/**
+ * Instrumented tests for reservation screen
+ */
+
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class ReservationsTest {

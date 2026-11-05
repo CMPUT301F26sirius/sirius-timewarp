@@ -20,8 +20,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private val TEST_USER_ID: String? = null // set to "test-user" during testing
-/*
-Main Responsibility: Every state the update profile screen can be in
+/**
+ * Every state the update profile screen can be in
  */
 sealed interface UpdateProfileState {
     data object Loading: UpdateProfileState
@@ -40,13 +40,13 @@ sealed interface UpdateProfileState {
     }
     data class Error (val message: String) : UpdateProfileState
 }
-/*
-Main responsibility: View model for the update profile screen. Load the signed-in users profile,
-                     into an editable form. Tracks changes, validates changes, and saves results
-
-Parameters: profileRepository: Saves the edited profile
-            observeCurrentUser: Provides the signed=in user, or null if not signed in
-            observeUserProfile: Provides the profile for given UserID
+/**
+ * View model for the update profile screen. Load the signed-in users profile,
+ * into an editable form. Tracks changes, validates changes, and saves results
+ *
+ * @param profileRepository Saves the edited profile
+ * @param observeCurrentUser Provides the signed=in user, or null if not signed in
+ * @param observeUserProfile Provides the profile for given UserID
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -67,10 +67,10 @@ class UpdateProfileViewModel @Inject constructor(
     }
 
 
-    /*
-    Main Responsibility: Reads the profile. Sets state when loaded, or when no user is signed in,
-                         or loading fails. If the user has no profile, the form starts blank and
-                         saving creates one.
+    /**
+     * Reads the profile. Sets state when loaded, or when no user is signed in,
+     * or loading fails. If the user has no profile, the form starts blank and
+     * saving creates one.
      */
     fun load() {
         viewModelScope.launch {
@@ -98,10 +98,10 @@ class UpdateProfileViewModel @Inject constructor(
             }
         }
     }
-    /*
-    Main Responsibility: Fills form with loaded profile
-
-    Parameters: profile: Profile, whose values are the form's starting values.
+    /**
+     * Fills form with loaded profile
+     *
+     * @param profile Profile, whose values are the form's starting values.
      */
     private fun showProfile(profile: Profile) {
         originalProfile = profile
@@ -119,10 +119,10 @@ class UpdateProfileViewModel @Inject constructor(
     fun onEmailChange(value: String) = updateContent { copy(email = value) }
     fun onPhoneNumberChange(value: String) = updateContent { copy(phoneNumber = value) }
 
-    /*
-    Main Responsibility: Trim each field (in case of whitespaces), copies values into profile.
-                         While saving sends message that it's saving. Sets profile when saving
-                         succeeds. On failure sends error so user can try again.
+    /**
+     * Trim each field (in case of whitespaces), copies values into profile.
+     * While saving sends message that it's saving. Sets profile when saving
+     * succeeds. On failure sends error so user can try again.
      */
     fun save() {
         val current = _state.value as? UpdateProfileState.Content ?: return
