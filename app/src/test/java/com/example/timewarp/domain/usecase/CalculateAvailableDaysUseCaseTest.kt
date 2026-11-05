@@ -1,7 +1,6 @@
 package com.example.timewarp.domain.usecase
 
 import com.example.timewarp.domain.model.Period
-import com.example.timewarp.domain.usecase.CalculateAvailableDaysUseCase
 import junit.framework.TestCase
 import org.junit.Before
 import org.junit.Test

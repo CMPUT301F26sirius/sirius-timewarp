@@ -137,7 +137,7 @@ abstract class FirebaseRepositoryModule {
     @Binds
     @Singleton
     abstract fun bindProfileRepository(
-        implementation: FirebaseProfileRepository // during testing should be fakeProfileRespository
+        implementation: FirebaseProfileRepository
     ): ProfileRepository
 
     /**
