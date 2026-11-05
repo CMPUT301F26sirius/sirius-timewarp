@@ -1,9 +1,9 @@
 package com.example.timewarp.feature.campsite.details
 
+import android.content.Intent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import com.example.timewarp.R
-import androidx.compose.ui.graphics.Color
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -17,13 +17,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,6 +45,8 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.ui.theme.TimewarpTheme
+import android.net.Uri
+
 
 @Composable
 fun CampsiteDetailsScreen(
@@ -78,6 +81,7 @@ fun CampsiteDetailsScreen(
                 is CampsiteDetailsState.Content -> {
                     // Campsite
                     val campsite = currentState.campsite
+                    val context = androidx.compose.ui.platform.LocalContext.current
 
                     Column(
                         modifier = Modifier
@@ -99,13 +103,15 @@ fun CampsiteDetailsScreen(
                         Text(
                             text = campsite.name,
                             style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.testTag("details_name")
                         )
 
                         Text(
                             text = campsite.location.address,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.testTag("details_address")
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -126,6 +132,26 @@ fun CampsiteDetailsScreen(
                                 text = "${currentState.ratings.size} reviews",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth().testTag("details_map")
+                                .clickable{
+                                    val uri = Uri.parse("geo:0,0?q=${Uri.encode(campsite.location.address)}")
+                                    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(15.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Outlined.LocationOn, contentDescription = null)
+                                Column {
+                                    Text(campsite.location.address)
+                                    Text("Map coming soon", style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
                         }
 
 
@@ -172,14 +198,6 @@ fun CampsiteDetailsScreen(
                             )
                         }
                     }
-
-
-
-
-
-
-
-
 
 
 
@@ -338,7 +356,8 @@ fun CampsiteDetailsScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
+                            .padding(horizontal = 24.dp)
+                            .testTag("details_rules"),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
