@@ -4,13 +4,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DateRangePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,10 +26,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.timewarp.domain.model.CampsiteFilter
 import com.example.timewarp.ui.theme.TimewarpTheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 
 /*
@@ -29,6 +42,10 @@ import com.example.timewarp.ui.theme.TimewarpTheme
 *  or the number of guests to filter through the campsites
 */
 
+
+/*
+* US 01.01.02: Filtering by 6 guests. Hides teh campsite that has 4 guests
+*/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterSheet(
@@ -50,6 +67,22 @@ fun FilterSheetContent(
 
     var location by remember(filter){ mutableStateOf(filter.location) }
     var guests by remember(filter){ mutableStateOf(filter.guests) }
+    var startDate by remember(filter) { mutableStateOf(filter.startDate) }
+    var endDate by remember(filter) { mutableStateOf(filter.endDate) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    val dateFormat = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC") }
+    }
+
+    val start = startDate
+    val end = endDate
+    val dateLabel = if (start != null && end != null) {
+        "${dateFormat.format(Date(start))} - ${dateFormat.format(Date(end))}"
+    }
+    else {
+        "Select Dates"
+    }
 
     Column(
         modifier = modifier.padding(15.dp),
@@ -60,10 +93,18 @@ fun FilterSheetContent(
         OutlinedTextField(
             value = location,
             onValueChange = {location = it},
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("filter_location"),
             label = {Text("Location")},
             singleLine = true
         )
+
+        // Dates selector
+        OutlinedButton(
+            onClick = {showDatePicker = true},
+            modifier = Modifier.fillMaxWidth().testTag("filter_dates")
+        ) {
+            Text(dateLabel)
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -77,8 +118,10 @@ fun FilterSheetContent(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 OutlinedButton(
-                    onClick = {guests = if (guests == null || guests !! <= 1) null
-                    else guests!! -1}
+                    onClick = {
+                        guests = if (guests == null || guests!! <= 1) null
+                        else guests!! - 1
+                    }
                 ) {
                     Text("-")
                 }
@@ -86,32 +129,86 @@ fun FilterSheetContent(
                 Text(guests?.toString() ?: "Any")
 
                 OutlinedButton(
-                    onClick = {guests = (guests?: 0) + 1}
+                    onClick = { guests = (guests ?: 0) + 1 },
+                    modifier = Modifier.testTag("filter_guests_plus")
                 ) {
                     Text("+")
                 }
             }
+        }
 
-            // Button for Clear All
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+        // Button for Clear All
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            OutlinedButton(
+                onClick = {onApply(CampsiteFilter())},
+                modifier = Modifier.weight(1f).testTag("filter_clear")
             ) {
-                OutlinedButton(
-                    onClick = {onApply(CampsiteFilter())},
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Clear All")
-                }
+                Text("Clear All")
+            }
 
-                // Button for Apply Filter
-                Button(
-                    onClick = {onApply(filter.copy(location = location.trim(), guests = guests))},
-                    modifier = Modifier.weight(1f)
+            // Button for Apply Filter
+            Button(
+                onClick = {onApply(filter.copy(location = location.trim(), guests = guests,
+                    startDate = startDate, endDate = endDate))},
+                modifier = Modifier.weight(1f).testTag("filter_apply")
+            ) {
+                Text("Apply")
+            }
+        }
+    }
+
+    // This handles the card that shows a calander to pick dates.
+    if (showDatePicker) {
+        val pickerState = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = startDate,
+            initialSelectedEndDateMillis = endDate)
+
+        DatePickerDialog(
+            onDismissRequest = {showDatePicker = false},
+            confirmButton = {
+                TextButton(
+                    enabled = pickerState.selectedStartDateMillis != null &&
+                            pickerState.selectedEndDateMillis != null,
+                    onClick = {
+                        startDate = pickerState.selectedStartDateMillis
+                        endDate = pickerState.selectedEndDateMillis
+                        showDatePicker = false
+                    }
                 ) {
-                    Text("Apply")
+                    Text("Ok")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {showDatePicker = false}
+                ) {
+                    Text("Cancel")
                 }
             }
+        )
+        {
+            DateRangePicker(
+                state = pickerState,
+                modifier = Modifier.height(500.dp),
+
+                title = {
+                    Text("Select Dates",
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp))
+                },
+                headline = {
+                    DateRangePickerDefaults.DateRangePickerHeadline(
+                        selectedStartDateMillis = pickerState.selectedStartDateMillis,
+                        selectedEndDateMillis = pickerState.selectedEndDateMillis,
+                        displayMode = pickerState.displayMode,
+                        dateFormatter = remember { DatePickerDefaults.dateFormatter() },
+                        modifier = Modifier.padding(start = 20.dp, end = 12.dp, bottom = 12.dp)
+                    )
+                }
+            )
         }
     }
 }
