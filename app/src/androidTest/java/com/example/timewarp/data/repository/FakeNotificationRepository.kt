@@ -2,59 +2,90 @@ package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Notification
 import com.example.timewarp.domain.repository.NotificationRepository
-import com.google.firebase.firestore.FirebaseFirestore
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Fake implementation of [NotificationRepository].
  *
- * Stores and retrieves notifications from a `notification` collection.
- */
+ * Stores notifications in memory instead of Firestore.
+ **/
 @Singleton
 class FakeNotificationRepository @Inject constructor() : NotificationRepository {
+    private val notifications = mutableListOf<Notification>()
+
     /**
-     * NEEDS_DOCUMENTATION
-     */
-    override suspend fun getCorrespondance(
-        fromUserId: String,
-        toUserId: String
-    ): MutableList<Notification>? {
-        TODO("Not yet implemented")
+     * Returns notifications sent from [fromUserId] to [toUserId].
+     **/
+    override suspend fun getCorrespondance(fromUserId: String, toUserId: String): MutableList<Notification>? {
+        val result = mutableListOf<Notification>()
+        for (notification in notifications) {
+            if (notification.fromUserId == fromUserId && notification.toUserId == toUserId) {
+                result.add(notification)
+            }
+        }
+        return result
     }
 
     /**
-     * NEEDS_DOCUMENTATION
-     */
+     * Returns notifications sent by [userId].
+     **/
     override suspend fun getOutgoingNotifications(userId: String): MutableList<Notification>? {
-        TODO("Not yet implemented")
+        val result = mutableListOf<Notification>()
+        for (notification in notifications) {
+            if (notification.fromUserId == userId) {
+                result.add(notification)
+            }
+        }
+        return result
     }
 
     /**
-     * NEEDS_DOCUMENTATION
-     */
+     * Returns notifications received by [userId].
+     **/
     override suspend fun getIncomingNotifications(userId: String): MutableList<Notification>? {
-        TODO("Not yet implemented")
+        val result = mutableListOf<Notification>()
+        for (notification in notifications) {
+            if (notification.toUserId == userId) {
+                result.add(notification)
+            }
+        }
+        return result
     }
 
-    /**
-     * NEEDS_DOCUMENTATION
-     */
+
+    /*
+     * Returns every stored notification.
+     **/
     override suspend fun getNotifications(): MutableList<Notification>? {
-        TODO("Not yet implemented")
+        return notifications.toMutableList()
     }
 
     /**
-     * NEEDS_DOCUMENTATION
-     */
+     * Stores a notification.
+     *
+     * @param notification notification to store.
+     **/
     override suspend fun sendNotification(notification: Notification) {
-        TODO("Not yet implemented")
+        notifications.add(notification)
     }
 
     /**
-     * NEEDS_DOCUMENTATION
-     */
+     * Retrieves a notification by its ID.
+     **/
     override suspend fun getNotification(notificationId: String): Notification? {
-        TODO("Not yet implemented")
+        for (notification in notifications) {
+            if (notification.notificationId == notificationId) {
+                return notification
+            }
+        }
+        return null
+    }
+
+    /**
+     * Removes all notifications from the fake collection.
+     **/
+    fun clear() {
+        notifications.clear()
     }
 }

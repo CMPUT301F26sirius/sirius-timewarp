@@ -28,13 +28,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.BaseButton
+import com.example.timewarp.ui.component.CSVButton
 import com.example.timewarp.ui.theme.PitchError
 import com.example.timewarp.ui.theme.PitchForest
 import com.example.timewarp.ui.theme.PitchMutedText
 
 /*
 * "Cancellation registered by system" screen shown after cancelling (US 01.07.01).
-* Outstanding: CSV download and notification are added in US 01.07.02 (#26).
+*  Outstanding: notification isn't shown in the Alerts tab yet (Alerts screen not built).
 */
 @Composable
 fun CancellationScreen(
@@ -93,6 +94,15 @@ fun CancellationScreen(
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    CSVButton(
+                        csvText = createCancellationCSV(current.reservation, current.campsite),
+                        fileName = "cancellation-${current.reservation.reservationId}",
+                        text = "Download cancellation CSV",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("download_csv_button")
+                    )
 
                     BaseButton(
                         onClick = { navController.navigate(Screen.Reservations.route) },
