@@ -6,80 +6,88 @@ import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.repository.ReservationRepository
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Fake implementation of [ReservationRepository].
  *
- * Stores and retrieves reservations from a `reservation` collection.
- */
+ * Stores reservations in memory instead of Firestore.
+ **/
 @Singleton
 class FakeReservationRepository @Inject constructor() : ReservationRepository {
+    private val reservationsState = MutableStateFlow<Map<String, Reservation>>(emptyMap())
+
     /**
-     * NEEDS_DOCUMENTATION
-     */
-
-    private val nowSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toInt()
-    private val oneDay = TimeUnit.DAYS.toSeconds(1).toInt()
-
-    /** The fake "database": reservationId → Reservation. */
-    private var reservations: Map<String, Reservation> =
-        ReservationState.entries.flatMapIndexed { index, state ->
-            listOf(0, 1).map { copy ->
-                val number = index * 2 + copy
-                Reservation(
-                    reservationId = "fake-$number",
-                    reservationState = state,
-                    timestamp = nowSeconds - number * 3 * oneDay, // 0, 3, 6, 9... days ago
-                    campsiteId = "fake-campsite-$number",
-                    userId = "test-user",
-                )
-            }
-        }.associateBy { it.reservationId }
-
+     * Returns every stored reservation.
+     *
+     * @return all reservations in the fake collection.
+     **/
     override suspend fun getReservations(): MutableList<Reservation>? {
-        simulateNetwork()
-        return reservations.values.toMutableList()
+        return reservationsState.value.values.toMutableList()
     }
 
     /**
-     * NEEDS_DOCUMENTATION
-     */
+     * Stores a reservation, replacing any with the same ID.
+     *
+     * @param reservation reservation to store.
+     **/
     override suspend fun createReservation(reservation: Reservation) {
-        simulateNetwork()
-        reservations = reservations + (reservation.reservationId to reservation)
+        addReservation(reservation)
     }
 
     /**
-     * NEEDS_DOCUMENTATION
-     */
+     * Replaces the reservation with [reservationId].
+     *
+     * @param reservationId ID of the reservation to replace.
+     * @param campsite the new reservation data.
+     **/
     override suspend fun editReservation(reservationId: String, campsite: Reservation) {
-        simulateNetwork()
-        reservations = reservations + (reservationId to campsite)
+        val updated = campsite.copy(reservationId = reservationId)
+        reservationsState.value = reservationsState.value + (reservationId to updated)
     }
 
     /**
-     * NEEDS_DOCUMENTATION
-     */
-    override suspend fun updateReservationState(reservationId: String, state: ReservationState) {
-        simulateNetwork()
-        val existing = reservations[reservationId] ?: return
-        reservations = reservations + (reservationId to existing.copy(reservationState = state))
-        Log.d("FakeReservationRepo", "Reservation $reservationId is now $state")
-    }
-
-    /**
-     * NEEDS_DOCUMENTATION
-     */
+     * Retrieves a reservation by ID.
+     *
+     * @param reservationId ID of the reservation.
+     * @return the reservation, or `null` when it does not exist.
+     **/
     override suspend fun getReservation(reservationId: String): Reservation? {
-        simulateNetwork()
-        return reservations[reservationId]
+        return reservationsState.value[reservationId]
     }
 
-    fun setReservations(list: List<Reservation>){
-        reservations = list.associateBy {it.reservationId}
+    /**
+     * Changes the state of a stored reservation.
+     * @param reservationId ID of the reservation.
+     * @param state the new state.
+     **/
+    override suspend fun updateReservationState(reservationId: String, state: ReservationState) {
+        val reservation = reservationsState.value[reservationId]
+
+        // Nothing to update
+        if (reservation == null) {
+            return
+        }
+
+        val updated = reservation.copy(reservationState = state)
+        reservationsState.value = reservationsState.value + (reservationId to updated)
     }
 
-    private suspend fun simulateNetwork() = delay(500)
+    /**
+     * Removes all reservations from the fake collection.
+     **/
+    fun clear() {
+        reservationsState.value = emptyMap()
+    }
+
+    /**
+     * Adds a reservation synchronously for test setup.
+     *
+     * @param reservation reservation to add.
+     **/
+    fun addReservation(reservation: Reservation) {
+        reservationsState.value = reservationsState.value + (reservation.reservationId to reservation)
+    }
 }

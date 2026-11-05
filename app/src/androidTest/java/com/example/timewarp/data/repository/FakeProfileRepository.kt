@@ -2,10 +2,9 @@ package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Profile
 import com.example.timewarp.domain.repository.ProfileRepository
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,38 +15,52 @@ import javax.inject.Singleton
  */
 @Singleton
 class FakeProfileRepository @Inject constructor() : ProfileRepository {
+    private val profiles = MutableStateFlow<Map<String, Profile>>(emptyMap())
     /**
      * NEEDS_DOCUMENTATION
      */
     override suspend fun getProfiles(): MutableList<Profile>? {
-        TODO("Not yet implemented")
+        return profiles.value.values.toMutableList()
     }
 
     /**
      * NEEDS_DOCUMENTATION
      */
     override suspend fun createProfile(profile: Profile) {
-        TODO("Not yet implemented")
+        profiles.value = profiles.value + (profile.userId to profile)
     }
 
     /**
      * NEEDS_DOCUMENTATION
      */
     override suspend fun editProfile(userId: String, profile: Profile) {
-        TODO("Not yet implemented")
+        profiles.value = profiles.value + (userId to profile)
     }
 
     /**
      * NEEDS_DOCUMENTATION
      */
     override suspend fun getProfile(userId: String): Profile? {
-        TODO("Not yet implemented")
+        return profiles.value[userId]
     }
 
     /**
      * NEEDS_DOCUMENTATION
      */
-    override fun observeProfile(userId: String): Flow<Profile?> = callbackFlow {
-        TODO("Not yet implemented")
+    override fun observeProfile(userId: String): Flow<Profile?> =
+        profiles.map { it[userId] }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    fun addProfile(profile: Profile) {
+        profiles.value = profiles.value + (profile.userId to profile)
+    }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    fun clear() {
+        profiles.value = emptyMap()
     }
 }
