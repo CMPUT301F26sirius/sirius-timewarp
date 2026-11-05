@@ -52,7 +52,8 @@ class ReservationsTest {
     fun setUp() {
         hiltRule.inject()
 
-        // Sign in an entrant with a profile, so the app opens on the main tabs instead of registration.
+        // Every test starts with no reservations and a signed-in entrant.
+        fakeReservations.clear()
         fakeUsers.clear()
         fakeUsers.addUser(User(userId = ENTRANT_ID, userType = UserType.Entrant))
         fakeAuth.setCurrentUserId(ENTRANT_ID)
@@ -65,7 +66,6 @@ class ReservationsTest {
 
     @Test
     fun reservations_showsAllEntrantTabs() {
-        fakeReservations.setReservations(emptyList())
         openReservations()
 
         composeRule.onNodeWithText("Booked").assertIsDisplayed()
@@ -76,13 +76,9 @@ class ReservationsTest {
 
     @Test
     fun bookingTab_showsOnlySignedInUsersReservations() {
-        fakeReservations.setReservations(
-            listOf(
-                reservation(id = "mine-1", userId = ENTRANT_ID),
-                reservation(id = "mine-2", userId = ENTRANT_ID),
-                reservation(id = "someone-else", userId = "another-user"),
-            )
-        )
+        fakeReservations.addReservation(reservation(id = "mine-1", userId = ENTRANT_ID))
+        fakeReservations.addReservation(reservation(id = "mine-2", userId = ENTRANT_ID))
+        fakeReservations.addReservation(reservation(id = "someone-else", userId = "another-user"))
         openReservations()
 
         waitForText("There is still a chance!")
@@ -93,7 +89,6 @@ class ReservationsTest {
 
     @Test
     fun noReservations_showsEmptyView_andGoesToBrowse() {
-        fakeReservations.setReservations(emptyList())
         openReservations()
 
         waitForText("You haven't booked yet!")
@@ -107,7 +102,7 @@ class ReservationsTest {
 
     @Test
     fun switchingTabs_changesWhatIsShown() {
-        fakeReservations.setReservations(listOf(reservation(id = "mine-1", userId = ENTRANT_ID)))
+        fakeReservations.addReservation(reservation(id = "mine-1", userId = ENTRANT_ID))
         openReservations()
 
         waitForText("There is still a chance!")
@@ -123,8 +118,8 @@ class ReservationsTest {
 
     @Test
     fun reservedReservation_showsUnderBookedTab() {
-        fakeReservations.setReservations(
-            listOf(reservation(id = "mine-1", userId = ENTRANT_ID, state = ReservationState.Reserved))
+        fakeReservations.addReservation(
+            reservation(id = "mine-1", userId = ENTRANT_ID, state = ReservationState.Reserved)
         )
         openReservations()
 
@@ -136,8 +131,8 @@ class ReservationsTest {
 
     @Test
     fun tappingWaitlistedCard_opensManageReservation() {
-        fakeReservations.setReservations(
-            listOf(reservation(id = "mine-1", userId = ENTRANT_ID, state = ReservationState.Waitlisted))
+        fakeReservations.addReservation(
+            reservation(id = "mine-1", userId = ENTRANT_ID, state = ReservationState.Waitlisted)
         )
         openReservations()
 
@@ -150,8 +145,8 @@ class ReservationsTest {
 
     @Test
     fun tappingPendingCard_opensMakeReservation() {
-        fakeReservations.setReservations(
-            listOf(reservation(id = "mine-1", userId = ENTRANT_ID, state = ReservationState.Pending))
+        fakeReservations.addReservation(
+            reservation(id = "mine-1", userId = ENTRANT_ID, state = ReservationState.Pending)
         )
         openReservations()
 
