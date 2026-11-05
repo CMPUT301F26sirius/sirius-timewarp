@@ -31,7 +31,7 @@ sealed interface BrowseTab {
         * Admins: all 3 tabs
         */
         fun tabsFor(userType: UserType?): List<BrowseTab> = when (userType) {
-            UserType.Entrant, null -> listOf(Browse, MyCampsites)
+            UserType.Entrant, null -> listOf(Browse)
             UserType.CampsiteOwner -> listOf(Browse, MyCampsites)
             UserType.Admin -> listOf(Browse, MyCampsites, AllCampsites)
         }
