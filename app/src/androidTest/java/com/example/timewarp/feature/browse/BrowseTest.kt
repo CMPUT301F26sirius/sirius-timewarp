@@ -232,10 +232,11 @@ class BrowseTest {
         }
 
         composeRule.waitUntil(5_000) {
-            composeRule.onAllNodesWithText("My campsites").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithTag("browse_tab_MyCampsites").fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText("My campsites").assertIsDisplayed()
-        composeRule.onAllNodesWithText("All campsites").assertCountEquals(0)
+        composeRule.onNodeWithTag("browse_tab_Browse").assertIsDisplayed()
+        composeRule.onNodeWithTag("browse_tab_MyCampsites").assertIsDisplayed()
+        composeRule.onNodeWithTag("browse_tab_AllCampsites").assertDoesNotExist()
         scenario.close()
     }
 

@@ -15,7 +15,7 @@ sealed interface BrowseTab {
     }
 
     data object MyCampsites : BrowseTab {
-        override val label = "My campsites"
+        override val label = "My Campsites"
         override val key = "MyCampsites"
     }
 
