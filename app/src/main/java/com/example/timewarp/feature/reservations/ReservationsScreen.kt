@@ -47,13 +47,12 @@ private val previewTabs = listOf(
     ReservationTab.Cancelled,
 )
 /**
-Main Responsibility: Responsible for connecting to the UI: Grabs the state, triggers loading,
-                     shows loading/error/content, and handles navigation
-
-Parameters: @param modifier: Applied to the wrapper
-            @param screen: gives the title and selected bottom nav item
-            @param navController: Used to open reservation or browse
-            @param viewModel: Given by Hilt; holds the state and loads the data
+ * Responsible for connecting to the UI: Grabs the state, triggers loading,
+ * shows loading/error/content, and handles navigation
+ * @param modifier Applied to the wrapper
+ * @param screen gives the title and selected bottom nav item
+ * @param navController Used to open reservation or browse
+ * @param viewModel Given by Hilt; holds the state and loads the data
  */
 @Composable
 fun ReservationsScreen(
@@ -108,14 +107,15 @@ fun ReservationsScreen(
 }
 
 /**
-Main Responsibility: Responsible only for drawing the state and reporting clicks.
-
-Parameters: @param state: Loaded reservations and selected tab
-            @param tabs: tabs for current user
-            @param tabSelected: the tab user clicked
-            @param reservationClick: reservation card when the user click
-            @param skipToBrowse: go to browse when there is an empty view
-            @param modifier: applied to the outer column
+ * Responsible only for drawing the state and reporting clicks.
+ *
+ *
+ * @param state Loaded reservations and selected tab
+ * @param tabs tabs for current user
+ * @param tabSelected the tab user clicked
+ * @param reservationClick reservation card when the user click
+ * @param skipToBrowse go to browse when there is an empty view
+ * @param modifier applied to the outer column
  */
 @Composable
 internal fun ReservationsContent(
@@ -166,13 +166,14 @@ internal fun ReservationsContent(
     }
 }
 
-/*
-Main Responsibility: Responsible for showing one tab's label
-
-Parameters: -> label: Text on chip
-            -> selected: Whether this chip is currently selected
-            -> onClick: called when chip is tapped
-            -> modifier: Applied to chip
+/**
+ * Responsible for showing one tab's label
+ *
+ *
+ * @param label Text on chip
+ * @param selected Whether this chip is currently selected
+ * @param onClick called when chip is tapped
+ * @param modifier Applied to chip
  */
 @Composable
 private fun TabChip(
@@ -199,12 +200,12 @@ private fun TabChip(
     }
 }
 
-/*
-Main Responsibility: Responsible for showing one reservation
-
-Parameters: -> item: reservation to display
-            -> onClick: Called when the card is clicked
-            -> modifier: applied to the card
+/**
+ * Responsible for showing one reservation
+ *
+ * @param item reservation to display
+ * @param onClick Called when the card is clicked
+ * @param modifier applied to the card
  */
 @Composable
 private fun ReservationCard(
@@ -278,10 +279,11 @@ private fun ReservationCard(
         }
     }
 }
-/*
-Main Responsibility: Responsible for telling the user this tab has nothing, suggest to browse
-
-Parameters: -> OnGoToBrowse: Called when the view is tapped
+/**
+ *
+ * Responsible for telling the user this tab has nothing, suggest to browse
+ *
+ * @param onGoToBrowse Called when the view is tapped
  */
 @Composable
 private fun EmptyReservations(onGoToBrowse: () -> Unit) {

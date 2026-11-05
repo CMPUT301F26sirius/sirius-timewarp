@@ -51,16 +51,15 @@ import com.example.timewarp.ui.component.BaseButtonType
 import com.example.timewarp.ui.component.BaseInput
 import com.example.timewarp.ui.component.BaseInputType
 import com.example.timewarp.ui.theme.TimewarpTheme
-/*
-Main Responsibility: Screen where we connect UpdateProfileViewModel to the UI. It collects
-                     the view model's state, shows a loading message, an error, or updateProfileForm
-                     to match. Returns to previous screen once save is successful.
-
-Parameters: - Modifier: Modifier applied to the surrounding (NavigationScreen)
-            - screen: Navigation destination for this screen, used for the title and bottom bar
-            - navController: Controller used to go back if either saved or canceled update
-            - viewModel: Holds the state of the screen and loads and saves profile. (provided by\
-            hilt)
+/**
+ * Screen where we connect UpdateProfileViewModel to the UI. It collects
+ * the view model's state, shows a loading message, an error, or updateProfileForm
+ * to match. Returns to previous screen once save is successful.
+ *
+ * @param modifier Modifier applied to the surrounding (NavigationScreen)
+ * @param screen Navigation destination for this screen, used for the title and bottom bar
+ * @param navController Controller used to go back if either saved or canceled update
+ * @param viewModel Holds the state of the screen and loads and saves profile. (provided by\hilt)
  */
 
 @Composable
@@ -112,19 +111,18 @@ fun UpdateProfileScreen(
         }
     }
 }
-/*
-Main Responsibility: Displays the current fields, as well as placeholder for things such as
-                     interests, and photos. Reports user action through callback.
-Important Note: This function holds no profile data itself. Designed this way so that we could
-                preview and test with any state. Also use internal so we can do testing
-
-Parameters: state: Current state
-            onFirstNameChange: Called when new text
-            onLastNameChange: Called when new text
-            onEmailChange: Called when new text
-            onPhoneNumberChange: Called when new text
-            onSave: Called when update is pressed
-            onCancel: Called when cancel is pressed
+/**
+ * Displays the current fields, as well as placeholder for things such as
+ * interests, and photos. Reports user action through callback.
+ * This function holds no profile data itself. Designed this way so that we could
+ * preview and test with any state. Also use internal so we can do testing
+ * @param state Current state
+ * @param onFirstNameChange Called when new text
+ * @param onLastNameChange Called when new text
+ * @param onEmailChange Called when new text
+ * @param onPhoneNumberChange Called when new text
+ * @param onSave Called when update is pressed
+ * @param onCancel Called when cancel is pressed
  */
 @Composable
 internal fun UpdateProfileForm(
@@ -311,9 +309,9 @@ internal fun UpdateProfileForm(
 
 }
 
-/*
-Main Responsibility: Used to preview layout without running. So no need for firebase or hilt.
-                     Information provided simply for previewing the layout.
+/**
+ * Used to preview layout without running. So no need for firebase or hilt.
+ * Information provided simply for previewing the layout.
  */
 @Preview(showBackground = true)
 @Composable

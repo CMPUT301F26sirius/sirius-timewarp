@@ -23,14 +23,16 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.emptyList
 
 /**
-Main Responsibility: Responsible for holding all the text that can change whenever
-                     the user switches between tabs.
-
-@param label Text shown on the tab chip
-@param heading Heading shown above the list
-@param emptyHeading Heading shown when the list has no value
-@param  cardSubtitle Small text under each card's title
-@param  datePrefix Text placed before the "_ days ago"
+ * Responsible for holding all the text that can change whenever
+ * the user switches between tabs.
+ *
+ *
+ * @param label Text shown on the tab chip
+ * @param heading Heading shown above the list
+ * @param emptyHeading Heading shown when the list has no value
+ * @param  cardSubtitle Small text under each card's title
+ * @param  datePrefix Text placed before the "_ days ago"
+ * @param states states each tab can hold
  */
 
 sealed class ReservationTab(
@@ -83,13 +85,14 @@ sealed class ReservationTab(
 }
 
 /**
-Main Responsibility: Responsible for holding only what each card is supposed to show.
-
-Parameters: @param reservationId: Used to open the reservation when the card is tapped
-            @param which tab the card appears in
-            @param title: Campsite name
-            @param dateText: text such as "Won 2 days ago"
-            @param canMakeReservation: True when the user won and needs to reserve.
+ * Responsible for holding only what each card is supposed to show.
+ *
+ *
+ * @param reservationId Used to open the reservation when the card is tapped
+ * @param state which tab the card appears in
+ * @param title Campsite name
+ * @param dateText text such as "Won 2 days ago"
+ * @param canMakeReservation True when the user won and needs to reserve.
  */
 data class ReservationItem(
     val reservationId: String,
@@ -105,12 +108,10 @@ sealed interface ReservationsState {
     data object Loading : ReservationsState
 
     /**
-    Main Responsibility: Responsible for making sure that reservations load successfully or if
-                         they are empty.
-
-    Parameters: @param tabs: Which tabs to show for each mode
-                @param selectedTab: the tab which the user currently clicked
-                @param items: Every reservation for this tab
+     * Responsible for making sure that reservations load successfully or if they are empty.
+     *
+     * @param selectedTab: the tab which the user currently clicked
+     * @param items: Every reservation for this tab
      */
     data class Content(
         val selectedTab: ReservationTab = ReservationTab.Booked,
@@ -126,12 +127,12 @@ sealed interface ReservationsState {
     }
 
 /**
-Main Responsibility: Responsible for loading reservations that each mode can see, combines
-                     the campsite and turns it into a card.
-
-Parameters: @param campsiteRepository: campsite information (mainly used for campsite name)
-            @param reservationRepository: Reservation information
-            @param observeCurrentUser: Signed-in userId
+ * Responsible for loading reservations that each mode can see, combines the campsite and turns
+ * it into a card.
+ *
+ * @param campsiteRepository campsite information (mainly used for campsite name)
+ * @param reservationRepository Reservation information
+ * @param observeCurrentUser Signed-in userId
  */
 @HiltViewModel
 class ReservationsViewModel @Inject constructor(
@@ -184,11 +185,8 @@ class ReservationsViewModel @Inject constructor(
         )
 
     /**
-    Main Responsibility: Responsible for loading the screen. So if the state changes such as a
-                         cancellation, these changes appear when coming back to reservations.
-
-    Parameters: @param mode: Which user (Entrant, Owner, Admin) is viewing and what tabs and reservations
-                         are shown
+     * Responsible for loading the screen. So if the state changes such as a
+     * cancellation, these changes appear when coming back to reservations.
      */
     fun load() {
 
@@ -232,9 +230,10 @@ class ReservationsViewModel @Inject constructor(
     }
 
     /**
-    Main Responsibility: Turning a reservation into a card
-
-    Parameters: @param campsiteName: Name of campsite
+     * Turning a reservation into a card
+     *
+     * @param campsiteName Name of campsite
+     * @param canMakeReservation boolean for if we can make a reservation
      */
     private fun Reservation.toItem(campsiteName: String?, canMakeReservation: Boolean): ReservationItem {
         return ReservationItem(
@@ -247,18 +246,18 @@ class ReservationsViewModel @Inject constructor(
     }
 
     /**
-    Main Responsibility: Switches tabs
-
-    Parameters: @param tab: The tab the user clicked
+     * Switches tabs
+     *
+     * @param tab The tab the user clicked
      */
     fun selectTab(tab: ReservationTab) {
         _state.update { (it as? ReservationsState.Content)?.copy(selectedTab = tab) ?: it }
     }
 
     /**
-    Main Responsibility: Formatting how long ago a timestamp was
-
-    Parameters: @param epochSeconds: time to format, in seconds
+     * Formatting how long ago a timestamp was
+     *
+     * @param epochSeconds time to format, in seconds
      */
     private fun daysAgoText(epochSeconds: Int): String {
         if (epochSeconds <= 0) return ""
