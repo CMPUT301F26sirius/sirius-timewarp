@@ -70,7 +70,9 @@ class FakeCampsiteRepository @Inject constructor() : CampsiteRepository {
                 val locationMatches = filter.location.isBlank() ||
                     campsite.location.address.contains(filter.location, ignoreCase = true)
                 val guestsMatch = filter.guests == null || campsite.occupancy.maxGuests >= filter.guests
-                locationMatches && guestsMatch
+                val queryMatches = filter.query.isBlank() ||
+                        campsite.name.contains(filter.query, ignoreCase = true)
+                locationMatches && guestsMatch && queryMatches
             }
             .toMutableList()
     }

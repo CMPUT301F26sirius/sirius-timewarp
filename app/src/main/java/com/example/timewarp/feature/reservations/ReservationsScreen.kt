@@ -38,32 +38,37 @@ import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.theme.TimewarpTheme
+import com.example.timewarp.domain.model.ReservationState
 
-/*
-Main Responsibility: Responsible for connecting to the UI: Grabs the state, triggers loading,
-                     shows loading/error/content, and handles navigation
-
-Parameters: -> modifier: Applied to the wrapper
-            -> screen: gives the title and selected bottom nav item
-            -> mode: Who is viewing
-            -> navController: Used to open reservation or browse
-            -> viewModel: Given by Hilt; holds the state and loads the data
+private val previewTabs = listOf(
+    ReservationTab.Booked,
+    ReservationTab.Booking,
+    ReservationTab.Past,
+    ReservationTab.Cancelled,
+)
+/**
+ * Responsible for connecting to the UI: Grabs the state, triggers loading,
+ * shows loading/error/content, and handles navigation
+ * @param modifier Applied to the wrapper
+ * @param screen gives the title and selected bottom nav item
+ * @param navController Used to open reservation or browse
+ * @param viewModel Given by Hilt; holds the state and loads the data
  */
 @Composable
 fun ReservationsScreen(
     modifier: Modifier = Modifier,
     screen: Screen = Screen.Reservations,
-    mode: ReservationMode = ReservationMode.Entrant,
     navController: NavController = rememberNavController(),
     viewModel: ReservationsViewModel = hiltViewModel(),
 ) {
     // State
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val tabs by viewModel.tabs.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
 
     // State Interpretation & Navigation
-    LaunchedEffect(mode) {
-        viewModel.load(mode)
+    LaunchedEffect(viewModel) {
+        viewModel.load()
     }
 
     // User Interface
@@ -81,6 +86,7 @@ fun ReservationsScreen(
                 is ReservationsState.Error -> Text("Error: ${s.message}")
                 is ReservationsState.Content -> ReservationsContent(
                     state = s,
+                    tabs = tabs,
                     tabSelected = viewModel::selectTab,
                     reservationClick = {item ->
                         // Winners who haven't reserved yet go to make-reservation; everything else to manage.
@@ -100,18 +106,21 @@ fun ReservationsScreen(
     }
 }
 
-/*
-Main Responsibility: Responsible only for drawing the state and reporting clicks.
-
-Parameters: -> state: Loaded reservations and selected tab
-            -> tabSelected: the tab user clicked
-            -> reservationClick: reservation card when the user click
-            -> skipToBrowse: go to browse when there is an empty view
-            -> modifier: applied to the outer column
+/**
+ * Responsible only for drawing the state and reporting clicks.
+ *
+ *
+ * @param state Loaded reservations and selected tab
+ * @param tabs tabs for current user
+ * @param tabSelected the tab user clicked
+ * @param reservationClick reservation card when the user click
+ * @param skipToBrowse go to browse when there is an empty view
+ * @param modifier applied to the outer column
  */
 @Composable
 internal fun ReservationsContent(
     state: ReservationsState.Content,
+    tabs: List<ReservationTab>,
     tabSelected: (ReservationTab) -> Unit,
     reservationClick: (ReservationItem) -> Unit,
     skipToBrowse: () -> Unit,
@@ -125,7 +134,7 @@ internal fun ReservationsContent(
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            state.tabs.forEach { tab ->
+            tabs.forEach { tab ->
                 TabChip(
                     label = tab.label,
                     selected = tab == state.selectedTab,
@@ -149,6 +158,7 @@ internal fun ReservationsContent(
             items.forEach { item ->
                 ReservationCard(
                     item = item,
+                    tab = state.selectedTab,
                     onClick = { reservationClick(item) },
                 )
             }
@@ -156,13 +166,14 @@ internal fun ReservationsContent(
     }
 }
 
-/*
-Main Responsibility: Responsible for showing one tab's label
-
-Parameters: -> label: Text on chip
-            -> selected: Whether this chip is currently selected
-            -> onClick: called when chip is tapped
-            -> modifier: Applied to chip
+/**
+ * Responsible for showing one tab's label
+ *
+ *
+ * @param label Text on chip
+ * @param selected Whether this chip is currently selected
+ * @param onClick called when chip is tapped
+ * @param modifier Applied to chip
  */
 @Composable
 private fun TabChip(
@@ -189,17 +200,18 @@ private fun TabChip(
     }
 }
 
-/*
-Main Responsibility: Responsible for showing one reservation
-
-Parameters: -> item: reservation to display
-            -> onClick: Called when the card is clicked
-            -> modifier: applied to the card
+/**
+ * Responsible for showing one reservation
+ *
+ * @param item reservation to display
+ * @param onClick Called when the card is clicked
+ * @param modifier applied to the card
  */
 @Composable
 private fun ReservationCard(
     item: ReservationItem,
     onClick: () -> Unit,
+    tab: ReservationTab,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -233,7 +245,7 @@ private fun ReservationCard(
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
                 Text(
-                    text = item.tab.label.uppercase(),
+                    text = tab.label.uppercase(),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -254,7 +266,7 @@ private fun ReservationCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = item.tab.cardSubtitle,
+                    text = tab.cardSubtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -267,10 +279,11 @@ private fun ReservationCard(
         }
     }
 }
-/*
-Main Responsibility: Responsible for telling the user this tab has nothing, suggest to browse
-
-Parameters: -> OnGoToBrowse: Called when the view is tapped
+/**
+ *
+ * Responsible for telling the user this tab has nothing, suggest to browse
+ *
+ * @param onGoToBrowse Called when the view is tapped
  */
 @Composable
 private fun EmptyReservations(onGoToBrowse: () -> Unit) {
@@ -303,6 +316,7 @@ private fun ReservationsEmptyPreview() {
     TimewarpTheme {
         ReservationsContent(
             state = ReservationsState.Content(selectedTab = ReservationTab.Booking),
+            tabs = previewTabs,
             tabSelected = {},
             reservationClick = {},
             skipToBrowse = {},
@@ -319,10 +333,11 @@ private fun ReservationsScreenPreview() {
             state = ReservationsState.Content(
                 selectedTab = ReservationTab.Booking,
                 items = listOf(
-                    ReservationItem("1", ReservationTab.Booking, "You Won Super Cool Lottery!", "Drawn 3 days ago"),
-                    ReservationItem("2", ReservationTab.Booking, "You Won Super Cool Lottery!", "Drawn 3 days ago"),
+                    ReservationItem("1", ReservationState.Pending, "You Won Super Cool Lottery!", "Drawn 3 days ago"),
+                    ReservationItem("2", ReservationState.Pending, "You Won Super Cool Lottery!", "Drawn 3 days ago"),
                 ),
             ),
+            tabs = previewTabs,
             tabSelected = {},
             reservationClick = {},
             skipToBrowse = {},
