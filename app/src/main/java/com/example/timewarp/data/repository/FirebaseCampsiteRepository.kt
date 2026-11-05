@@ -62,7 +62,20 @@ class FirebaseCampsiteRepository @Inject constructor(
      * @return the campsite if the document exists, and `null` otherwise.
      */
     override suspend fun getCampsite(campsiteId: String): Campsite? {
-        TODO("Not yet implemented")
+        val snapshot = firestore.collection("campsite")
+        .document(campsiteId)
+            .get()
+            .await()
+
+        // No document with this id
+        if (!snapshot.exists()) {
+            return null
+        }
+
+        val campsite = snapshot.toObject(Campsite::class.java) ?: return null
+
+        // The id is the document name
+        return campsite.copy(campsiteId = campsiteId)
     }
 
     /**
