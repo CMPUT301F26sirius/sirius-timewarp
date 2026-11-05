@@ -50,7 +50,6 @@ class NavigationViewModel @Inject constructor(
 
                     UserType.CampsiteOwner -> listOf(
                         Screen.Browse,
-                        Screen.MyCampsites,
                         Screen.Lotteries,
                         Screen.Reservations,
                         Screen.Alerts,

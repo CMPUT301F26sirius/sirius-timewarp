@@ -11,7 +11,6 @@ import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Token
-import androidx.compose.material.icons.outlined.Cabin
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(
@@ -31,8 +30,6 @@ sealed class Screen(
     data object Moderate : Screen("moderate", "Moderate", "Moderate", Icons.Outlined.AddModerator)
     data object UpdateProfile : Screen("profile/update", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
     data object Policy : Screen("policy", "Policy", "App Policy & Guidelines",  Icons.Outlined.Policy)
-
-    data object MyCampsites : Screen("campsites/mine", "My Sites", "Manage your campsites", Icons.Outlined.Cabin)
 
     // Dynamic routes.
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {

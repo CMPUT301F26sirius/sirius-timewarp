@@ -81,17 +81,20 @@ class MyCampsitesScreenTest {
         (campsiteRepository as FakeCampsiteRepository).addCampsite(campsite)
     }
 
-    // Launches the app and opens the My Sites tab
+    // Launches the app and selects "My campsites" on the Browse tab
     private fun openMyCampsites(): ActivityScenario<MainActivity> {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
 
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithText("PITCH/BROWSE").fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText("My Sites").performClick()
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithTag("my_campsites_pill").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("my_campsites_pill").performClick()
 
         composeRule.waitUntil(5_000) {
-            composeRule.onAllNodesWithText("PITCH/CAMPSITES/MINE").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("Manage your campsites").fetchSemanticsNodes().isNotEmpty()
         }
         return scenario
     }
@@ -154,6 +157,21 @@ class MyCampsitesScreenTest {
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithText("PITCH/CAMPSITE/DETAILS").fetchSemanticsNodes().isNotEmpty()
         }
+
+        scenario.close()
+    }
+
+    @Test
+    fun entrant_doesNotSeeMyCampsitesPill() {
+        // Same user, but as an entrant
+        (userRepository as FakeUserRepository).clear()
+        (userRepository as FakeUserRepository).addUser(User(userId = ownerId, userType = UserType.Entrant))
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("PITCH/BROWSE").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("my_campsites_pill").assertDoesNotExist()
 
         scenario.close()
     }

@@ -9,7 +9,6 @@ import com.example.timewarp.feature.account.AccountScreen
 import com.example.timewarp.feature.alerts.AlertsScreen
 import com.example.timewarp.feature.browse.BrowseScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
-import com.example.timewarp.feature.campsite.owner.MyCampsitesScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
 import com.example.timewarp.feature.policy.PolicyScreen
@@ -76,13 +75,6 @@ fun AppNavHost() {
         composable(Screen.Moderate.route) {
             ModerateScreen(
                 screen = Screen.Moderate,
-                navController = navController
-            )
-        }
-
-        composable(Screen.MyCampsites.route) {
-            MyCampsitesScreen(
-                screen = Screen.MyCampsites,
                 navController = navController
             )
         }

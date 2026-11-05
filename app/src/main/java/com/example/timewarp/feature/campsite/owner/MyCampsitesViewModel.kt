@@ -3,10 +3,12 @@ package com.example.timewarp.feature.campsite.owner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.Campsite
+import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.usecase.CheckUpcomingLotteryUseCase
+import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +19,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,10 +51,24 @@ class MyCampsitesViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val campsiteRepository: CampsiteRepository,
     private val lotteryRepository: LotteryRepository,
-    private val checkUpcomingLottery: CheckUpcomingLotteryUseCase
+    private val checkUpcomingLottery: CheckUpcomingLotteryUseCase,
+    observeCurrentUser: ObserveCurrentUserUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow<MyCampsitesState>(MyCampsitesState.Loading)
     val state: StateFlow<MyCampsitesState> = _state.asStateFlow()
+    val isOwner: StateFlow<Boolean> = observeCurrentUser()
+        .map { user ->
+            if (user == null) {
+                false
+            } else if (user.userType == UserType.CampsiteOwner) {
+                true
+            } else if (user.userType == UserType.Admin) {
+                true
+            } else {
+                false
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     init {
         observe()

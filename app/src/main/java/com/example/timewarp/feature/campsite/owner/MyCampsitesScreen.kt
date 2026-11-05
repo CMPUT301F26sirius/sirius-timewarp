@@ -1,29 +1,24 @@
 package com.example.timewarp.feature.campsite.owner
 
+import android.R.attr.top
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Location
-import com.example.timewarp.feature.campsite.owner.MyCampsiteItem
-import com.example.timewarp.feature.campsite.owner.MyCampsitesState
-import com.example.timewarp.feature.campsite.owner.MyCampsitesViewModel
-import com.example.timewarp.feature.navigation.NavigationScreen
-import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.CampsiteCard
 import com.example.timewarp.ui.theme.PitchError
 import com.example.timewarp.ui.theme.PitchForest
@@ -31,36 +26,43 @@ import com.example.timewarp.ui.theme.PitchMutedText
 import com.example.timewarp.ui.theme.TimewarpTheme
 
 /*
- * My Sites tab: list of the signed-in owner's campsites (US 02.03.01).
- * Outstanding: no filtering/sorting yet (optional in the issue).
+ * Owner's campsite list, shown inside the Browse tab under "My campsites" (US 02.03.01).
+ * Outstanding: "+ Register campsite" button goes here once Register Campsite (US 02.01.01) has a route.
  */
 
- /** My Sites tab showing the signed-in owner's campsites. */
+/**
+ * "All campsites" / "My campsites" pills shown to owners on the Browse tab.
+ *
+ * @param showMyCampsites true when "My campsites" is selected.
+ * @param onToggle called with true for "My campsites", false for "All campsites".
+ */
 @Composable
-fun MyCampsitesScreen(
-    modifier: Modifier = Modifier,
-    screen: Screen = Screen.MyCampsites,
-    navController: NavController = rememberNavController(),
-    viewModel: MyCampsitesViewModel = hiltViewModel()
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-
-    NavigationScreen(
-        screen = screen,
-        modifier = modifier,
-        navController = navController
+fun CampsiteListToggle(showMyCampsites: Boolean, onToggle: (Boolean) -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(horizontal = 15.dp)
     ) {
-        MyCampsitesContent(
-            state = state,
-            onCampsiteClick = { campsiteId ->
-                navController.navigate(Screen.CampsiteDetails.createRoute(campsiteId))
-            }
+        FilterChip(
+            selected = !showMyCampsites,
+            onClick = { onToggle(false) },
+            label = { Text("All campsites") },
+            modifier = Modifier.testTag("all_campsites_pill")
+        )
+        FilterChip(
+            selected = showMyCampsites,
+            onClick = { onToggle(true) },
+            label = { Text("My campsites") },
+            modifier = Modifier.testTag("my_campsites_pill")
         )
     }
 }
 
-
-/** Body of the My Sites tab. Separate from the ViewModel so it can be previewed. */
+/**
+ * List of the signed-in owner's campsites, under a "Manage your campsites" heading.
+ *
+ * @param state what to show.
+ * @param onCampsiteClick called with the campsite ID when a card is tapped.
+ */
 @Composable
 fun MyCampsitesContent(
     state: MyCampsitesState,
@@ -71,7 +73,14 @@ fun MyCampsitesContent(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
+            .padding(top = 15.dp)
     ) {
+        Text(
+            text = "Manage your campsites",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+
         when (state) {
             MyCampsitesState.Loading -> Text("Loading your campsites...")
             is MyCampsitesState.Error -> Text("Error: ${state.message}", color = PitchError)
@@ -115,7 +124,6 @@ private fun MyCampsiteRow(item: MyCampsiteItem, onClick: () -> Unit) {
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

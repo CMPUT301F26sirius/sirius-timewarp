@@ -51,6 +51,9 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.CampsiteCard
 import com.example.timewarp.ui.theme.TimewarpTheme
+import com.example.timewarp.feature.campsite.owner.CampsiteListToggle
+import com.example.timewarp.feature.campsite.owner.MyCampsitesContent
+import com.example.timewarp.feature.campsite.owner.MyCampsitesViewModel
 
 /*
 * This file holds the Browse Screen which has the search bar, the filter button and sheet and
@@ -63,12 +66,18 @@ fun BrowseScreen(
     screen: Screen = Screen.Browse,
     navController: NavController = rememberNavController(),
     viewModel: BrowseViewModel = hiltViewModel(),
+    myCampsitesViewModel: MyCampsitesViewModel = hiltViewModel(),
 ) {
     // State
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isOwner by myCampsitesViewModel.isOwner.collectAsStateWithLifecycle()
+    val myCampsitesState by myCampsitesViewModel.state.collectAsStateWithLifecycle()
 
     // show filter
     var showFilters by rememberSaveable {mutableStateOf(false)}
+
+    // Owners can switch between all campsites and their own (US 02.03.01)
+    var showMyCampsites by rememberSaveable { mutableStateOf(false) }
 
     NavigationScreen(
         screen = screen,
@@ -83,12 +92,23 @@ fun BrowseScreen(
             },
             query = state.filters.query,
             onSearch = viewModel::onSearch,
-            onFilterClick = { showFilters = true }
+            onFilterClick = { showFilters = true },
+            isOwner = isOwner,
+            showMyCampsites = showMyCampsites,
+            onToggleMyCampsites = { showMyCampsites = it },
+            myCampsites = {
+                MyCampsitesContent(
+                    state = myCampsitesState,
+                    onCampsiteClick = { id ->
+                        navController.navigate(Screen.CampsiteDetails.createRoute(id))
+                    }
+                )
+            }
         )
         if (showFilters) {
             FilterSheet(filter = state.filters,
                 onApply = {viewModel.onApplyFilters(it)
-                showFilters = false}, onDismiss = {showFilters = false}
+                    showFilters = false}, onDismiss = {showFilters = false}
             )
         }
     }
@@ -101,10 +121,27 @@ fun BrowseContent(
     modifier: Modifier = Modifier,
     query: String,
     onSearch: (String) -> Unit,
-    onFilterClick: () -> Unit
+    onFilterClick: () -> Unit,
+    isOwner: Boolean = false,
+    showMyCampsites: Boolean = false,
+    onToggleMyCampsites: (Boolean) -> Unit = {},
+    myCampsites: @Composable () -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         SearchRow(query = query, onSearch = onSearch, onFilterClick = onFilterClick)
+
+        // Owners see "All campsites" / "My campsites" pills (US 02.03.01)
+        if (isOwner) {
+            CampsiteListToggle(showMyCampsites = showMyCampsites, onToggle = onToggleMyCampsites)
+        }
+
+        // "My campsites" selected: show the owner's list instead of search results
+        if (isOwner && showMyCampsites) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 15.dp)) {
+                myCampsites()
+            }
+            return@Column
+        }
 
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when {
