@@ -62,6 +62,21 @@ class FakeCampsiteRepository @Inject constructor() : CampsiteRepository {
         campsites.map { it[campsiteId] }
 
     /**
+     * Observes the stored campsites owned by [ownerUserId].
+     */
+    override fun observeOwnerCampsites(ownerUserId: String): Flow<List<Campsite>> {
+        return campsites.map { stored ->
+            val owned = mutableListOf<Campsite>()
+            for (campsite in stored.values) {
+                if (campsite.ownerUserId == ownerUserId) {
+                    owned.add(campsite)
+                }
+            }
+            owned
+        }
+    }
+
+    /**
      * NEEDS_DOCUMENTATION
      */
     override suspend fun filterCampsites(filter: CampsiteFilter): MutableList<Campsite>? {

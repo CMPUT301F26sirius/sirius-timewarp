@@ -19,4 +19,7 @@ interface CampsiteRepository {
     fun observeCampsite(campsiteId: String): Flow<Campsite?>
 
     suspend fun filterCampsites(filter: CampsiteFilter): MutableList<Campsite>?
+
+    /** Observes all campsites owned by [ownerUserId]. Emits again whenever they change. */
+    fun observeOwnerCampsites(ownerUserId: String): Flow<List<Campsite>>
 }

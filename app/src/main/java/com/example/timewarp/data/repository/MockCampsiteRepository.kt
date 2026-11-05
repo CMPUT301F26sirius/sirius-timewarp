@@ -8,6 +8,7 @@ import com.example.timewarp.domain.model.Pricing
 import com.example.timewarp.domain.repository.CampsiteRepository
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 
 /**
@@ -76,6 +77,19 @@ class MockCampsiteRepository @Inject constructor(): CampsiteRepository {
     override fun observeCampsite(campsiteId: String): Flow<Campsite?> = flowOf(
         TODO("Not yet implemented")
     )
+
+    /**
+     * Returns the mock campsites owned by [ownerUserId].
+     */
+    override fun observeOwnerCampsites(ownerUserId: String): Flow<List<Campsite>> = flow {
+        val owned = mutableListOf<Campsite>()
+        for (campsite in getCampsites().orEmpty()) {
+            if (campsite.ownerUserId == ownerUserId) {
+                owned.add(campsite)
+            }
+        }
+        emit(owned)
+    }
 
     /**
      * NEEDS_DOCUMENTATION

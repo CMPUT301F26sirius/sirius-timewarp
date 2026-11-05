@@ -118,4 +118,37 @@ class FirebaseCampsiteRepository @Inject constructor(
             .toMutableList()
     }
 
+    /**
+     * Observes the Firestore campsites whose `ownerUserId` is ownerUserId.
+     * ownerUserId ID of the campsite owner.
+     * returns a flow of that owner's campsites, updated live.
+     */
+    override fun observeOwnerCampsites(ownerUserId: String): Flow<List<Campsite>> = callbackFlow {
+        val listener = firestore.collection("campsite")
+            .whereEqualTo("ownerUserId", ownerUserId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val campsites = mutableListOf<Campsite>()
+                if (snapshot != null) {
+                    for (document in snapshot.documents) {
+                        val campsite = document.toObject(Campsite::class.java)
+                        if (campsite != null) {
+                            // The id is the document name, not a field inside it
+                            campsites.add(campsite.copy(campsiteId = document.id))
+                        }
+                    }
+                }
+                trySend(campsites)
+            }
+
+        // Stop listening when nobody collects the flow anymore
+        awaitClose {
+            listener.remove()
+        }
+    }
+
 }
