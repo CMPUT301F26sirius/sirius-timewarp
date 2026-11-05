@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +40,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.traceEventEnd
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -104,7 +106,8 @@ fun BrowseScreen(
             },
             query = state.filters.query,
             onSearch = viewModel::onSearch,
-            onFilterClick = { showFilters = true }
+            onFilterClick = { showFilters = true },
+            onTabSelected = viewModel::onTabSelected
         )
         if (showFilters) {
             FilterSheet(filter = state.filters,
@@ -134,15 +137,40 @@ fun BrowseContent(
     query: String,
     onSearch: (String) -> Unit,
     onFilterClick: () -> Unit,
-    showFilterButton: Boolean = true
+    showFilterButton: Boolean = true,
+    onTabSelected: (BrowseTab) -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         SearchRow(query = query, onSearch = onSearch, filter = state.filters, onFilterClick = onFilterClick,
             showFilterButton = showFilterButton
         )
 
+        if (state.tabs.size > 1) {
+            Row(
+                modifier = Modifier.padding(horizontal = 15.dp),
+                horizontalArrangement = Arrangement.spacedBy(9.dp)
+            ) {
+                state.tabs.forEach {
+                    tab ->
+                    FilterChip(
+                        selected = tab == state.selectedTab,
+                        onClick = {onTabSelected(tab)},
+                        label = {Text(tab.label)},
+                        modifier = Modifier.testTag("browse_tab_${tab.key}")
+                    )
+                }
+            }
+        }
+
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when {
+
+                state.selectedTab == BrowseTab.MyCampsites ->
+                    Text(
+                        text = "Your Added Campsites Will Appear Here",
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+
                 state.isLoading -> CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )

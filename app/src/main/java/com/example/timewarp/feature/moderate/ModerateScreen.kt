@@ -22,12 +22,10 @@ fun ModerateScreen(
     screen: Screen = Screen.Moderate,
     navController: NavController = rememberNavController(),
     viewModel: ModerateViewModel = hiltViewModel(),
-    browseViewModel: BrowseViewModel = hiltViewModel(),
 ) {
     // State
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
-    val browseState by browseViewModel.state.collectAsStateWithLifecycle()
 
     // State Interpretation & Navigation
     LaunchedEffect(state) {
@@ -40,16 +38,8 @@ fun ModerateScreen(
         modifier = modifier,
         navController = navController,
     ) {
-        BrowseContent(
-            state = browseState,
-            onCampsiteClick = {
-                id -> navController.navigate(Screen.CampsiteDetails.createRoute(id))
-            },
-            query = browseState.filters.query,
-            onSearch = browseViewModel::onSearch,
-            onFilterClick = {},
-            showFilterButton = false
-        )
+
+
     }
 }
 

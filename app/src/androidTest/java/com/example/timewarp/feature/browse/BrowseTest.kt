@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.browse
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -209,23 +210,48 @@ class BrowseTest {
     }
 
 
-    /*
-    * US 03.04.01: This shows the admin moderator tab which shows the campsites without filter button
-    */
     @Test
-    fun admin_ModeratorTab_noFiltersButton_030401() {
-        (authRepository as FakeAuthRepository).setCurrentUserId("admin")
-        (userRepository as FakeUserRepository).addUser(
-            User(userId = "admin", userType = UserType.Admin)
-        )
+    fun entrant_seeNoTabs_030401() {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
-        waitForText("Bear Creek")
-        composeRule.onAllNodesWithText("Moderate").onFirst().performClick()
-        waitForText("Bear Creek")
-        composeRule.onNodeWithTag("browse_filter_button").assertDoesNotExist()
-        composeRule.onNodeWithText("Bear Creek").assertIsDisplayed()
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Bear Creek").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("browse_tab_Browse").assertDoesNotExist()
         scenario.close()
     }
 
+    @Test
+    fun owner_seeTwoTabs_030401() {
+        (authRepository as FakeAuthRepository).setCurrentUserId("owner-user")
+        (userRepository as FakeUserRepository).addUser(
+            User(userId = "owner-user", userType = UserType.CampsiteOwner)
+        )
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Bear Creek").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("My campsites").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("My campsites").assertIsDisplayed()
+        composeRule.onAllNodesWithText("All campsites").assertCountEquals(0)
+        scenario.close()
+    }
+
+    @Test
+    fun admin_seeThreeTab_030401() {
+        (authRepository as FakeAuthRepository).setCurrentUserId("admin-user")
+        (userRepository as FakeUserRepository).addUser(
+            User(userId = "admin-user", userType = UserType.Admin)
+        )
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithTag("browse_tab_AllCampsites").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("browse_tab_Browse").assertIsDisplayed()
+        composeRule.onNodeWithTag("browse_tab_AllCampsites").assertIsDisplayed()
+        scenario.close()
+    }
 
 }
