@@ -8,6 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,10 +24,15 @@ class FirebaseLotteryRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : LotteryRepository {
     /**
-     * NEEDS_DOCUMENTATION
+     * Write a new lottery entry to Firestore 'lottery' collection
+     *
+     * document generated ID for lotteryID
+     *
+     * @param lottery Instance of lottery to write to Firestore
      */
     override suspend fun createLottery(lottery: Lottery) {
-        TODO("Not yet implemented")
+        val document = firestore.collection("lottery").document()
+        document.set(lottery.copy(lotteryId = document.id)).await()
     }
 
     /**

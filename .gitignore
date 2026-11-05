@@ -65,3 +65,5 @@ Desktop.ini
 # Firebase / Google service account credentials
 google-services.json
 service-account*.json
+gradle/libs.versions.toml
+app/build.gradle.kts
