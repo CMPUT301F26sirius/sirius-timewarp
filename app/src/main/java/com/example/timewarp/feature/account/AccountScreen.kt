@@ -41,6 +41,8 @@ fun AccountScreen(
 ) {
     // State
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
+    val isUpdatingNotifications by viewModel.isUpdatingNotifications.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
 
     // State Interpretation & Navigation
@@ -76,6 +78,20 @@ fun AccountScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Spacer(modifier = Modifier.weight(1f))
+            currentUser?.let { user ->
+                BaseButton(
+                    text = if (user.notificationsEnabled) {
+                        "Notifications: On"
+                    } else {
+                        "Notifications: Off"
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isUpdatingNotifications,
+                    onClick = {
+                        viewModel.setNotificationsEnabled(!user.notificationsEnabled)
+                    }
+                )
+            }
             BaseButton(
                 text = "Update profile",
                 modifier = Modifier.fillMaxWidth(),

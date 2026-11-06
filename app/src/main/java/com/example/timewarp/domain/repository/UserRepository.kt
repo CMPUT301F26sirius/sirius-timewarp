@@ -33,6 +33,14 @@ interface UserRepository {
     suspend fun createUser(user: User)
 
     /**
+     * Updates whether notifications are enabled for a user.
+     *
+     * @param userId identifier of the user to update.
+     * @param enabled whether notifications should be enabled.
+     */
+    suspend fun updateNotificationsEnabled(userId: String, enabled: Boolean)
+
+    /**
      * @param userId identifier of the user to retrieve.
      * @return the matching user, or `null` when it does not exist.
      */

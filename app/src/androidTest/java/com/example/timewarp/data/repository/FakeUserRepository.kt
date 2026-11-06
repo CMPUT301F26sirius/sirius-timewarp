@@ -72,6 +72,12 @@ class FakeUserRepository @Inject constructor() : UserRepository {
         usersState.value = usersState.value + (user.userId to user)
     }
 
+    override suspend fun updateNotificationsEnabled(userId: String, enabled: Boolean) {
+        usersState.value[userId]?.let { user ->
+            usersState.value = usersState.value + (userId to user.copy(notificationsEnabled = enabled))
+        }
+    }
+
     /**
      * Retrieves a user by ID.
      *
