@@ -72,13 +72,12 @@ import java.util.TimeZone
 */
 
 
-/*
-* This function runs the Browse Screen: search bar, filter sheet and list of campsites
-* It takes parameters:
-* modifier for the screen
-* screen for the navigation entry
-* navController which opens the campsite details
-* viewModel which holds the campsites, search text and filters
+/**
+ * This function runs the Browse Screen: search bar, filter sheet and list of campsites
+ * @param modifier modifier for the screen
+ * @param screen the navigation entry this screen belongs to
+ * @param navController used to open the campsite details screen
+ * @param viewModel holds the campsites, search text, filters and tabs
 */
 @Composable
 fun BrowseScreen(
@@ -118,16 +117,16 @@ fun BrowseScreen(
     }
 }
 
-/*
-* This function holds the search card and the campsite list. It has loading, error and empty state.
-* It takes parameters:
-* state: the campsites, filters and loading and error status
-* onCampsiteClick is called with campsite id when card is clicked
-* modifier for the root column
-* query: text search currently applied
-* onSearch: when the user searches it is called with search text
-* onFilterClick: when the user opens the filter sheet it is called
-* showFilterButton: hides the filter button and the dates/guests summary
+/**
+ * This function holds the search card and the campsite list. It has loading, error and empty state.
+ * @param state the campsites, filters, tabs, loading and error status to display
+ * @param onCampsiteClick called with the campsite id when a card is tapped
+ * @param modifier modifier for the root column
+ * @param query the search which is currently being applied
+ * @param onSearch called with the search text when the user searches something
+ * @param onFilterClick called when the user opens teh filter sheet
+ * @param showFilterButton hides the filter button and teh dates and guests summary
+ * @param onTabSelected called with the tab the user taps
 */
 @Composable
 fun BrowseContent(
@@ -206,9 +205,14 @@ fun BrowseContent(
     }
 }
 
-/*
-* This function shows a search card at the top of browse screen. It has search fields and filter
-* button with the chosen dates and guests underneath. Clicking the summary row opens this filter
+/**
+ * This function shows a search card at the top of browse screen. It has search fields and filter
+ * button with the chosen dates and guests underneath. Clicking the summary row opens this filter
+ * @param query the search which is currently being applied
+ * @param filter the active filters used for the dates and guests summary
+ * @param onSearch called with the search text when the user searches something
+ * @param onFilterClick called when the user opens teh filter sheet
+ * @param showFilterButton hides the filter button and teh dates and guests summary
 */
 @Composable
 private fun SearchRow(

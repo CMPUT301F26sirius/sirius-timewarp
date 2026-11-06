@@ -66,7 +66,8 @@ class CampsitedetailsTest {
             campsiteId = "1",
             name = "Crimson Lake",
             rating = 4.5,
-            location = Location(address = "Rocky Mountain House, AB"),
+            location = Location(address = "Rocky Mountain House, AB",
+                latitude =  52.374722, longitude =  -114.921944),
             occupancy = Occupancy(maxGuests = 4)
         )
         )

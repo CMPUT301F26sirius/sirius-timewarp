@@ -6,12 +6,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DateRangePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -35,6 +40,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.Calendar
 
 
 /*
@@ -48,6 +54,11 @@ import java.util.TimeZone
 */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * @param filter the filters currently applied
+ * @param onApply called with the new filters when user taps Apply button or Clear All button
+ * @param onDismiss called when the sheet is dismissed without applying
+ */
 fun FilterSheet(
    filter: CampsiteFilter,
    onApply: (CampsiteFilter) -> Unit,
@@ -58,6 +69,12 @@ fun FilterSheet(
     }
 }
 
+
+/**
+ * @param filter the filters currently applied
+ * @param onApply called with the new filters when user taps Apply button or Clear All button
+ * @param modifier modifier for the form column
+ */
 @Composable
 fun FilterSheetContent(
     filter: CampsiteFilter,
@@ -160,11 +177,19 @@ fun FilterSheetContent(
         }
     }
 
-    // This handles the card that shows a calander to pick dates.
+    // This handles the card that shows a calendar to pick dates.
     if (showDatePicker) {
         val pickerState = rememberDateRangePickerState(
             initialSelectedStartDateMillis = startDate,
             initialSelectedEndDateMillis = endDate)
+
+        // This function gives an option to move the calendar to next month
+        fun moveMonth(by: Int) {
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            calendar.timeInMillis = pickerState.displayedMonthMillis
+            calendar.add(Calendar.MONTH, by)
+            pickerState.displayedMonthMillis = calendar.timeInMillis
+        }
 
         DatePickerDialog(
             onDismissRequest = {showDatePicker = false},
@@ -190,25 +215,48 @@ fun FilterSheetContent(
             }
         )
         {
-            DateRangePicker(
-                state = pickerState,
-                modifier = Modifier.height(500.dp),
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(
+                        start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Select Dates", style = MaterialTheme.typography.labelLarge)
 
-                title = {
-                    Text("Select Dates",
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp))
-                },
-                headline = {
-                    DateRangePickerDefaults.DateRangePickerHeadline(
-                        selectedStartDateMillis = pickerState.selectedStartDateMillis,
-                        selectedEndDateMillis = pickerState.selectedEndDateMillis,
-                        displayMode = pickerState.displayMode,
-                        dateFormatter = remember { DatePickerDefaults.dateFormatter() },
-                        modifier = Modifier.padding(start = 20.dp, end = 12.dp, bottom = 12.dp)
-                    )
+                    Row {
+                        IconButton(
+                            onClick = {moveMonth(-1)},
+                            modifier = Modifier.testTag("filter_previous_month")
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                contentDescription = "Previous Month" )
+                        }
+                        IconButton(
+                            onClick = {moveMonth(1)},
+                            modifier = Modifier.testTag("filter_next_month")
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = "Next Month" )
+                        }
+                    }
                 }
-            )
+
+                DateRangePicker(
+                    state = pickerState,
+                    modifier = Modifier.height(500.dp),
+                    title = null,
+                    headline = {
+                        DateRangePickerDefaults.DateRangePickerHeadline(
+                            selectedStartDateMillis = pickerState.selectedStartDateMillis,
+                            selectedEndDateMillis = pickerState.selectedEndDateMillis,
+                            displayMode = pickerState.displayMode,
+                            dateFormatter = remember { DatePickerDefaults.dateFormatter() },
+                            modifier = Modifier.padding(start = 20.dp, end = 12.dp, bottom = 12.dp)
+                        )
+                    }
+                )
+            }
         }
     }
 }
