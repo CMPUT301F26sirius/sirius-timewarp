@@ -53,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -255,7 +256,8 @@ private fun CreateLotteryDetailsButton (
         text = "Create Lottery",
         enabled = enabled,
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth()
+            .testTag("lottery_details_button"),
     )
 }
 
@@ -275,7 +277,8 @@ private fun CreateLotteryButton(
         text = "Create Lottery",
         enabled = enabled,
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth()
+            .testTag("lottery_create_button"),
     )
 }
 
@@ -316,54 +319,59 @@ private fun LotteryDetails (
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-    ) { }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back to campsites"
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back to campsites"
+                )
+            }
+            Text(
+                text = "Complete Lottery Creation",
+                style = MaterialTheme.typography.titleLarge
             )
         }
-        Text(
-            text = "Complete Lottery Creation",
-            style = MaterialTheme.typography.titleLarge
+
+        NumEntry(
+            label = "Winner Count",
+            value = winnerCount,
+            onValueChange = onWinnerCountChange,
+            min = 1,
+            modifier = Modifier.testTag("winner_count_field")
+        )
+        NumEntry(
+            label = "Waitlist Capacity",
+            value = waitlistCount,
+            onValueChange = onWaitlistCountChange,
+            min = 0,
+            modifier = Modifier.testTag("waitlist_count_field")
+        )
+
+        DatePicker(
+            label = "Registration Period",
+            period = registrationPeriod,
+            onPeriodChange = onRegistrationPeriodChange,
+            modifier = Modifier.testTag("registration_picker")
+        )
+        DatePicker(
+            label = "Booking Period",
+            period = bookingPeriod,
+            onPeriodChange = onBookingPeriodChange,
+            modifier = Modifier.testTag("booking_picker")
+        )
+        createError?.let {
+            Text(text = it, color = MaterialTheme.colorScheme.error)
+        }
+
+        CreateLotteryButton(
+            enabled = canCreate,
+            onClick = onCreate,
         )
     }
-
-    NumEntry(
-        label = "Winner Count",
-        value = winnerCount,
-        onValueChange = onWinnerCountChange,
-        min = 1,
-    )
-    NumEntry(
-        label = "Waitlist Capacity",
-        value = waitlistCount,
-        onValueChange = onWaitlistCountChange,
-        min = 0,
-    )
-
-    DatePicker(
-        label = "Registration Period",
-        period = registrationPeriod,
-        onPeriodChange = onRegistrationPeriodChange,
-    )
-    DatePicker(
-        label = "Booking Period",
-        period = bookingPeriod,
-        onPeriodChange = onBookingPeriodChange,
-    )
-    createError?.let {
-        Text(text = it, color = MaterialTheme.colorScheme.error)
-    }
-
-    CreateLotteryButton(
-        enabled = canCreate,
-        onClick = onCreate,
-    )
 }
 
 private const val MILLIS_PER_DAY = 86_400_000L
