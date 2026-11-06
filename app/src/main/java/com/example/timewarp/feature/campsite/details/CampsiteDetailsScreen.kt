@@ -137,7 +137,19 @@ fun CampsiteDetailsScreen(
                         ElevatedCard(
                             modifier = Modifier.fillMaxWidth().testTag("details_map")
                                 .clickable{
+                                    /*
                                     val uri = Uri.parse("geo:0,0?q=${Uri.encode(campsite.location.address)}")
+                                    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                                    */
+                                    val latitude = campsite.location.latitude
+                                    val longitude = campsite.location.longitude
+                                    val  hasCords = latitude != 0.0 || longitude != 0.0
+                                    val uri = if(hasCords) {
+                                        Uri.parse("geo:$latitude, $longitude?q = $latitude, $longitude" +
+                                                "(${Uri.encode(campsite.name)})")
+                                    } else {
+                                        Uri.parse("geo:0,0?q=${Uri.encode(campsite.location.address)}")
+                                    }
                                     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
                                 }
                         ) {
@@ -149,13 +161,10 @@ fun CampsiteDetailsScreen(
                                 Icon(Icons.Outlined.LocationOn, contentDescription = null)
                                 Column {
                                     Text(campsite.location.address)
-                                    Text("Map coming soon", style = MaterialTheme.typography.labelSmall)
+                                    Text("Tap To Open In Maps", style = MaterialTheme.typography.labelSmall)
                                 }
                             }
                         }
-
-
-
                     }
 
                     //Check if owner
