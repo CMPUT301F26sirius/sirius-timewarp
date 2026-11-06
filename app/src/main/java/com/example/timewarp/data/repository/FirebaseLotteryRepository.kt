@@ -47,14 +47,18 @@ class FirebaseLotteryRepository @Inject constructor(
      * NEEDS_DOCUMENTATION
      */
     override suspend fun getLotteries(): MutableList<Lottery>? {
-        TODO("Not yet implemented")
+        val snapshot = firestore.collection("lottery").get().await()
+        return snapshot.documents
+            .mapNotNull { it.toObject(Lottery::class.java)?.copy(lotteryId = it.id) }
+            .toMutableList()
     }
 
     /**
      * NEEDS_DOCUMENTATION
      */
     override suspend fun getLottery(lotteryId: String): Lottery? {
-        TODO("Not yet implemented")
+        val snapshot = firestore.collection("lottery").document(lotteryId).get().await()
+        return snapshot.toObject(Lottery::class.java)?.copy(lotteryId = snapshot.id)
     }
 
     /**
