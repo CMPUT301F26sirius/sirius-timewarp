@@ -160,6 +160,19 @@ class LotteriesViewModel @Inject constructor(
         )
 
     /**
+     * Whether the current user can create lotteries.
+     */
+    val canCreateLottery: StateFlow<Boolean> = observeCurrentUser()
+        .map { user ->
+            user?.userType == UserType.CampsiteOwner || user?.userType == UserType.Admin
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            false
+        )
+
+    /**
      * Responsible for loading the screen. So if the state changes such as a
      * cancellation, these changes appear when coming back to reservations.
      */
