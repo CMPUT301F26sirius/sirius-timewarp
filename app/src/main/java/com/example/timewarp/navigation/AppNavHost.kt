@@ -9,6 +9,8 @@ import com.example.timewarp.feature.account.AccountScreen
 import com.example.timewarp.feature.alerts.AlertsScreen
 import com.example.timewarp.feature.browse.BrowseScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
+import com.example.timewarp.feature.campsite.create.CreateCampsiteScreen
+import com.example.timewarp.feature.campsite.edit.EditCampsiteScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.lottery.details.LotteryDetailsScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
@@ -91,12 +93,12 @@ fun AppNavHost() {
                 navController = navController
             )
         }
-//        composable(Screen.Policy.route) {
-//            PolicyScreen(
-//                screen = Screen.Policy,
-//                navController = navController
-//            )
-//        }
+        composable(Screen.CreateCampsite.route) {
+            CreateCampsiteScreen(
+                screen = Screen.CreateCampsite,
+                navController = navController
+            )
+        }
 
         // Dynamic routes.
         deepComposable(Screen.LotteryDetails.route) { lotteryId ->
@@ -113,13 +115,13 @@ fun AppNavHost() {
                 navController = navController
             )
         }
-//        deepComposable(Screen.CampsiteDetails.route) { campsiteId ->
-//            CampsiteDetailsScreen(
-//                screen = Screen.CampsiteDetails,
-//                campsiteId = campsiteId,
-//                navController = navController
-//            )
-//        }
+        deepComposable(Screen.EditCampsite.route) { campsiteId ->
+            EditCampsiteScreen(
+                screen = Screen.CampsiteDetails,
+                campsiteId = campsiteId,
+                navController = navController
+            )
+        }
         deepComposable(Screen.ReservationDetails.route) { reservationId ->
             ReservationDetailsScreen(
                 screen = Screen.ReservationDetails,

@@ -5,25 +5,15 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
 import com.example.timewarp.data.repository.FakeAuthRepository
-import com.example.timewarp.data.repository.FakeCampsiteRepository
-import com.example.timewarp.data.repository.FakeLotteryRepository
 import com.example.timewarp.data.repository.FakeUserRepository
-import com.example.timewarp.domain.model.Campsite
-import com.example.timewarp.domain.model.Location
-import com.example.timewarp.domain.model.Lottery
-import com.example.timewarp.domain.model.Occupancy
-import com.example.timewarp.domain.model.Period
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
-import com.example.timewarp.domain.repository.CampsiteRepository
-import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -33,12 +23,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-private const val ENTRANT_ID = "fake-entrant"
-private const val CAMPSITE_ID = "test-campsite"
-private const val LOTTERY_ID = "test-lottery"
+private const val OWNER_ID = "campsite-owner"
 
 /**
- * Instrumented tests for lottery details navigation.
+ * Instrumented tests for campsite creation navigation.
  */
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
@@ -55,37 +43,40 @@ class CreateCampsiteTest {
     @Inject
     lateinit var userRepository: UserRepository
 
-    @Inject
-    lateinit var campsiteRepository: CampsiteRepository
-
-    @Inject
-    lateinit var lotteryRepository: LotteryRepository
-
     @Before
     fun setUp() {
         hiltRule.inject()
-
         (userRepository as FakeUserRepository).clear()
-        (userRepository as FakeUserRepository).addUser(User(userId = ENTRANT_ID, userType = UserType.Entrant))
-        (authRepository as FakeAuthRepository).setCurrentUserId(ENTRANT_ID)
-
-        (campsiteRepository as FakeCampsiteRepository).clear()
-        (campsiteRepository as FakeCampsiteRepository).addCampsite(
-            Campsite(
-                campsiteId = CAMPSITE_ID,
-                name = "Test Campsite",
-                location = Location(address = "Test address"),
-                occupancy = Occupancy(maxGuests = 4)
-            )
+        (userRepository as FakeUserRepository).addUser(
+            User(userId = OWNER_ID, userType = UserType.CampsiteOwner)
         )
+        (authRepository as FakeAuthRepository).setCurrentUserId(OWNER_ID)
+    }
 
-        (lotteryRepository as FakeLotteryRepository).clear()
-        (lotteryRepository as FakeLotteryRepository).addLottery(
-            Lottery(
-                lotteryId = LOTTERY_ID,
-                registrationPeriod = Period(start = 0, end = Int.MAX_VALUE),
-                campsiteIds = listOf(CAMPSITE_ID)
-            )
-        )
+    @Test
+    fun owner_canOpenCampsiteCreationFromMyCampsites() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithTag("browse_tab_MyCampsites")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeRule.onNodeWithTag("browse_tab_MyCampsites").performClick()
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithTag("register_campsite_button")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeRule.onNodeWithTag("register_campsite_button").performClick()
+
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("PITCH/CAMPSITE/CREATE")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeRule.onNodeWithText("PITCH/CAMPSITE/CREATE").assertExists()
+
+        scenario.close()
     }
 }

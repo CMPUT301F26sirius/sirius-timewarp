@@ -60,6 +60,7 @@ import com.example.timewarp.domain.model.Occupancy
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.CampsiteCard
+import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -106,7 +107,10 @@ fun BrowseScreen(
             query = state.filters.query,
             onSearch = viewModel::onSearch,
             onFilterClick = { showFilters = true },
-            onTabSelected = viewModel::onTabSelected
+            onTabSelected = viewModel::onTabSelected,
+            onRegisterCampsite = {
+                navController.navigate(Screen.CreateCampsite.route)
+            }
         )
         if (showFilters) {
             FilterSheet(filter = state.filters,
@@ -127,6 +131,7 @@ fun BrowseScreen(
  * @param onFilterClick called when the user opens teh filter sheet
  * @param showFilterButton hides the filter button and teh dates and guests summary
  * @param onTabSelected called with the tab the user taps
+ * @param onRegisterCampsite called when an owner chooses to register a campsite
 */
 @Composable
 fun BrowseContent(
@@ -137,7 +142,8 @@ fun BrowseContent(
     onSearch: (String) -> Unit,
     onFilterClick: () -> Unit,
     showFilterButton: Boolean = true,
-    onTabSelected: (BrowseTab) -> Unit = {}
+    onTabSelected: (BrowseTab) -> Unit = {},
+    onRegisterCampsite: () -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         SearchRow(query = query, onSearch = onSearch, filter = state.filters, onFilterClick = onFilterClick,
@@ -164,11 +170,50 @@ fun BrowseContent(
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when {
 
-                state.selectedTab == BrowseTab.MyCampsites ->
-                    Text(
-                        text = "Your Added Campsites Will Appear Here",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                state.selectedTab == BrowseTab.MyCampsites -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        BaseButton(
+                            onClick = onRegisterCampsite,
+                            text = "Register campsite",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("register_campsite_button")
+                        )
+                        if (state.campsites.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Your Added Campsites Will Appear Here")
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentPadding = PaddingValues(vertical = 15.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                items(
+                                    items = state.campsites,
+                                    key = { campsite -> campsite.campsiteId }
+                                ) { campsite ->
+                                    CampsiteCard(
+                                        campsite = campsite,
+                                        onClick = { onCampsiteClick(campsite.campsiteId) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
 
                 state.isLoading -> CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
@@ -336,5 +381,3 @@ private fun BrowseContentPreview() {
         )
     }
 }
-
-
