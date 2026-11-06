@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -98,7 +99,11 @@ class CampsiteDetailsViewModel @Inject constructor(
                             CampsiteDetailsState.Content(
                                 campsite = campsite,
                                 ratings = ratings,
-                                lotteries = lotteries,
+                                lotteries = lotteries.filter { lottery ->
+                                    val today =
+                                        TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis()).toInt()
+                                    today in lottery.registrationPeriod.start..lottery.registrationPeriod.end
+                                },
                                 ownerUser = ownerUserProfile?.user,
                                 ownerProfile = ownerUserProfile?.profile,
                                 currentUser = currentUser

@@ -26,7 +26,7 @@ sealed class Screen(
     data object Lotteries : Screen("lotteries", "Lotteries", "Cross your fingers!", Icons.Outlined.Token)
     data object Reservations : Screen("reservations", "Reservations", "You are on your way!", Icons.Outlined.CalendarMonth)
     data object Alerts : Screen("alerts", "Alerts", "Alerts", Icons.Outlined.Alarm)
-    data object Account : Screen("account", "Account", "Mange Account", Icons.Outlined.AccountBox)
+    data object Account : Screen("account", "Account", "Manage Account", Icons.Outlined.AccountBox)
     data object Moderate : Screen("moderate", "Moderate", "Moderate", Icons.Outlined.AddModerator)
     data object UpdateProfile : Screen("profile/update", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
     data object Policy : Screen("policy", "Policy", "App Policy & Guidelines",  Icons.Outlined.Policy)
