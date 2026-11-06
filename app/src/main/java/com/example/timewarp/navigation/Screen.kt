@@ -12,7 +12,18 @@ import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Token
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.timewarp.domain.model.Campsite
 
+/**
+ * Screen objects, that store useful information about each respective screen
+ * data object. Includes the route that the nav controller will recognize for this
+ * screen, a label, title and icon as well.
+ *
+ * @property route - navController recognized route
+ * @property label - displayed on nav buttons
+ * @property title - displayed on screen headers
+ * @property icon - displayed on nav buttons
+ */
 sealed class Screen(
     val route: String,
     val label: String,
@@ -36,6 +47,12 @@ sealed class Screen(
     data object LotteryDetails : Screen("lottery/details", "Details", "Lottery details", Icons.Outlined.Token) {
         fun createRoute(lotteryId: String) = "$route/$lotteryId"
     }
+    data object EditLottery : Screen("lottery/edit", "Edit", "Edit lottery", Icons.Outlined.Home) {
+        fun createRoute(lotteryId: String) = "$route/$lotteryId"
+    }
+    data object CreateLottery : Screen("lottery/create", "Create Lottery", "Create Lottery",  Icons.Outlined.AccountBox) {
+        fun createRoute(campsiteId: String) = "$route/$campsiteId"
+    }
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {
         fun createRoute(campsiteId: String) = "$route/$campsiteId"
     }
@@ -51,13 +68,7 @@ sealed class Screen(
     data object MakeReservation : Screen("reservation/make", "Reserve", "Make a reservation", Icons.Outlined.CalendarMonth) {
         fun createRoute(reservationId: String) = "$route/$reservationId"
     }
-
     data object GenerateQR : Screen("qr/generate", "QR Generation", "Share your site!", Icons.Outlined.QrCode) {
         fun createRoute(url: String) = "$route/${Uri.encode(url)}"
     }
-
-
-
-
-
-    }
+}
