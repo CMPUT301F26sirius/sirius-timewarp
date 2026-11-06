@@ -76,7 +76,10 @@ class FirebaseReservationRepository @Inject constructor(
      * NEEDS_DOCUMENTATION
      */
     override suspend fun createReservation(reservation: Reservation) {
-        TODO("Not yet implemented")
+        firestore.collection("reservation")
+            .document(reservation.reservationId)
+            .set(reservation)
+            .await()
     }
 
     /**
