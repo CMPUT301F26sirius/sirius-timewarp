@@ -192,7 +192,7 @@ fun CampsiteDetailsScreen(
                         ) {
                             IconButton(
                                 onClick = {
-                                    // TODO: Open edit campsite screen
+                                    navController.navigate(Screen.EditCampsite.createRoute(campsiteId))
                                 },
                                 icon = Icons.Outlined.Edit,
                                 text = "Edit campsite",
