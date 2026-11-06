@@ -10,10 +10,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
+/**
+ * Creates a flow for getting the UserProfile for the specified userId.
+ * Useful if you need both a users info, and type.
+ */
 class ObserveUserProfileUseCase @Inject constructor(
     private val userRepository: UserRepository,
     private val profileRepository: ProfileRepository
 ) {
+    /**
+     * @param userId
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(userId: String): Flow<UserProfile?> =
         userRepository.observeUser(userId)

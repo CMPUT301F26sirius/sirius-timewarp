@@ -1,7 +1,18 @@
 package com.example.timewarp.domain.model
 
-import com.google.firebase.firestore.ListenerRegistration
-
+/**
+ * [Lottery] data class
+ *
+ * Lottery configuration for one or more campsites. Lottery records are
+ * stored in the Firebase `Lottery` collection.
+ *
+ * @property lotteryId - Unique identifier for the lottery.
+ * @property registrationPeriod - Period during which entrants can register.
+ * @property bookingPeriod - Period during which winners can book.
+ * @property winnerCount - Number of winners selected by the lottery.
+ * @property waitlistCapacity - Maximum number of waitlisted entrants.
+ * @property campsiteIds - Identifiers of campsites included in the lottery.
+ */
 data class Lottery (
     val lotteryId: String = "",
 

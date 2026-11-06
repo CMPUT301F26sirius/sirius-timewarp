@@ -4,57 +4,43 @@ import com.example.timewarp.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 /**
- * [UserRepository] interface, with implementation in [com.example.timewarp.data.repository]
+ * Repository for storing and observing [User] accounts.
  */
 interface UserRepository {
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
-     *
-     * @return owners - a collection of user objects, who are admins.
+     * @return administrator accounts, or `null` when no collection result is available.
      */
     suspend fun getAdmins(): MutableList<User>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
-     *
-     * @return owners - a collection of user objects, who are owners.
+     * @return campsite-owner accounts, or `null` when no collection result is available.
      */
     suspend fun getCampsiteOwners(): MutableList<User>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
-     *
-     * @return entrants - a collection of user objects, who are entrants.
+     * @return entrant accounts, or `null` when no collection result is available.
      */
     suspend fun getEntrants(): MutableList<User>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
-     *
-     * @reutrn users - a collection of user objects.
+     * @return all user accounts, or `null` when no collection result is available.
      */
     suspend fun getUsers(): MutableList<User>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
-     *
-     * @param user [String] - user to create. Inserts user into collection.
+     * @param user user account to create.
      */
     suspend fun createUser(user: User)
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
-     *
-     * @param userId [String] - userId to get.
-     * @return user - user object for specified user.
+     * @param userId identifier of the user to retrieve.
+     * @return the matching user, or `null` when it does not exist.
      */
     suspend fun getUser(userId: String): User?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
-     *
-     * @param userId [String] - userId to observe.
-     * @return userFlow - user object for observed user.
+     * @param userId identifier of the user to observe.
+     * @return a flow emitting the user, or `null` when it is unavailable.
      */
     fun observeUser(userId: String): Flow<User?>
 }
