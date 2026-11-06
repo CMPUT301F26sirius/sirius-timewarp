@@ -78,6 +78,7 @@ class CampsiteDetailsTest {
         (campsiteRepository as FakeCampsiteRepository).addCampsite(
             Campsite(
                 campsiteId = "1",
+                ownerUserId = "owner-user",
                 name = "Crimson Lake",
                 rating = 4.5,
                 location = Location(address = "Rocky Mountain House, AB"),
@@ -189,6 +190,23 @@ class CampsiteDetailsTest {
         composeRule.onNodeWithTag("details_address").assertIsDisplayed()
         composeRule.onNodeWithText("Winners: 4").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Waitlist spaces: 12").performScrollTo().assertIsDisplayed()
+
+        scenario.close()
+    }
+
+    @Test
+    fun details_owner_canAccessOwnerFunctionalityOnOwnCampsite() {
+        (authRepository as FakeAuthRepository).setCurrentUserId("owner-user")
+        (userRepository as FakeUserRepository).addUser(
+            User(userId = "owner-user", userType = UserType.CampsiteOwner)
+        )
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+
+        openDetails()
+
+        composeRule.onNodeWithText("Edit campsite").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Generate QR Code").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Create lottery").performScrollTo().assertIsDisplayed()
 
         scenario.close()
     }
