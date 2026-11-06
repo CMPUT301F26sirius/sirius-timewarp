@@ -1,5 +1,6 @@
 package com.example.timewarp.data.repository
 
+import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Lottery
 import com.example.timewarp.domain.repository.LotteryRepository
 import kotlinx.coroutines.flow.Flow
@@ -17,9 +18,6 @@ import javax.inject.Singleton
 class FakeLotteryRepository @Inject constructor() : LotteryRepository {
     private val lotteries = MutableStateFlow<List<Lottery>>(emptyList())
 
-    fun clear() {
-        lotteries.value = emptyList()
-    }
     /**
      * NEEDS_DOCUMENTATION
      */
@@ -53,4 +51,18 @@ class FakeLotteryRepository @Inject constructor() : LotteryRepository {
      */
     override fun observeCampsiteLotteries(campsiteId: String): Flow<List<Lottery>> =
         lotteries.map { items -> items.filter { campsiteId in it.campsiteIds } }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    fun addLottery(lottery: Lottery) {
+        lotteries.value = lotteries.value + lottery
+    }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    fun clear() {
+        lotteries.value = emptyList()
+    }
 }

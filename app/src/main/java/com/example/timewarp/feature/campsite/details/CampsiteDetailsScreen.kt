@@ -46,8 +46,17 @@ import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 import android.net.Uri
+import com.example.timewarp.feature.browse.BrowseScreen
+import com.example.timewarp.feature.registration.RegistrationScreen
+import com.example.timewarp.feature.startup.StartupScreen
+import java.util.concurrent.TimeUnit
 
 
+/**
+ * [CampsiteDetailsScreen]
+ *
+ * Displays details, including active lotteries for the campsite.
+ */
 @Composable
 fun CampsiteDetailsScreen(
     campsiteId: String,
@@ -81,6 +90,11 @@ fun CampsiteDetailsScreen(
                 is CampsiteDetailsState.Content -> {
                     // Campsite
                     val campsite = currentState.campsite
+                    val today =
+                        TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis()).toInt()
+                    val activeLotteries = currentState.lotteries.filter { lottery ->
+                        today in lottery.registrationPeriod.start..lottery.registrationPeriod.end
+                    }
                     val context = androidx.compose.ui.platform.LocalContext.current
 
                     Column(
@@ -446,10 +460,10 @@ fun CampsiteDetailsScreen(
                             fontWeight = FontWeight.Bold
                         )
 
-                        if (currentState.lotteries.isEmpty()) {
+                        if (activeLotteries.isEmpty()) {
                             Text("No lotteries available")
                         } else {
-                            currentState.lotteries.forEach { lottery ->
+                            activeLotteries.forEach { lottery ->
                                 ElevatedCard(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
