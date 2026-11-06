@@ -61,6 +61,7 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.CampsiteCard
+import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -75,13 +76,12 @@ import com.example.timewarp.domain.model.UserType
 */
 
 
-/*
-* This function runs the Browse Screen: search bar, filter sheet and list of campsites
-* It takes parameters:
-* modifier for the screen
-* screen for the navigation entry
-* navController which opens the campsite details
-* viewModel which holds the campsites, search text and filters
+/**
+ * This function runs the Browse Screen: search bar, filter sheet and list of campsites
+ * @param modifier modifier for the screen
+ * @param screen the navigation entry this screen belongs to
+ * @param navController used to open the campsite details screen
+ * @param viewModel holds the campsites, search text, filters and tabs
 */
 @Composable
 fun BrowseScreen(
@@ -112,9 +112,8 @@ fun BrowseScreen(
             onFilterClick = { showFilters = true },
             onTabSelected = viewModel::onTabSelected,
 
-            //navigate to register campsite screen
             onRegisterCampsite = {
-                navController.navigate(Screen.RegisterCampsite.route)
+                navController.navigate(Screen.CreateCampsite.route)
             }
 
         )
@@ -127,16 +126,17 @@ fun BrowseScreen(
     }
 }
 
-/*
-* This function holds the search card and the campsite list. It has loading, error and empty state.
-* It takes parameters:
-* state: the campsites, filters and loading and error status
-* onCampsiteClick is called with campsite id when card is clicked
-* modifier for the root column
-* query: text search currently applied
-* onSearch: when the user searches it is called with search text
-* onFilterClick: when the user opens the filter sheet it is called
-* showFilterButton: hides the filter button and the dates/guests summary
+/**
+ * This function holds the search card and the campsite list. It has loading, error and empty state.
+ * @param state the campsites, filters, tabs, loading and error status to display
+ * @param onCampsiteClick called with the campsite id when a card is tapped
+ * @param modifier modifier for the root column
+ * @param query the search which is currently being applied
+ * @param onSearch called with the search text when the user searches something
+ * @param onFilterClick called when the user opens teh filter sheet
+ * @param showFilterButton hides the filter button and teh dates and guests summary
+ * @param onTabSelected called with the tab the user taps
+ * @param onRegisterCampsite called when an owner chooses to register a campsite
 */
 @Composable
 fun BrowseContent(
@@ -148,7 +148,8 @@ fun BrowseContent(
     onFilterClick: () -> Unit,
     showFilterButton: Boolean = true,
     onTabSelected: (BrowseTab) -> Unit = {},
-    onRegisterCampsite: () -> Unit = {},
+
+    onRegisterCampsite: () -> Unit = {}
 
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -196,11 +197,50 @@ fun BrowseContent(
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when {
 
-                state.selectedTab == BrowseTab.MyCampsites ->
-                    Text(
-                        text = "Your Added Campsites Will Appear Here",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                state.selectedTab == BrowseTab.MyCampsites -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        BaseButton(
+                            onClick = onRegisterCampsite,
+                            text = "Register campsite",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("register_campsite_button")
+                        )
+                        if (state.campsites.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Your Added Campsites Will Appear Here")
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentPadding = PaddingValues(vertical = 15.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                items(
+                                    items = state.campsites,
+                                    key = { campsite -> campsite.campsiteId }
+                                ) { campsite ->
+                                    CampsiteCard(
+                                        campsite = campsite,
+                                        onClick = { onCampsiteClick(campsite.campsiteId) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
 
                 state.isLoading -> CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
@@ -237,9 +277,14 @@ fun BrowseContent(
     }
 }
 
-/*
-* This function shows a search card at the top of browse screen. It has search fields and filter
-* button with the chosen dates and guests underneath. Clicking the summary row opens this filter
+/**
+ * This function shows a search card at the top of browse screen. It has search fields and filter
+ * button with the chosen dates and guests underneath. Clicking the summary row opens this filter
+ * @param query the search which is currently being applied
+ * @param filter the active filters used for the dates and guests summary
+ * @param onSearch called with the search text when the user searches something
+ * @param onFilterClick called when the user opens teh filter sheet
+ * @param showFilterButton hides the filter button and teh dates and guests summary
 */
 @Composable
 private fun SearchRow(
@@ -363,5 +408,3 @@ private fun BrowseContentPreview() {
         )
     }
 }
-
-

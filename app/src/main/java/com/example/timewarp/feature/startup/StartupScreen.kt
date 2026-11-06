@@ -160,6 +160,13 @@ fun StartupScreen(
                     strokeWidth = 4.dp,
                 )
 
+                if (state is StartupState.Error) {
+                    Text(
+                        text = (state as StartupState.Error).message,
+                        color = Color.White,
+                    )
+                }
+
                 // Brand Promise
                 Column(
                     verticalArrangement =  Arrangement.Bottom,

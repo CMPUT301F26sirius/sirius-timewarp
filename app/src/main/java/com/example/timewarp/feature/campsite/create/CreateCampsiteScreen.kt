@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.campsite.register
+package com.example.timewarp.feature.campsite.create
 
 import android.content.Intent
 import android.net.Uri
@@ -19,8 +19,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,8 +49,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.R
-import com.example.timewarp.feature.navigation.NavigationScreen
+
 import com.example.timewarp.navigation.Screen
+import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.BaseButtonType
 import com.example.timewarp.ui.component.BaseInput
@@ -58,38 +59,53 @@ import com.example.timewarp.ui.component.BaseInputType
 import com.example.timewarp.ui.theme.ComponentStyles
 import com.example.timewarp.ui.theme.TimewarpTheme
 
-@Composable
-fun RegisterCampsiteScreen(
-    modifier: Modifier = Modifier,
-    screen: Screen = Screen.RegisterCampsite,
-    navController: NavController = rememberNavController(),
-    viewModel: RegisterCampsiteViewModel = hiltViewModel()
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
 
+/**
+ * [CreateCampsiteScreen]
+ */
+@Composable
+fun CreateCampsiteScreen(
+    modifier: Modifier = Modifier,
+    screen: Screen = Screen.CreateCampsite,
+    navController: NavController = rememberNavController(),
+    viewModel: CreateCampsiteViewModel = hiltViewModel()
+) {
+    // State
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val scrollState = rememberScrollState()
+
+    // State Interpretation & Navigation
+
+
+    //if registration is successful, moves the user to details screen
     LaunchedEffect(state.savedCampsiteId) {
         state.savedCampsiteId?.let { campsiteId ->
             navController.navigate(Screen.CampsiteDetails.createRoute(campsiteId)) {
-                popUpTo(Screen.RegisterCampsite.route) { inclusive = true }
+                popUpTo(Screen.CreateCampsite.route) { inclusive = true }
             }
         }
     }
 
+    // User Interface
+
     NavigationScreen(modifier = modifier, screen = screen, navController = navController) {
-        RegisterCampsiteForm(
+        CreateCampsiteForm(
             state = state,
             onChange = viewModel::updateDraft,
             onRegister = viewModel::register,
             onCancel = { navController.popBackStack() }
         )
     }
+
 }
+
+
 
 /** Stateless form kept separate from navigation and Firebase for previews and UI tests. */
 @Composable
-internal fun RegisterCampsiteForm(
-    state: RegisterCampsiteState,
-    onChange: (RegisterCampsiteState) -> Unit,
+internal fun CreateCampsiteForm(
+    state: CreateCampsiteState,
+    onChange: (CreateCampsiteState) -> Unit,
     onRegister: () -> Unit,
     onCancel: () -> Unit
 ) {
@@ -343,10 +359,14 @@ private fun RegistrationField(
     }
 }
 
+
+
 @Preview(showBackground = true)
 @Composable
-private fun RegisterCampsitePreview() {
-    TimewarpTheme {
-        RegisterCampsiteForm(RegisterCampsiteState(), {}, {}, {})
+fun CreateCampsitePreview() {
+    TimewarpTheme() {
+        CreateCampsiteScreen(
+            viewModel = hiltViewModel()
+        )
     }
 }

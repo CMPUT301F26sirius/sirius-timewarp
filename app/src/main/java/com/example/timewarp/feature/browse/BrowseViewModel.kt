@@ -34,8 +34,10 @@ data class BrowseState(
 
 )
 
-/*
-* This class loads the campsites and requeries them when the search text or filters change
+/**
+ * This class loads the campsites and requeries them when the search text or filters change
+ * @param campsiteRepository source of the campsites
+ * @param observeCurrentUser emits the logged in user. It is used to choose the tabs
 */
 @HiltViewModel
 class BrowseViewModel @Inject constructor(
@@ -47,6 +49,7 @@ class BrowseViewModel @Inject constructor(
     private val _state = MutableStateFlow(BrowseState())
     val state: StateFlow<BrowseState> = _state.asStateFlow()
     private var filterJob: Job? = null
+    private var currentUserId: String? = null
 
     init {
         loadCampsites()
@@ -66,12 +69,22 @@ class BrowseViewModel @Inject constructor(
     private fun observeUserTab() {
         viewModelScope.launch {
             observeCurrentUser().collect {
-                    user -> val tabs = BrowseTab.tabsFor(user?.userType)
-                _state.update { it.copy(tabs = tabs,
-                    currentUser = user,
-                    selectedTab = if
-                                          ( it.selectedTab in tabs) it .selectedTab
-                    else BrowseTab.Browse )
+
+                user ->
+                currentUserId = user?.userId
+                val tabs = BrowseTab.tabsFor(user?.userType)
+                _state.update {
+                    it.copy(
+                        tabs = tabs,
+
+                        currentUser = user,
+
+                        selectedTab = if (it.selectedTab in tabs) it.selectedTab else BrowseTab.Browse
+                    )
+                }
+                if (_state.value.selectedTab == BrowseTab.MyCampsites) {
+                    loadMyCampsites()
+
                 }
             }
         }
@@ -79,7 +92,34 @@ class BrowseViewModel @Inject constructor(
 
     fun onTabSelected(tab: BrowseTab) {
         _state.update { it.copy(selectedTab = tab) }
-        if (tab != BrowseTab.MyCampsites) onFiltersChanged(state.value.filters)
+        if (tab == BrowseTab.MyCampsites) {
+            loadMyCampsites()
+        } else {
+            onFiltersChanged(state.value.filters)
+        }
+    }
+
+    private fun loadMyCampsites() {
+        filterJob?.cancel()
+        filterJob = viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            try {
+                val ownerId = currentUserId
+                val campsites = campsiteRepository.getCampsites()
+                    .orEmpty()
+                    .filter { it.ownerUserId == ownerId }
+                _state.update { it.copy(campsites = campsites, isLoading = false) }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message ?: "An Error Occurred. Failed to Load Campsites"
+                    )
+                }
+            }
+        }
     }
 
     /*

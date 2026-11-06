@@ -46,8 +46,17 @@ import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 import android.net.Uri
+import com.example.timewarp.feature.browse.BrowseScreen
+import com.example.timewarp.feature.registration.RegistrationScreen
+import com.example.timewarp.feature.startup.StartupScreen
+import java.util.concurrent.TimeUnit
 
 
+/**
+ * [CampsiteDetailsScreen]
+ *
+ * Displays details, including active lotteries for the campsite.
+ */
 @Composable
 fun CampsiteDetailsScreen(
     campsiteId: String,
@@ -81,6 +90,11 @@ fun CampsiteDetailsScreen(
                 is CampsiteDetailsState.Content -> {
                     // Campsite
                     val campsite = currentState.campsite
+                    val today =
+                        TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis()).toInt()
+                    val activeLotteries = currentState.lotteries.filter { lottery ->
+                        today in lottery.registrationPeriod.start..lottery.registrationPeriod.end
+                    }
                     val context = androidx.compose.ui.platform.LocalContext.current
 
                     Column(
@@ -137,7 +151,19 @@ fun CampsiteDetailsScreen(
                         ElevatedCard(
                             modifier = Modifier.fillMaxWidth().testTag("details_map")
                                 .clickable{
+                                    /*
                                     val uri = Uri.parse("geo:0,0?q=${Uri.encode(campsite.location.address)}")
+                                    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                                    */
+                                    val latitude = campsite.location.latitude
+                                    val longitude = campsite.location.longitude
+                                    val  hasCords = latitude != 0.0 || longitude != 0.0
+                                    val uri = if(hasCords) {
+                                        Uri.parse("geo:$latitude, $longitude?q = $latitude, $longitude" +
+                                                "(${Uri.encode(campsite.name)})")
+                                    } else {
+                                        Uri.parse("geo:0,0?q=${Uri.encode(campsite.location.address)}")
+                                    }
                                     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
                                 }
                         ) {
@@ -149,13 +175,10 @@ fun CampsiteDetailsScreen(
                                 Icon(Icons.Outlined.LocationOn, contentDescription = null)
                                 Column {
                                     Text(campsite.location.address)
-                                    Text("Map coming soon", style = MaterialTheme.typography.labelSmall)
+                                    Text("Tap To Open In Maps", style = MaterialTheme.typography.labelSmall)
                                 }
                             }
                         }
-
-
-
                     }
 
                     //Check if owner
@@ -437,12 +460,17 @@ fun CampsiteDetailsScreen(
                             fontWeight = FontWeight.Bold
                         )
 
-                        if (currentState.lotteries.isEmpty()) {
+                        if (activeLotteries.isEmpty()) {
                             Text("No lotteries available")
                         } else {
-                            currentState.lotteries.forEach { lottery ->
+                            activeLotteries.forEach { lottery ->
                                 ElevatedCard(
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .testTag("lottery_card_${lottery.lotteryId}"),
+                                    onClick = {
+                                        navController.navigate(Screen.LotteryDetails.createRoute(lottery.lotteryId))
+                                    }
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(16.dp),

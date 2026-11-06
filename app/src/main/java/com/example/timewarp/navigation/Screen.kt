@@ -26,13 +26,20 @@ sealed class Screen(
     data object Lotteries : Screen("lotteries", "Lotteries", "Cross your fingers!", Icons.Outlined.Token)
     data object Reservations : Screen("reservations", "Reservations", "You are on your way!", Icons.Outlined.CalendarMonth)
     data object Alerts : Screen("alerts", "Alerts", "Alerts", Icons.Outlined.Alarm)
-    data object Account : Screen("account", "Account", "Mange Account", Icons.Outlined.AccountBox)
+    data object Account : Screen("account", "Account", "Manage Account", Icons.Outlined.AccountBox)
     data object Moderate : Screen("moderate", "Moderate", "Moderate", Icons.Outlined.AddModerator)
     data object UpdateProfile : Screen("profile/update", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
     data object Policy : Screen("policy", "Policy", "App Policy & Guidelines",  Icons.Outlined.Policy)
+    data object CreateCampsite : Screen("campsite/create", "Create Campsite", "Create Campsite",  Icons.Outlined.AccountBox)
 
     // Dynamic routes.
+    data object LotteryDetails : Screen("lottery/details", "Details", "Lottery details", Icons.Outlined.Token) {
+        fun createRoute(lotteryId: String) = "$route/$lotteryId"
+    }
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {
+        fun createRoute(campsiteId: String) = "$route/$campsiteId"
+    }
+    data object EditCampsite : Screen("campsite/edit", "Edit", "Edit campsite", Icons.Outlined.Home) {
         fun createRoute(campsiteId: String) = "$route/$campsiteId"
     }
     data object ReservationDetails : Screen("reservation/details", "Details", "Manage reservation", Icons.Outlined.CalendarMonth) {
@@ -49,9 +56,6 @@ sealed class Screen(
         fun createRoute(url: String) = "$route/${Uri.encode(url)}"
     }
 
-    data object RegisterCampsite : Screen("campsite/register","Register campsite", "Register your campsite",  Icons.Outlined.Home){
-        fun createRoute(campsiteId: String) = "$route/$campsiteId"
-    }
 
 
 
