@@ -203,11 +203,13 @@ internal fun LotteryDetailsContent(
                 text = "Join lottery",
                 enabled = !state.isWorking,
                 onClick = joinClick,
+                modifier = Modifier.testTag("lottery_join")
             )
             is LotteryAction.JoinWaitlist -> JoinOrLeaveButton(
                 text = "Join waitlist",
                 enabled = !state.isWorking,
                 onClick = joinClick,
+                modifier = Modifier.testTag("lottery_join_waitlist")
             )
             is LotteryAction.LeaveWaitlist -> {
                 Text(
@@ -220,17 +222,20 @@ internal fun LotteryDetailsContent(
                     enabled = !state.isWorking,
                     isDestructive = true,
                     onClick = { leaveClick(action.reservationId) },
+                    modifier = Modifier.testTag("lottery_leave")
                 )
             }
             is LotteryAction.ViewReservation -> JoinOrLeaveButton(
                 text = "View reservation",
                 enabled = !state.isWorking,
                 onClick = { viewReservationClick(action.reservationId) },
+                modifier = Modifier.testTag("lottery_view_reservation")
             )
             is LotteryAction.None -> Text(
                 text = "This lottery isn't open right now",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag("lottery_closed"),
             )
         }
 

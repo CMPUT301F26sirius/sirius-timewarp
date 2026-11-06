@@ -39,6 +39,7 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.theme.TimewarpTheme
 import com.example.timewarp.domain.model.ReservationState
+import androidx.compose.ui.platform.testTag
 
 private val previewTabs = listOf(
     ReservationTab.Booked,
@@ -138,7 +139,8 @@ internal fun ReservationsContent(
                 TabChip(
                     label = tab.label,
                     selected = tab == state.selectedTab,
-                    onClick = {tabSelected(tab)}
+                    onClick = {tabSelected(tab)},
+                    modifier = Modifier.testTag("tab_${tab.label}")
                 )
             }
         }
@@ -160,6 +162,7 @@ internal fun ReservationsContent(
                     item = item,
                     tab = state.selectedTab,
                     onClick = { reservationClick(item) },
+                    modifier = Modifier.testTag("reservation_${item.reservationId}")
                 )
             }
         }

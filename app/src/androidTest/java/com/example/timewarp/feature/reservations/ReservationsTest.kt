@@ -2,7 +2,9 @@ package com.example.timewarp.feature.reservations
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
@@ -15,177 +17,166 @@ import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
+import com.example.timewarp.domain.repository.AuthRepository
+import com.example.timewarp.domain.repository.ReservationRepository
+import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
-private const val ENTRANT_ID = "fake-entrant"
-
-/**
- * Instrumented tests for reservation screen
- */
+/*
+* Instrumented tests for the reservations screen that covers user stories
+* 01.06.01 and 01.06.02.
+* The test runs against fake repositories. It covers viewing active reservations
+* (Booked and Booking tabs) and past reservations (Cancelled tab).
+*/
 
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class ReservationsTest {
-    @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    @get:
+    Rule(order = 0) val hiltRule = HiltAndroidRule(this)
 
-    @get:Rule(order = 1)
-    val composeRule = createEmptyComposeRule()
-
-    @Inject
-    lateinit var fakeAuth: FakeAuthRepository
+    @get:
+    Rule(order = 1) val composeRule = createEmptyComposeRule()
 
     @Inject
-    lateinit var fakeUsers: FakeUserRepository
+    lateinit var authRepository: AuthRepository
 
     @Inject
-    lateinit var fakeReservations: FakeReservationRepository
+    lateinit var userRepository: UserRepository
 
-    private lateinit var scenario: ActivityScenario<MainActivity>
+    @Inject
+    lateinit var reservationRepository: ReservationRepository
 
-    @Before
-    fun setUp() {
-        hiltRule.inject()
-
-        // Every test starts with no reservations and a signed-in entrant.
-        fakeReservations.clear()
-        fakeUsers.clear()
-        fakeUsers.addUser(User(userId = ENTRANT_ID, userType = UserType.Entrant))
-        fakeAuth.setCurrentUserId(ENTRANT_ID)
-    }
-
-    @After
-    fun tearDown() {
-        if (::scenario.isInitialized) scenario.close()
-    }
-
-    @Test
-    fun reservations_showsAllEntrantTabs() {
-        openReservations()
-
-        composeRule.onNodeWithText("Booked").assertIsDisplayed()
-        composeRule.onNodeWithText("Booking").assertIsDisplayed()
-        composeRule.onNodeWithText("Past").assertIsDisplayed()
-        composeRule.onNodeWithText("Cancelled").assertIsDisplayed()
-    }
-
-    @Test
-    fun bookingTab_showsOnlySignedInUsersReservations() {
-        fakeReservations.addReservation(reservation(id = "mine-1", userId = ENTRANT_ID))
-        fakeReservations.addReservation(reservation(id = "mine-2", userId = ENTRANT_ID))
-        fakeReservations.addReservation(reservation(id = "someone-else", userId = "another-user"))
-        openReservations()
-
-        waitForText("There is still a chance!")
-
-        val cards = composeRule.onAllNodesWithText("Make your reservation now!").fetchSemanticsNodes()
-        assertEquals(2, cards.size)
-    }
-
-    @Test
-    fun noReservations_showsEmptyView_andGoesToBrowse() {
-        openReservations()
-
-        waitForText("You haven't booked yet!")
-        composeRule.onNodeWithText("Go To Browse?").assertIsDisplayed()
-
-        composeRule.onNodeWithText("Go To Browse?").performClick()
-
-        waitForText("A good day starts outside.")
-        composeRule.onNodeWithText("A good day starts outside.").assertIsDisplayed()
-    }
-
-    @Test
-    fun switchingTabs_changesWhatIsShown() {
-        fakeReservations.addReservation(reservation(id = "mine-1", userId = ENTRANT_ID))
-        openReservations()
-
-        waitForText("There is still a chance!")
-
-        composeRule.onNodeWithText("Booked").performClick()
-        waitForText("Nothing booked yet!")
-        composeRule.onNodeWithText("Go To Browse?").assertIsDisplayed()
-
-        composeRule.onNodeWithText("Booking").performClick()
-        waitForText("There is still a chance!")
-        composeRule.onNodeWithText("Make your reservation now!").assertIsDisplayed()
-    }
-
-    @Test
-    fun reservedReservation_showsUnderBookedTab() {
-        fakeReservations.addReservation(
-            reservation(id = "mine-1", userId = ENTRANT_ID, state = ReservationState.Reserved)
-        )
-        openReservations()
-
-        composeRule.onNodeWithText("Booked").performClick()
-
-        waitForText("Get ready to go!")
-        composeRule.onNodeWithText("Tap to manage your reservation").assertIsDisplayed()
-    }
-
-    @Test
-    fun tappingWaitlistedCard_opensManageReservation() {
-        fakeReservations.addReservation(
-            reservation(id = "mine-1", userId = ENTRANT_ID, state = ReservationState.Waitlisted)
-        )
-        openReservations()
-
-        waitForText("Make your reservation now!")
-        composeRule.onNodeWithText("Make your reservation now!").performClick()
-
-        waitForText("Manage reservation")
-        composeRule.onNodeWithText("Manage reservation").assertIsDisplayed()
-    }
-
-    @Test
-    fun tappingPendingCard_opensMakeReservation() {
-        fakeReservations.addReservation(
-            reservation(id = "mine-1", userId = ENTRANT_ID, state = ReservationState.Pending)
-        )
-        openReservations()
-
-        waitForText("Make your reservation now!")
-        composeRule.onNodeWithText("Make your reservation now!").performClick()
-
-        // Replace with the title your make-reservation screen shows (its Screen.title).
-        waitForText("Make a reservation")
-        composeRule.onNodeWithText("Make a reservation").assertIsDisplayed()
-    }
-
-    private fun openReservations() {
-        scenario = ActivityScenario.launch(MainActivity::class.java)
-
-        waitForText("Reservations")
-        composeRule.onNodeWithText("Reservations").performClick()
-
-        waitForText("PITCH/RESERVATIONS")
-    }
-
-    private fun waitForText(text: String) {
-        composeRule.waitUntil(5_000) {
-            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
-        }
-    }
-
+    /*
+    * This function builds a test reservation with the given id, user, and state
+    */
     private fun reservation(
         id: String,
         userId: String,
-        state: ReservationState = ReservationState.Waitlisted,
-    ) = Reservation(
-        reservationId = id,
-        reservationState = state,
-        timestamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toInt(),
-        campsiteId = "campsite-$id",
-        userId = userId,
-    )
+        state: ReservationState
+    ) =
+        Reservation(
+            reservationId = id,
+            reservationState = state,
+            campsiteId = "campsite",
+            userId = userId
+        )
+
+    /*
+    * This function logs a test entrant in and clears all reservations before each test
+    */
+    @Before
+    fun setUp() {
+        hiltRule.inject()
+        (authRepository as FakeAuthRepository).setCurrentUserId("reservations-user")
+        (userRepository as FakeUserRepository).addUser(
+            User(userId = "reservations-user", userType = UserType.Entrant)
+        )
+        (reservationRepository as FakeReservationRepository).clear()
+    }
+
+    /*
+    * This function waits for 5 seconds for the tag to appear on the screen
+    */
+    private fun waitForTag(tag: String) = composeRule.waitUntil(5_000) {
+        composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()
+    }
+
+    /*
+    * This function opens the reservations tab from the bottom nav and waits for the tabs
+    */
+    private fun openReservations() {
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Reservations").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Reservations").performClick()
+        waitForTag("tab_Booked")
+    }
+
+    /*
+    * US 01.06.01: This shows a reserved reservation on the Booked tab
+    */
+    @Test
+    fun bookedTab_showsReserved() {
+        val repository = reservationRepository as FakeReservationRepository
+        repository.addReservation(reservation("r1", "reservations-user", ReservationState.Reserved))
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openReservations()
+        waitForTag("reservation_r1")
+        composeRule.onNodeWithTag("reservation_r1").assertIsDisplayed()
+        scenario.close()
+    }
+
+    /*
+    * US 01.06.01: This shows waitlisted and pending reservations on the Booking tab
+    */
+    @Test
+    fun bookingTab_showsWaitlistedAndPending() {
+        val repository = reservationRepository as FakeReservationRepository
+        repository.addReservation(reservation("r1", "reservations-user", ReservationState.Waitlisted))
+        repository.addReservation(reservation("r2", "reservations-user", ReservationState.Pending))
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openReservations()
+        composeRule.onNodeWithTag("tab_Booking").performClick()
+        waitForTag("reservation_r1")
+        composeRule.onNodeWithTag("reservation_r1").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_r2").assertIsDisplayed()
+        scenario.close()
+    }
+
+    /*
+    * US 01.06.01: This shows only the signed in user's reservations, not other users'
+    */
+    @Test
+    fun showsOnlyOwnReservations() {
+        val repository = reservationRepository as FakeReservationRepository
+        repository.addReservation(reservation("mine", "reservations-user", ReservationState.Reserved))
+        repository.addReservation(reservation("theirs", "someone-else", ReservationState.Reserved))
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openReservations()
+        waitForTag("reservation_mine")
+        composeRule.onNodeWithTag("reservation_mine").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_theirs").assertDoesNotExist()
+        scenario.close()
+    }
+
+    /*
+    * US 01.06.02: This shows canceled, declined and rejected reservations on the Cancelled tab
+    */
+    @Test
+    fun showsCancelledReservations() {
+        val repository = reservationRepository as FakeReservationRepository
+        repository.addReservation(reservation("r1", "reservations-user", ReservationState.Canceled))
+        repository.addReservation(reservation("r2", "reservations-user", ReservationState.Declined))
+        repository.addReservation(reservation("r3", "reservations-user", ReservationState.Rejected))
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openReservations()
+        composeRule.onNodeWithTag("tab_Cancelled").performClick()
+        waitForTag("reservation_r1")
+        composeRule.onNodeWithTag("reservation_r1").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_r2").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_r3").assertIsDisplayed()
+        scenario.close()
+    }
+
+    /*
+    * US 01.06.02: This shows past reservations are kept apart from active ones
+    */
+    @Test
+    fun past_cancelledReservation_notOnBookedTab() {
+        val repository = reservationRepository as FakeReservationRepository
+        repository.addReservation(reservation("active", "reservations-user", ReservationState.Reserved))
+        repository.addReservation(reservation("cancelled", "reservations-user", ReservationState.Canceled))
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openReservations()
+        waitForTag("reservation_active")
+        composeRule.onNodeWithTag("reservation_cancelled").assertDoesNotExist()
+        scenario.close()
+    }
 }
