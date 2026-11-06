@@ -20,6 +20,7 @@ import com.example.timewarp.feature.reservation.cancellation.CancellationScreen
 import com.example.timewarp.feature.reservation.details.ReservationDetailsScreen
 import com.example.timewarp.feature.reservations.ReservationsScreen
 import com.example.timewarp.navigation.Screen
+import com.example.timewarp.feature.campsite.register.RegisterCampsiteScreen
 
 @Composable
 fun AppNavHost() {
@@ -87,6 +88,14 @@ fun AppNavHost() {
         composable(Screen.Policy.route) {
             PolicyScreen(
                 screen = Screen.Policy,
+                navController = navController
+            )
+        }
+
+        //Register Campsite
+        composable(Screen.RegisterCampsite.route) {
+            RegisterCampsiteScreen(
+                screen = Screen.RegisterCampsite,
                 navController = navController
             )
         }

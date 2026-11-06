@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.CampsiteFilter
+import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.RatingRepository
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.timewarp.domain.model.UserType
 
 /*
 * This file hold the state and logic for the Browse Screen.
@@ -27,7 +29,9 @@ data class BrowseState(
     val error: String? = null,
     val filters: CampsiteFilter = CampsiteFilter(),
     val tabs: List<BrowseTab> = listOf(BrowseTab.Browse),
-    val selectedTab: BrowseTab = BrowseTab.Browse
+    val selectedTab: BrowseTab = BrowseTab.Browse,
+    val currentUser: User? = null,
+
 )
 
 /*
@@ -64,6 +68,7 @@ class BrowseViewModel @Inject constructor(
             observeCurrentUser().collect {
                     user -> val tabs = BrowseTab.tabsFor(user?.userType)
                 _state.update { it.copy(tabs = tabs,
+                    currentUser = user,
                     selectedTab = if
                                           ( it.selectedTab in tabs) it .selectedTab
                     else BrowseTab.Browse )

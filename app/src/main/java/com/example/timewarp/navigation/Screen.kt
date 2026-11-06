@@ -48,4 +48,12 @@ sealed class Screen(
     data object GenerateQR : Screen("qr/generate", "QR Generation", "Share your site!", Icons.Outlined.QrCode) {
         fun createRoute(url: String) = "$route/${Uri.encode(url)}"
     }
-}
+
+    data object RegisterCampsite : Screen("campsite/register","Register campsite", "Register your campsite",  Icons.Outlined.Home){
+        fun createRoute(campsiteId: String) = "$route/$campsiteId"
+    }
+
+
+
+
+    }

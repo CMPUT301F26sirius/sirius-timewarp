@@ -59,12 +59,15 @@ import com.example.timewarp.domain.model.Location
 import com.example.timewarp.domain.model.Occupancy
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
+import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.CampsiteCard
 import com.example.timewarp.ui.theme.TimewarpTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import com.example.timewarp.domain.model.User
+import com.example.timewarp.domain.model.UserType
 
 /*
 * This file holds the Browse Screen which has the search bar, the filter button and sheet and
@@ -107,7 +110,13 @@ fun BrowseScreen(
             query = state.filters.query,
             onSearch = viewModel::onSearch,
             onFilterClick = { showFilters = true },
-            onTabSelected = viewModel::onTabSelected
+            onTabSelected = viewModel::onTabSelected,
+
+            //navigate to register campsite screen
+            onRegisterCampsite = {
+                navController.navigate(Screen.RegisterCampsite.route)
+            }
+
         )
         if (showFilters) {
             FilterSheet(filter = state.filters,
@@ -138,7 +147,9 @@ fun BrowseContent(
     onSearch: (String) -> Unit,
     onFilterClick: () -> Unit,
     showFilterButton: Boolean = true,
-    onTabSelected: (BrowseTab) -> Unit = {}
+    onTabSelected: (BrowseTab) -> Unit = {},
+    onRegisterCampsite: () -> Unit = {},
+
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         SearchRow(query = query, onSearch = onSearch, filter = state.filters, onFilterClick = onFilterClick,
@@ -161,6 +172,26 @@ fun BrowseContent(
                 }
             }
         }
+        //for debugging purpouse
+        Text(
+            text = "Current role: ${state.currentUser?.userType ?: "No user loaded"}"
+        )
+
+        //Check if owner type and show register campsite button
+        val isOwnerType =
+            state.currentUser?.userType == UserType.CampsiteOwner
+
+        if (isOwnerType) {
+            BaseButton(
+                text = "Register campsite",
+                onClick = onRegisterCampsite,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp, vertical = 8.dp)
+            )
+        }
+
+
 
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when {
