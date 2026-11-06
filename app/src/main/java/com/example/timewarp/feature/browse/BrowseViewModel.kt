@@ -30,8 +30,10 @@ data class BrowseState(
     val selectedTab: BrowseTab = BrowseTab.Browse
 )
 
-/*
-* This class loads the campsites and requeries them when the search text or filters change
+/**
+ * This class loads the campsites and requeries them when the search text or filters change
+ * @param campsiteRepository source of the campsites
+ * @param observeCurrentUser emits the logged in user. It is used to choose the tabs
 */
 @HiltViewModel
 class BrowseViewModel @Inject constructor(

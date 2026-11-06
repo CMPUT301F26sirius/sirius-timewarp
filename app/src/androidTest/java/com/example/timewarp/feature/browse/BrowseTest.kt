@@ -167,6 +167,21 @@ class BrowseTest {
     }
 
     /*
+    * US 01.01.02: This function opens the dates button data range picker
+    */
+    @Test
+    fun filter_datesPickerMonthPicker_010102() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        waitForText("Bear Creek")
+        composeRule.onNodeWithTag("browse_filter_button").performClick()
+        composeRule.onNodeWithTag("filter_dates").performClick()
+        composeRule.onNodeWithTag("filter_next_month").performClick()
+        composeRule.onNodeWithTag("filter_previous_month").performClick()
+        composeRule.onNodeWithText("Cancel").assertIsDisplayed()
+        scenario.close()
+    }
+
+    /*
     * US 01.01.03: This shows all the campsites in the list
     */
     @Test
