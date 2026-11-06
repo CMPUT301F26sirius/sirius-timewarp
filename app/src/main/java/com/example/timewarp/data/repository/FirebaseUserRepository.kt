@@ -64,6 +64,13 @@ class FirebaseUserRepository @Inject constructor(
             .await()
     }
 
+    override suspend fun updateNotificationsEnabled(userId: String, enabled: Boolean) {
+        firestore.collection("users")
+            .document(userId)
+            .update("notificationsEnabled", enabled)
+            .await()
+    }
+
     /**
      * Retrieves a user by their ID.
      *
