@@ -31,9 +31,13 @@ sealed class Screen(
     data object UpdateProfile : Screen("profile/update", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
     data object Policy : Screen("policy", "Policy", "App Policy & Guidelines",  Icons.Outlined.Policy)
     data object CreateCampsite : Screen("campsite/create", "Create Campsite", "Create Campsite",  Icons.Outlined.AccountBox)
+    data object CreateLottery : Screen("lottery/create", "Create Lottery", "Create Lottery",  Icons.Outlined.AccountBox)
 
     // Dynamic routes.
     data object LotteryDetails : Screen("lottery/details", "Details", "Lottery details", Icons.Outlined.Token) {
+        fun createRoute(lotteryId: String) = "$route/$lotteryId"
+    }
+    data object EditLottery : Screen("lottery/edit", "Edit", "Edit lottery", Icons.Outlined.Home) {
         fun createRoute(lotteryId: String) = "$route/$lotteryId"
     }
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {
@@ -51,7 +55,6 @@ sealed class Screen(
     data object MakeReservation : Screen("reservation/make", "Reserve", "Make a reservation", Icons.Outlined.CalendarMonth) {
         fun createRoute(reservationId: String) = "$route/$reservationId"
     }
-
     data object GenerateQR : Screen("qr/generate", "QR Generation", "Share your site!", Icons.Outlined.QrCode) {
         fun createRoute(url: String) = "$route/${Uri.encode(url)}"
     }
