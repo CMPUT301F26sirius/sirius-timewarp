@@ -15,6 +15,9 @@ import com.example.timewarp.domain.repository.RatingRepository
 import com.example.timewarp.domain.repository.UserRepository
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import com.example.timewarp.domain.usecase.ObserveUserProfileUseCase
+import com.example.timewarp.feature.startup.StartupScreen
+import com.example.timewarp.feature.startup.StartupState
+import com.example.timewarp.feature.startup.StartupViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -29,6 +32,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * [CampsiteDetailsState] State of the ui
+ */
 sealed interface CampsiteDetailsState {
     data object Loading : CampsiteDetailsState
     data class Content(
@@ -42,6 +48,12 @@ sealed interface CampsiteDetailsState {
     data class Error(val message: String) : CampsiteDetailsState
 }
 
+/**
+ * [CampsiteDetailsViewModel] for the [StartupScreen].
+ *
+ * Loads the details for the campsite, including ratings, lotteries
+ * and owner info.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CampsiteDetailsViewModel @Inject constructor(

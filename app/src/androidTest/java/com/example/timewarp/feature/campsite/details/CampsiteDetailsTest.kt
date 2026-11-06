@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.details
+package com.example.timewarp.feature.campsite.details
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
@@ -32,7 +32,7 @@ import javax.inject.Inject
 
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
-class CampsitedetailsTest {
+class CampsiteDetailsTest {
 
     @get:
     Rule(order = 0) val hiltRule = HiltAndroidRule(this)

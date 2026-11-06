@@ -46,8 +46,16 @@ import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 import android.net.Uri
+import com.example.timewarp.feature.browse.BrowseScreen
+import com.example.timewarp.feature.registration.RegistrationScreen
+import com.example.timewarp.feature.startup.StartupScreen
 
 
+/**
+ * [CampsiteDetailsScreen]
+ *
+ * Displays details, including active lotteries for the campsite.
+ */
 @Composable
 fun CampsiteDetailsScreen(
     campsiteId: String,
