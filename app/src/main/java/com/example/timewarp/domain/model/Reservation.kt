@@ -5,7 +5,8 @@ data class Reservation (
     val reservationState: ReservationState = ReservationState.Waitlisted,
     val timestamp: Int = 0,
 
-    val campsiteId: String = "",
+    val campsiteId: String = "", // The selected campsite
+    val lotteryId: String = "",
     val userId: String = "",
 
     val datesBooked: Availability = Availability(),
