@@ -4,25 +4,21 @@ import com.example.timewarp.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 /**
- * [AuthRepository] interface, with implementation in [com.example.timewarp.data.repository]
+ * Repository for authentication state and sign-in operations.
  */
 interface AuthRepository {
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @return a flow containing the current user identifier, or `null` when signed out.
      */
     val currentUserId: Flow<String?>
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
-     *
-     * @return userId
+     * @return the current user identifier, or `null` when signed out.
      */
     fun getUserId(): String?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
-     *
-     * @return userId
+     * @return the signed-in user identifier.
      */
     suspend fun signIn(): String
 }

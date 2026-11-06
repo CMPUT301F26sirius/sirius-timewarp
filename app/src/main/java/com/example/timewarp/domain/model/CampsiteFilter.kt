@@ -2,9 +2,16 @@ package com.example.timewarp.domain.model
 
 import com.google.type.Date
 
-/*
-* Purpose: This file holds the user's filter choices for browsing the campsites:
-*          Text search, location, and number of guests and date range.
+/**
+ * [CampsiteFilter] data class
+ *
+ * Purpose: This file holds the user's filter choices for browsing the campsites:
+ *  Text search, location, and number of guests and date range.
+ *
+ * @property query - Query entered by user
+ * @property location - A string location used to filter (address)
+ * @property startDate - Start date specified by user
+ * @property endDate - End date specified by user
 */
 data class CampsiteFilter(
     val query: String = "",
@@ -13,6 +20,9 @@ data class CampsiteFilter(
     val startDate: Long? = null,
     val endDate: Long? = null,
 ) {
+    /**
+     * Determines if a campsite is a match.
+     */
     fun matches(campsite: Campsite): Boolean {
         val matchesQuery = query.isBlank() ||
                 campsite.name.contains(query, ignoreCase = true)

@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import com.example.timewarp.ui.theme.ComponentStyles
 import com.example.timewarp.ui.theme.PitchMutedText
 
-
 sealed interface BaseInputType {
     data class Text(
         val minChars: Int = 0,

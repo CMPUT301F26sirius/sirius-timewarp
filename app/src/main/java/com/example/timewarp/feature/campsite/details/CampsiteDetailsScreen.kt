@@ -192,7 +192,7 @@ fun CampsiteDetailsScreen(
                         ) {
                             IconButton(
                                 onClick = {
-                                    // TODO: Open edit campsite screen
+                                    navController.navigate(Screen.EditCampsite.createRoute(campsiteId))
                                 },
                                 icon = Icons.Outlined.Edit,
                                 text = "Edit campsite",
@@ -214,7 +214,9 @@ fun CampsiteDetailsScreen(
 
                             BaseButton(
                                 onClick = {
-                                    // TODO: Open create lottery screen
+                                    navController.navigate(
+                                        Screen.CreateLottery.createRoute(campsiteId)
+                                    )
                                 },
                                 text = "Create lottery",
                                 modifier = Modifier.fillMaxWidth()

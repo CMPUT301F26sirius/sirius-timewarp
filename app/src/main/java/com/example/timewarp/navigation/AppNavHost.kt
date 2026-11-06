@@ -9,7 +9,6 @@ import com.example.timewarp.feature.account.AccountScreen
 import com.example.timewarp.feature.alerts.AlertsScreen
 import com.example.timewarp.feature.browse.BrowseScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
-import com.example.timewarp.feature.campsite.create.CreateCampsiteScreen
 import com.example.timewarp.feature.campsite.edit.EditCampsiteScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.lottery.create.CreateLotteryScreen
@@ -95,18 +94,6 @@ fun AppNavHost() {
                 navController = navController
             )
         }
-        composable(Screen.CreateCampsite.route) {
-            CreateCampsiteScreen(
-                screen = Screen.CreateCampsite,
-                navController = navController
-            )
-        }
-        composable(Screen.CreateLottery.route) {
-            CreateLotteryScreen(
-                screen = Screen.CreateCampsite,
-                navController = navController
-            )
-        }
 
         // Dynamic routes.
         deepComposable(Screen.LotteryDetails.route) { lotteryId ->
@@ -120,6 +107,13 @@ fun AppNavHost() {
             EditLotteryScreen(
                 screen = Screen.CampsiteDetails,
                 lotteryId = lotteryId,
+                navController = navController
+            )
+        }
+        deepComposable(Screen.CreateLottery.route) { campsiteId ->
+            CreateLotteryScreen(
+                screen = Screen.CreateLottery,
+                campsiteId = campsiteId,
                 navController = navController
             )
         }
