@@ -10,7 +10,6 @@ import com.example.timewarp.feature.alerts.AlertsScreen
 import com.example.timewarp.feature.browse.BrowseScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
-import com.example.timewarp.feature.lottery.create.CreateLotteryScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
 import com.example.timewarp.feature.policy.PolicyScreen
 import com.example.timewarp.feature.profile.update.UpdateProfileScreen
@@ -88,12 +87,6 @@ fun AppNavHost() {
         composable(Screen.Policy.route) {
             PolicyScreen(
                 screen = Screen.Policy,
-                navController = navController
-            )
-        }
-        composable(Screen.CreateLottery.route) {
-            CreateLotteryScreen(
-                screen = Screen.CreateLottery,
                 navController = navController
             )
         }

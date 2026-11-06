@@ -38,7 +38,7 @@ import javax.inject.Inject
  */
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
-class ReservationDetailsScreenTest {
+class ReservationDetailsTest {
     @get:Rule
     val hiltRule = HiltAndroidRule(this)
 

@@ -16,6 +16,10 @@ import com.example.timewarp.domain.model.Period
 import com.example.timewarp.domain.model.Profile
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.repository.CampsiteRepository
+
+import com.example.timewarp.domain.repository.AuthRepository
+import com.example.timewarp.domain.repository.RatingRepository
+
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import com.example.timewarp.domain.usecase.ObserveUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +35,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 
 sealed interface CreateLotteryState {
     data object Loading : CreateLotteryState
@@ -48,7 +53,7 @@ sealed interface CreateLotteryState {
 }
 
 /**
- * The View Model for CreateLotteryScreen
+ * [CreateLotteryViewModel] for the [CreateLotteryScreen]
  *
  * @param campsiteRepository to get user's owned Campsites
  * @param lotteryRepository to save newly created lottery to
@@ -70,10 +75,25 @@ sealed interface CreateLotteryState {
 @HiltViewModel
 class CreateLotteryViewModel @Inject constructor(
     private val campsiteRepository: CampsiteRepository,
+
     private val lotteryRepository: LotteryRepository,
     private val observeUserProfile: ObserveUserProfileUseCase,
     private val observeCurrentUser: ObserveCurrentUserUseCase,
 ) : ViewModel() {
+
+    // Current launched job
+    private var observationJob: Job? = null
+
+    // Observes the supplied campsite id. Called by screen when changed.
+    fun observe(lotteryId: String) {
+        // Cancel old launch
+        observationJob?.cancel()
+
+        // Start new launch
+        observationJob = viewModelScope.launch {
+            _state.value = CreateLotteryState.Loading
+        }
+    }
 
     private val _state = MutableStateFlow<CreateLotteryState>(
         CreateLotteryState.Loading
@@ -81,7 +101,7 @@ class CreateLotteryViewModel @Inject constructor(
     val state: StateFlow<CreateLotteryState> = _state.asStateFlow()
 
     private val _selectedCampsites = MutableStateFlow<List<Campsite>>(emptyList())
-    private  val _chosenCampsites = MutableStateFlow<List<Campsite>?>(null)
+    private val _chosenCampsites = MutableStateFlow<List<Campsite>?>(null)
 
     var winnerCount by mutableStateOf<Int?>(Lottery().winnerCount)
     var waitlistCount by mutableStateOf<Int?>(Lottery().waitlistCapacity)
@@ -148,11 +168,10 @@ class CreateLotteryViewModel @Inject constructor(
                             observeUserProfile(currentUser.userId),
                             _selectedCampsites,
                             _chosenCampsites
-                        ) {
-                            currentUserProfile, selected, chosenCampsites ->
+                        ) { currentUserProfile, selected, chosenCampsites ->
                             if (chosenCampsites != null &&
-                                chosenCampsites.all {it.ownerUserId == currentUser.userId}
-                                ) {
+                                chosenCampsites.all { it.ownerUserId == currentUser.userId }
+                            ) {
                                 CreateLotteryState.Details(
                                     selectedCampsites = chosenCampsites
                                 )
@@ -183,12 +202,12 @@ class CreateLotteryViewModel @Inject constructor(
 
 
     fun createLotteryInDB(onCreated: () -> Unit) {
-        val details = _state.value as? CreateLotteryState.Details?: return
-        val winners = winnerCount?: return
-        val waitlist = waitlistCount?: return
-        val registration = registrationPeriod?: return
-        val booking = bookingPeriod?: return
-        if (isCreating || winners < 1 || waitlist < 0 ) return
+        val details = _state.value as? CreateLotteryState.Details ?: return
+        val winners = winnerCount ?: return
+        val waitlist = waitlistCount ?: return
+        val registration = registrationPeriod ?: return
+        val booking = bookingPeriod ?: return
+        if (isCreating || winners < 1 || waitlist < 0) return
 
         isCreating = true
         createError = null
@@ -206,7 +225,7 @@ class CreateLotteryViewModel @Inject constructor(
                     )
                 )
             } catch (error: Exception) {
-                createError = error.message?: "Failed to create lottery"
+                createError = error.message ?: "Failed to create lottery"
                 isCreating = false
                 return@launch
             }
@@ -218,4 +237,5 @@ class CreateLotteryViewModel @Inject constructor(
     private suspend fun getUsersOwnedCampsites(userId: String): List<Campsite>? {
         return campsiteRepository.getCampsites()?.filter { it.ownerUserId == userId }
     }
+
 }
