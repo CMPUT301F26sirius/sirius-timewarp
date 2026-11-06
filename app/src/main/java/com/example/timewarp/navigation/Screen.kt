@@ -30,12 +30,16 @@ sealed class Screen(
     data object Moderate : Screen("moderate", "Moderate", "Moderate", Icons.Outlined.AddModerator)
     data object UpdateProfile : Screen("profile/update", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
     data object Policy : Screen("policy", "Policy", "App Policy & Guidelines",  Icons.Outlined.Policy)
+    data object CreateCampsite : Screen("campsite/create", "Create Campsite", "Create Campsite",  Icons.Outlined.AccountBox)
 
     // Dynamic routes.
     data object LotteryDetails : Screen("lottery/details", "Details", "Lottery details", Icons.Outlined.Token) {
         fun createRoute(lotteryId: String) = "$route/$lotteryId"
     }
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {
+        fun createRoute(campsiteId: String) = "$route/$campsiteId"
+    }
+    data object EditCampsite : Screen("campsite/edit", "Edit", "Edit campsite", Icons.Outlined.Home) {
         fun createRoute(campsiteId: String) = "$route/$campsiteId"
     }
     data object ReservationDetails : Screen("reservation/details", "Details", "Manage reservation", Icons.Outlined.CalendarMonth) {
