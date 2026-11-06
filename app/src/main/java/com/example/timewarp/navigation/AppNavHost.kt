@@ -25,6 +25,7 @@ import com.example.timewarp.feature.reservation.details.ReservationDetailsScreen
 import com.example.timewarp.feature.reservations.ReservationsScreen
 import com.example.timewarp.navigation.Screen
 
+
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
@@ -94,6 +95,8 @@ fun AppNavHost() {
                 navController = navController
             )
         }
+
+
 
         // Dynamic routes.
         deepComposable(Screen.LotteryDetails.route) { lotteryId ->

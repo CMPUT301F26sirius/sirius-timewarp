@@ -42,7 +42,10 @@ class FirebaseCampsiteRepository @Inject constructor(
      * @param campsite Campsite object to write.
      */
     override suspend fun createCampsite(campsite: Campsite) {
-        TODO("Not yet implemented")
+        firestore.collection("campsite")
+            .document(campsite.campsiteId)
+            .set(campsite)
+            .await()
     }
 
     /**

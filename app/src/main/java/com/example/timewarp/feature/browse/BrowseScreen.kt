@@ -59,13 +59,15 @@ import com.example.timewarp.domain.model.Location
 import com.example.timewarp.domain.model.Occupancy
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
-import com.example.timewarp.ui.component.CampsiteCard
 import com.example.timewarp.ui.component.BaseButton
+import com.example.timewarp.ui.component.CampsiteCard
 import com.example.timewarp.ui.theme.TimewarpTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import com.example.timewarp.domain.model.User
+import com.example.timewarp.domain.model.UserType
 
 /*
 * This file holds the Browse Screen which has the search bar, the filter button and sheet and
@@ -108,9 +110,11 @@ fun BrowseScreen(
             onSearch = viewModel::onSearch,
             onFilterClick = { showFilters = true },
             onTabSelected = viewModel::onTabSelected,
+
             onRegisterCampsite = {
                 navController.navigate(Screen.CreateCampsite.route)
             }
+
         )
         if (showFilters) {
             FilterSheet(filter = state.filters,
@@ -143,7 +147,9 @@ fun BrowseContent(
     onFilterClick: () -> Unit,
     showFilterButton: Boolean = true,
     onTabSelected: (BrowseTab) -> Unit = {},
+
     onRegisterCampsite: () -> Unit = {}
+
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         SearchRow(query = query, onSearch = onSearch, filter = state.filters, onFilterClick = onFilterClick,
@@ -167,6 +173,24 @@ fun BrowseContent(
             }
         }
 
+
+        //Check if owner type and show register campsite button
+        val isOwnerType =
+            state.currentUser?.userType == UserType.CampsiteOwner || state.currentUser?.userType == UserType.Admin
+
+        if (isOwnerType) {
+            BaseButton(
+                text = "Register campsite",
+                onClick = onRegisterCampsite,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp, vertical = 8.dp)
+                    .testTag("register_campsite_button")
+            )
+        }
+
+
+
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when {
 
@@ -177,13 +201,6 @@ fun BrowseContent(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        BaseButton(
-                            onClick = onRegisterCampsite,
-                            text = "Register campsite",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("register_campsite_button")
-                        )
                         if (state.campsites.isEmpty()) {
                             Box(
                                 modifier = Modifier
