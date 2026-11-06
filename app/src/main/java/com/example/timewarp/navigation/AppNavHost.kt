@@ -8,6 +8,7 @@ import com.example.timewarp.core.util.deepComposable
 import com.example.timewarp.feature.account.AccountScreen
 import com.example.timewarp.feature.alerts.AlertsScreen
 import com.example.timewarp.feature.browse.BrowseScreen
+import com.example.timewarp.feature.campsite.create.CreateCampsiteScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
 import com.example.timewarp.feature.campsite.edit.EditCampsiteScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
@@ -94,6 +95,13 @@ fun AppNavHost() {
         composable(Screen.Policy.route) {
             PolicyScreen(
                 screen = Screen.Policy,
+                navController = navController
+            )
+        }
+
+        composable (Screen.CreateCampsite.route){
+            CreateCampsiteScreen(
+                screen = Screen.CreateCampsite,
                 navController = navController
             )
         }
