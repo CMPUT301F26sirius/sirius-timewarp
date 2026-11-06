@@ -293,9 +293,9 @@ class BrowseTest {
             campsite("2", "Crimson lake", "Rocky Mountain House, AB", 4)
                 .copy(ownerUserId = "someone_else")
         )
-        (authRepository as FakeAuthRepository).setCurrentUserId("owner_user")
+        (authRepository as FakeAuthRepository).setCurrentUserId("owner_browse")
         (userRepository as FakeUserRepository).addUser(
-            User(userId = "owner_user", userType = UserType.CampsiteOwner)
+            User(userId = "owner_browse", userType = UserType.CampsiteOwner)
         )
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         composeRule.waitUntil(5_000) {
