@@ -2,6 +2,7 @@ package com.example.timewarp.feature.lotteries
 
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +40,11 @@ fun LotteriesScreen(
         modifier = modifier,
         navController = navController,
     ) {
-
+        IconButton( // CURRENTLY SHOWS UP FOR ALL USERS, NEEDS TO BE CHANGED
+            onClick = { navController.navigate(Screen.CreateLottery.createRoute("")) },
+            icon = Icons.Outlined.Add,
+            text = "Create lottery",
+        )
     }
 }
 

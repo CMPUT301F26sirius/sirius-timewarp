@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Token
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.timewarp.domain.model.Campsite
 
 /**
  * Screen objects, that store useful information about each respective screen
@@ -41,7 +42,6 @@ sealed class Screen(
     data object UpdateProfile : Screen("profile/update", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
     data object Policy : Screen("policy", "Policy", "App Policy & Guidelines",  Icons.Outlined.Policy)
     data object CreateCampsite : Screen("campsite/create", "Create Campsite", "Create Campsite",  Icons.Outlined.AccountBox)
-    data object CreateLottery : Screen("lottery/create", "Create Lottery", "Create Lottery",  Icons.Outlined.AccountBox)
 
     // Dynamic routes.
     data object LotteryDetails : Screen("lottery/details", "Details", "Lottery details", Icons.Outlined.Token) {
@@ -49,6 +49,9 @@ sealed class Screen(
     }
     data object EditLottery : Screen("lottery/edit", "Edit", "Edit lottery", Icons.Outlined.Home) {
         fun createRoute(lotteryId: String) = "$route/$lotteryId"
+    }
+    data object CreateLottery : Screen("lottery/create", "Create Lottery", "Create Lottery",  Icons.Outlined.AccountBox) {
+        fun createRoute(campsiteId: String) = "$route/$campsiteId"
     }
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {
         fun createRoute(campsiteId: String) = "$route/$campsiteId"
