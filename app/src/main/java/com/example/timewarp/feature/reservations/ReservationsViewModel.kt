@@ -45,7 +45,7 @@ sealed class ReservationTab(
 ) {
     // Reservations that are confirmed/upcoming
     data object Booked : ReservationTab(
-        label = "Booked",
+        label = "Reserved",
         heading = "Get ready to go!",
         emptyHeading = "Nothing booked yet!",
         cardSubtitle = "Tap to manage your reservation",
@@ -55,12 +55,12 @@ sealed class ReservationTab(
 
     // Lotteries that the user is either in or won, but does not hold a current reservation
     data object Booking : ReservationTab(
-        label = "Booking",
+        label = "Pending",
         heading = "There is still a chance!",
         emptyHeading = "You haven't booked yet!",
         cardSubtitle = "Make your reservation now!",
         datePrefix = "",
-        states = setOf(ReservationState.Pending, ReservationState.Waitlisted),
+        states = setOf(ReservationState.Pending),
     )
 
     // Past reservations
