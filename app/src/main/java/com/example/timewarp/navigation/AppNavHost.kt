@@ -91,6 +91,12 @@ fun AppNavHost() {
                 navController = navController
             )
         }
+//        composable(Screen.Policy.route) {
+//            PolicyScreen(
+//                screen = Screen.Policy,
+//                navController = navController
+//            )
+//        }
 
         // Dynamic routes.
         deepComposable(Screen.LotteryDetails.route) { lotteryId ->
@@ -107,6 +113,13 @@ fun AppNavHost() {
                 navController = navController
             )
         }
+//        deepComposable(Screen.CampsiteDetails.route) { campsiteId ->
+//            CampsiteDetailsScreen(
+//                screen = Screen.CampsiteDetails,
+//                campsiteId = campsiteId,
+//                navController = navController
+//            )
+//        }
         deepComposable(Screen.ReservationDetails.route) { reservationId ->
             ReservationDetailsScreen(
                 screen = Screen.ReservationDetails,
