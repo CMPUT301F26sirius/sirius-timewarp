@@ -172,10 +172,7 @@ fun BrowseContent(
                 }
             }
         }
-        //for debugging purpouse
-        Text(
-            text = "Current role: ${state.currentUser?.userType ?: "No user loaded"}"
-        )
+
 
         //Check if owner type and show register campsite button
         val isOwnerType =

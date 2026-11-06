@@ -93,9 +93,18 @@ data class CreateCampsiteState(
 }
 
 
-
 /**
- * [CreateCampsiteViewModel] for the [CreateCampsiteScreen].
+ * Manages campsite registration form values, validation, and saving.
+ *
+ * Confirms that the signed-in user is a campsite owner before creating a
+ * [Campsite] through [CampsiteRepository]. Exposes saving status, errors, and
+ * the saved campsite ID through [state].
+ *
+ * Reuses the generated campsite ID when retrying a failed save.
+ *
+ * @property campsiteRepository Repository used to save the campsite.
+ * @property authRepository Provides the signed-in user's ID.
+ * @property userRepository Provides the user record for checking owner status.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -125,12 +134,30 @@ class CreateCampsiteViewModel @Inject constructor(
     private val campsiteId = UUID.randomUUID().toString()
 
     // Update the form only while the user is still editing it.
+
+    /**
+     * Updates the form values and clears the previous save error.
+     *
+     * Ignores updates while saving or after registration succeeds.
+     *
+     * @param newState Updated form values.
+     */
     fun updateDraft(newState: CreateCampsiteState) {
         if (_state.value.isSaving || _state.value.savedCampsiteId != null) return
         _state.value = newState.copy(saveError = null)
 
 
     }
+
+    /**
+     * Validates the form and saves a campsite belonging to the signed-in owner.
+     *
+     * Displays validation errors when input is invalid. If saving fails, keeps
+     * the entered values and exposes an error message. On success, updates
+     * [state] with the saved campsite ID so the screen can navigate to details.
+     *
+     * Ignores repeated requests while saving or after a successful save.
+     */
 
     fun register() {
         val draft = _state.value

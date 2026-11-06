@@ -61,7 +61,17 @@ import com.example.timewarp.ui.theme.TimewarpTheme
 
 
 /**
- * [CreateCampsiteScreen]
+ * Displays the campsite registration screen and connects the form to
+ * [CreateCampsiteViewModel].
+ *
+ * Observes form state and forwards editing and registration actions to the
+ * ViewModel. After a successful save, opens the new campsite's details and
+ * removes the completed form from the navigation back stack.
+ *
+ * @param modifier Modifier applied to the screen layout.
+ * @param screen Navigation destination supplying the screen title.
+ * @param navController Handles cancellation and navigation after saving.
+ * @param viewModel Holds form values, validates input, and saves the campsite.
  */
 @Composable
 fun CreateCampsiteScreen(
@@ -102,6 +112,19 @@ fun CreateCampsiteScreen(
 
 
 /** Stateless form kept separate from navigation and Firebase for previews and UI tests. */
+
+/**
+ * Displays campsite fields, a default image, validation messages, and
+ * registration and cancellation buttons.
+ *
+ * Sends updated form values through [onChange]. Saving and navigation are
+ * handled by the caller.
+ *
+ * @param state Current form values, validation results, and saving status.
+ * @param onChange Called when a form value changes.
+ * @param onRegister Called when the registration button is pressed.
+ * @param onCancel Called when cancellation is requested.
+ */
 @Composable
 internal fun CreateCampsiteForm(
     state: CreateCampsiteState,
