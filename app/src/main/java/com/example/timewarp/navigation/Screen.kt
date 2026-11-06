@@ -30,7 +30,6 @@ sealed class Screen(
     data object Moderate : Screen("moderate", "Moderate", "Moderate", Icons.Outlined.AddModerator)
     data object UpdateProfile : Screen("profile/update", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
     data object Policy : Screen("policy", "Policy", "App Policy & Guidelines",  Icons.Outlined.Policy)
-
     data object CreateLottery : Screen("createLottery", "CreateLottery", "Create Lottery", Icons.Outlined.Token)
 
     // Dynamic routes.
