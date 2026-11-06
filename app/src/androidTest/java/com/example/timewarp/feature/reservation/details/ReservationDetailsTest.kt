@@ -59,7 +59,7 @@ class ReservationDetailsTest {
 
     private val userId = "test-entrant"
 
-    // ID opened by the temporary "Open test reservation" button
+    // ID of the test reservation card on the Reservations screen
     private val reservationId = "0"
 
     @Before
@@ -80,8 +80,8 @@ class ReservationDetailsTest {
         (reservationRepository as FakeReservationRepository).addReservation(reservation)
     }
 
-    // Launches the app and opens the Manage reservation screen
-    private fun openReservationDetails(): ActivityScenario<MainActivity> {
+    // Launches the app, picks a tab on Reservations, and opens the test reservation's card
+    private fun openReservationDetails(tabLabel: String): ActivityScenario<MainActivity> {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
 
         composeRule.waitUntil(5_000) {
@@ -89,10 +89,17 @@ class ReservationDetailsTest {
         }
         composeRule.onNodeWithText("Reservations").performClick()
 
+        // Each tab only shows some states, e.g. Canceled is under "Cancelled"
         composeRule.waitUntil(5_000) {
-            composeRule.onAllNodesWithText("Open test reservation").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithTag("tab_$tabLabel").fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText("Open test reservation").performClick()
+        composeRule.onNodeWithTag("tab_$tabLabel").performClick()
+
+        // Tap the reservation card to open Manage reservation
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithTag("reservation_$reservationId").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("reservation_$reservationId").performClick()
 
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithText("PITCH/RESERVATION/DETAILS").fetchSemanticsNodes().isNotEmpty()
@@ -103,7 +110,7 @@ class ReservationDetailsTest {
     @Test
     fun confirmingCancel_opensCancellationScreen_andCancelsReservation() {
         addReservation(ReservationState.Reserved)
-        val scenario = openReservationDetails()
+        val scenario = openReservationDetails("Booked")
 
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithTag("cancel_booking_button").fetchSemanticsNodes().isNotEmpty()
@@ -131,7 +138,7 @@ class ReservationDetailsTest {
     @Test
     fun keepBooking_doesNotCancel() {
         addReservation(ReservationState.Reserved)
-        val scenario = openReservationDetails()
+        val scenario = openReservationDetails("Booked")
 
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithTag("cancel_booking_button").fetchSemanticsNodes().isNotEmpty()
@@ -149,7 +156,7 @@ class ReservationDetailsTest {
     @Test
     fun cancelledReservation_hasNoCancelButton() {
         addReservation(ReservationState.Canceled)
-        val scenario = openReservationDetails()
+        val scenario = openReservationDetails("Cancelled")
 
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithText("This reservation can't be cancelled.").fetchSemanticsNodes().isNotEmpty()
