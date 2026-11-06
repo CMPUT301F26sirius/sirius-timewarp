@@ -41,7 +41,7 @@ fun LotteriesScreen(
         navController = navController,
     ) {
         IconButton( // CURRENTLY SHOWS UP FOR ALL USERS, NEEDS TO BE CHANGED
-            onClick = { navController.navigate(Screen.CreateLottery.route) },
+            onClick = { navController.navigate(Screen.CreateLottery.createRoute("")) },
             icon = Icons.Outlined.Add,
             text = "Create lottery",
         )

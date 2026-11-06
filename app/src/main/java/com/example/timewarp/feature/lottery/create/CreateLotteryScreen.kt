@@ -87,6 +87,7 @@ import com.example.timewarp.ui.theme.TimewarpTheme
 @Composable
 fun CreateLotteryScreen(
     modifier: Modifier = Modifier,
+    campsiteId: String = "",
     screen: Screen = Screen.CreateLottery,
     navController: NavController = rememberNavController(),
     viewModel: CreateLotteryViewModel = hiltViewModel()

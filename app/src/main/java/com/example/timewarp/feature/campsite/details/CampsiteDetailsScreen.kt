@@ -215,7 +215,7 @@ fun CampsiteDetailsScreen(
                             BaseButton(
                                 onClick = {
                                     navController.navigate(
-                                        Screen.CreateLotteryDynamic.createRoute(campsite)
+                                        Screen.CreateLottery.createRoute(campsiteId)
                                     )
                                 },
                                 text = "Create lottery",

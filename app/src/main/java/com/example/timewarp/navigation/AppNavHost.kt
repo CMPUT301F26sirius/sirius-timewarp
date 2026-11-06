@@ -9,8 +9,11 @@ import com.example.timewarp.feature.account.AccountScreen
 import com.example.timewarp.feature.alerts.AlertsScreen
 import com.example.timewarp.feature.browse.BrowseScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
+import com.example.timewarp.feature.campsite.edit.EditCampsiteScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.lottery.create.CreateLotteryScreen
+import com.example.timewarp.feature.lottery.details.LotteryDetailsScreen
+import com.example.timewarp.feature.lottery.edit.EditLotteryScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
 import com.example.timewarp.feature.policy.PolicyScreen
 import com.example.timewarp.feature.profile.update.UpdateProfileScreen
@@ -92,16 +95,37 @@ fun AppNavHost() {
             )
         }
 
-        composable (Screen.CreateLottery.route) {
-            CreateLotteryScreen(
-                screen = Screen.CreateLottery,
+        // Dynamic routes.
+        deepComposable(Screen.LotteryDetails.route) { lotteryId ->
+            LotteryDetailsScreen(
+                screen = Screen.LotteryDetails,
+                lotteryId = lotteryId,
                 navController = navController
             )
         }
-
-        // Dynamic routes.
+        deepComposable(Screen.EditLottery.route) { lotteryId ->
+            EditLotteryScreen(
+                screen = Screen.CampsiteDetails,
+                lotteryId = lotteryId,
+                navController = navController
+            )
+        }
+        deepComposable(Screen.CreateLottery.route) { campsiteId ->
+            CreateLotteryScreen(
+                screen = Screen.CreateLottery,
+                campsiteId = campsiteId,
+                navController = navController
+            )
+        }
         deepComposable(Screen.CampsiteDetails.route) { campsiteId ->
             CampsiteDetailsScreen(
+                screen = Screen.CampsiteDetails,
+                campsiteId = campsiteId,
+                navController = navController
+            )
+        }
+        deepComposable(Screen.EditCampsite.route) { campsiteId ->
+            EditCampsiteScreen(
                 screen = Screen.CampsiteDetails,
                 campsiteId = campsiteId,
                 navController = navController
