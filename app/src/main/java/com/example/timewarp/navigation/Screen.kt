@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Token
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.timewarp.domain.model.Campsite
 
 sealed class Screen(
     val route: String,
@@ -58,5 +59,9 @@ sealed class Screen(
     }
     data object GenerateQR : Screen("qr/generate", "QR Generation", "Share your site!", Icons.Outlined.QrCode) {
         fun createRoute(url: String) = "$route/${Uri.encode(url)}"
+    }
+
+    data object CreateLotteryDynamic : Screen("lottery/create", "Create Lottery", "Create Lottery",  Icons.Outlined.AccountBox) {
+        fun createRoute(campsite: Campsite) = "$route/$campsite"
     }
 }

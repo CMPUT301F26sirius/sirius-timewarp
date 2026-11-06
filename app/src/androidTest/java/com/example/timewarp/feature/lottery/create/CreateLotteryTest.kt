@@ -198,7 +198,7 @@ class CreateLotteryTest() {
         composeRule.onNodeWithText("Lotteries").performClick()
         waitForText("Create lottery")
         composeRule.onNodeWithText("Create lottery").performClick()
-        waitForText("PITCH/CREATELOTTERY")
+        waitForText("PITCH/LOTTERY/CREATE")
     }
 
     private fun fillCampsitesGoToDetails(vararg campsiteNames:String) {

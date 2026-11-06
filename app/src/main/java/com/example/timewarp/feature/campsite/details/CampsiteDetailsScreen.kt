@@ -214,7 +214,9 @@ fun CampsiteDetailsScreen(
 
                             BaseButton(
                                 onClick = {
-                                    // TODO: Open create lottery screen
+                                    navController.navigate(
+                                        Screen.CreateLotteryDynamic.createRoute(campsite)
+                                    )
                                 },
                                 text = "Create lottery",
                                 modifier = Modifier.fillMaxWidth()
