@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Landscape
 import androidx.compose.material3.Card
@@ -38,6 +39,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
+import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 import kotlin.collections.forEach
 
@@ -62,6 +64,7 @@ fun LotteriesScreen(
     // State
     val state by viewModel.state.collectAsStateWithLifecycle()
     val tabs by viewModel.tabs.collectAsStateWithLifecycle()
+    val canCreateLottery by viewModel.canCreateLottery.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
 
     // State Interpretation & Navigation
@@ -76,24 +79,39 @@ fun LotteriesScreen(
         navController = navController,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
+            modifier = Modifier.fillMaxSize()
         ) {
-            when (val s = state) {
-                is LotteriesState.Loading -> Text("Loading....")
-                is LotteriesState.Error -> Text("Error: ${s.message}")
-                is LotteriesState.Content -> LotteriesContent(
-                    state = s,
-                    tabs = tabs,
-                    tabSelected = viewModel::selectTab,
-                    lotteryClick = {item ->
-                        navController.navigate(Screen.LotteryDetails.createRoute(item.lotteryId))
+            if (canCreateLottery) {
+                IconButton(
+                    onClick = {
+                        navController.navigate(Screen.CreateLottery.createRoute(""))
                     },
-                    skipToBrowse = {
-                        navController.navigate(Screen.Browse.route) { launchSingleTop = true}
-                    },
+                    icon = Icons.Outlined.Add,
+                    text = "Create lottery",
+                    modifier = Modifier.fillMaxWidth(),
                 )
+            }
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(scrollState)
+            ) {
+                when (val s = state) {
+                    is LotteriesState.Loading -> Text("Loading....")
+                    is LotteriesState.Error -> Text("Error: ${s.message}")
+                    is LotteriesState.Content -> LotteriesContent(
+                        state = s,
+                        tabs = tabs,
+                        tabSelected = viewModel::selectTab,
+                        lotteryClick = { item ->
+                            navController.navigate(Screen.LotteryDetails.createRoute(item.lotteryId))
+                        },
+                        skipToBrowse = {
+                            navController.navigate(Screen.Browse.route) { launchSingleTop = true }
+                        },
+                    )
+                }
             }
         }
     }
