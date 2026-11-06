@@ -3,36 +3,41 @@ package com.example.timewarp.domain.repository
 import com.example.timewarp.domain.model.Notification
 
 /**
- * [NotificationRepository] interface, with implementation in [com.example.timewarp.data.repository]
+ * Repository for storing and retrieving [Notification] objects.
  */
 interface NotificationRepository {
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param fromUserId identifier of the sender.
+     * @param toUserId identifier of the recipient.
+     * @return notifications exchanged by the users, or `null` when no collection result is available.
      */
     suspend fun getCorrespondance(fromUserId: String, toUserId: String): MutableList<Notification>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param userId identifier of the sender.
+     * @return notifications sent by the user, or `null` when no collection result is available.
      */
     suspend fun getOutgoingNotifications(userId: String): MutableList<Notification>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param userId identifier of the recipient.
+     * @return notifications received by the user, or `null` when no collection result is available.
      */
     suspend fun getIncomingNotifications(userId: String): MutableList<Notification>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @return all notifications, or `null` when no collection result is available.
      */
     suspend fun getNotifications(): MutableList<Notification>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param notification notification to send.
      */
     suspend fun sendNotification(notification: Notification)
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param notificationId identifier of the notification to retrieve.
+     * @return the matching notification, or `null` when it does not exist.
      */
     suspend fun getNotification(notificationId: String): Notification?
 }

@@ -9,6 +9,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
+/**
+ * Creates a flow for getting the User object of the currently authenticated
+ * user.
+ */
 class ObserveCurrentUserUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository

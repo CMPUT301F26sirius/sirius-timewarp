@@ -6,41 +6,46 @@ import com.example.timewarp.domain.model.Location
 import kotlinx.coroutines.flow.Flow
 
 /**
- * [AuthRepository] interface, with implementation in [com.example.timewarp.data.repository]
+ * Repository for storing and querying [Campsite] objects.
  */
 interface CampsiteRepository {
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @return all campsites, or `null` when no collection result is available.
      */
     suspend fun getCampsites(): MutableList<Campsite>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param campsite campsite to create.
      */
     suspend fun createCampsite(campsite: Campsite)
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param campsiteId identifier of the campsite to edit.
+     * @param campsite replacement campsite data.
      */
     suspend fun editCampsite(campsiteId: String, campsite: Campsite)
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param campsiteId identifier of the campsite to retrieve.
+     * @return the matching campsite, or `null` when it does not exist.
      */
     suspend fun getCampsite(campsiteId: String): Campsite?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param query text used to search campsite names.
+     * @return matching campsites, or `null` when no result is available.
      */
     suspend fun queryCampsites(query: String): MutableList<Campsite>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param campsiteId identifier of the campsite to observe.
+     * @return a flow emitting the campsite, or `null` when it is unavailable.
      */
     fun observeCampsite(campsiteId: String): Flow<Campsite?>
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param filter filters to apply to the campsite collection.
+     * @return campsites matching [filter], or `null` when no result is available.
      */
     suspend fun filterCampsites(filter: CampsiteFilter): MutableList<Campsite>?
 }

@@ -6,36 +6,40 @@ import com.example.timewarp.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 /**
- * [RatingRepository] interface, with implementation in [com.example.timewarp.data.repository]
+ * Repository for storing and retrieving [Rating] objects.
  */
 interface RatingRepository {
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param campsiteId identifier of the campsite being rated.
+     * @return ratings for the campsite, or `null` when no collection result is available.
      */
     suspend fun getCampsiteRatings(campsiteId: String): MutableList<Rating>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param userId identifier of the rating author.
+     * @return ratings submitted by the user, or `null` when no collection result is available.
      */
     suspend fun getUserRatings(userId: String): MutableList<Rating>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @return all ratings, or `null` when no collection result is available.
      */
     suspend fun getRatings(): MutableList<Rating>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param rating rating to create.
      */
     suspend fun createRating(rating: Rating)
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param ratingId identifier of the rating to retrieve.
+     * @return the matching rating, or `null` when it does not exist.
      */
     suspend fun getRating(ratingId: String): Rating?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param campsiteId identifier of the campsite to observe.
+     * @return a flow emitting the campsite's ratings.
      */
     fun observeCampsiteRatings(campsiteId: String): Flow<List<Rating>>
 }

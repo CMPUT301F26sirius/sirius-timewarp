@@ -4,31 +4,34 @@ import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.model.ReservationState
 
 /**
- * [ReservationRepository] interface, with implementation in [com.example.timewarp.data.repository]
+ * Repository for storing and retrieving [Reservation] objects.
  */
 interface ReservationRepository {
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @return all reservations, or `null` when no collection result is available.
      */
     suspend fun getReservations(): MutableList<Reservation>?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param reservation reservation to create.
      */
     suspend fun createReservation(reservation: Reservation)
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param reservationId identifier of the reservation to edit.
+     * @param campsite replacement reservation data.
      */
     suspend fun editReservation(reservationId: String, campsite: Reservation)
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param reservationId identifier of the reservation to retrieve.
+     * @return the matching reservation, or `null` when it does not exist.
      */
     suspend fun getReservation(reservationId: String): Reservation?
 
     /**
-     * Implementation details specified in [com.example.timewarp.data.repository]
+     * @param reservationId identifier of the reservation to update.
+     * @param state new state for the reservation.
      */
     suspend fun updateReservationState(reservationId: String, state: ReservationState)
 }
