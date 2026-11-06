@@ -1,144 +1,159 @@
-//package com.example.timewarp.feature.profile.update
-//
-//import androidx.compose.runtime.getValue
-//import androidx.compose.runtime.mutableStateOf
-//import androidx.compose.runtime.remember
-//import androidx.compose.runtime.setValue
-//import androidx.compose.ui.test.assertIsDisplayed
-//import androidx.compose.ui.test.assertIsEnabled
-//import androidx.compose.ui.test.assertIsNotEnabled
-//import androidx.compose.ui.test.assertTextContains
-//import androidx.compose.ui.test.hasAnyAncestor
-//import androidx.compose.ui.test.hasSetTextAction
-//import androidx.compose.ui.test.hasTestTag
-//import androidx.compose.ui.test.junit4.ComposeContentTestRule
-//import androidx.compose.ui.test.junit4.createComposeRule
-//import androidx.compose.ui.test.onNodeWithTag
-//import androidx.compose.ui.test.onNodeWithText
-//import androidx.compose.ui.test.performClick
-//import androidx.compose.ui.test.performScrollTo
-//import androidx.compose.ui.test.performTextClearance
-//import androidx.compose.ui.test.performTextReplacement
-//import com.example.timewarp.ui.theme.TimewarpTheme
-//import junit.framework.TestCase
-//import org.junit.Before
-//import org.junit.Rule
-//import org.junit.Test
-//
-//class UpdateProfileTest {
-//    @get:Rule
-//    val composeTestRule: ComposeContentTestRule = createComposeRule()
-//
-//    private val startState = UpdateProfileState.Content(
-//        firstName = "Alex",
-//        lastName = "Smith",
-//        email = "alex@test.com",
-//        phoneNumber = "7801234567"
-//    )
-//
-//    private var savedState: UpdateProfileState.Content? = null
-//    private var cancelled = false
-//
-//    @Before
-//    fun showForm() {
-//        composeTestRule.setContent {
-//            // Holds state like the view model does, so typing updates the fields
-//            var state by remember { mutableStateOf(startState) }
-//
-//            TimewarpTheme {
-//                UpdateProfileForm(
-//                    state = state,
-//                    onFirstNameChange = { state = state.copy(firstName = it) },
-//                    onLastNameChange = { state = state.copy(lastName = it) },
-//                    onEmailChange = { state = state.copy(email = it) },
-//                    onPhoneNumberChange = { state = state.copy(phoneNumber = it) },
-//                    onSave = { savedState = state },
-//                    onCancel = { cancelled = true }
-//                )
-//            }
-//        }
-//    }
-//
-//    private fun field(tag: String) =
-//        composeTestRule.onNode(hasSetTextAction() and hasAnyAncestor(hasTestTag(tag)))
-//
-//    private fun updateButton() =
-//        composeTestRule.onNodeWithTag("updateButton").performScrollTo()
-//
-//    private fun cancelButton() =
-//        composeTestRule.onNodeWithTag("cancelButton").performScrollTo()
-//
-//    // Screen shows up
-//
-//    @Test
-//    fun screenShowsFieldsAndButtons() {
-//        composeTestRule.onNodeWithText("Enter your details").assertIsDisplayed()
-//
-//        field("updateFirstName").assertIsDisplayed()
-//        field("updateLastName").assertIsDisplayed()
-//        field("updateEmail").assertIsDisplayed()
-//        field("updatePhoneNumber").assertIsDisplayed()
-//
-//        updateButton().assertIsDisplayed()
-//        cancelButton().assertIsDisplayed()
-//    }
-//
-//    @Test
-//    fun screenShowsCurrentProfileValues() {
-//        field("updateFirstName").assertTextContains("Alex")
-//        field("updateLastName").assertTextContains("Smith")
-//        field("updateEmail").assertTextContains("alex@test.com")
-//        field("updatePhoneNumber").assertTextContains("7801234567")
-//    }
-//
-//    // Entering inputs
-//
-//    @Test
-//    fun enteringInputsUpdatesFields() {
-//        field("updateFirstName").performTextReplacement("Jordan")
-//        field("updateLastName").performTextReplacement("Lee")
-//        field("updateEmail").performTextReplacement("jordan@test.com")
-//        field("updatePhoneNumber").performTextReplacement("5879998888")
-//
-//        field("updateFirstName").assertTextContains("Jordan")
-//        field("updateLastName").assertTextContains("Lee")
-//        field("updateEmail").assertTextContains("jordan@test.com")
-//        field("updatePhoneNumber").assertTextContains("5879998888")
-//    }
-//
-//    // Updating
-//
-//    @Test
-//    fun updateSendsEnteredValues() {
-//        field("updateFirstName").performTextReplacement("Jordan")
-//        field("updateEmail").performTextReplacement("jordan@test.com")
-//
-//        updateButton().performClick()
-//
-//        val saved = savedState!!
-//        TestCase.assertEquals("Jordan", saved.firstName)
-//        TestCase.assertEquals("Smith", saved.lastName)
-//        TestCase.assertEquals("jordan@test.com", saved.email)
-//        TestCase.assertEquals("7801234567", saved.phoneNumber)
-//    }
-//
-//    @Test
-//    fun updateDisabledWhenRequiredFieldEmpty() {
-//        updateButton().assertIsEnabled()
-//
-//        field("updateFirstName").performTextClearance()
-//
-//        updateButton().assertIsNotEnabled()
-//    }
-//
-//    @Test
-//    fun cancelDoesNotSave() {
-//        field("updateFirstName").performTextReplacement("Jordan")
-//
-//        cancelButton().performClick()
-//
-//        TestCase.assertTrue(cancelled)
-//        TestCase.assertNull(savedState)
-//    }
-//
-//}
+package com.example.timewarp.feature.profile.update
+
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
+import androidx.test.core.app.ActivityScenario
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.timewarp.MainActivity
+import com.example.timewarp.data.repository.FakeAuthRepository
+import com.example.timewarp.data.repository.FakeProfileRepository
+import com.example.timewarp.data.repository.FakeUserRepository
+import com.example.timewarp.domain.model.Profile
+import com.example.timewarp.domain.model.User
+import com.example.timewarp.domain.model.UserType
+import com.example.timewarp.domain.repository.AuthRepository
+import com.example.timewarp.domain.repository.ProfileRepository
+import com.example.timewarp.domain.repository.UserRepository
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import javax.inject.Inject
+
+@HiltAndroidTest
+@RunWith(AndroidJUnit4::class)
+class UpdateProfileTest {
+    @get:Rule
+    val hiltRule = HiltAndroidRule(this)
+
+    @get:Rule
+    val composeRule = createEmptyComposeRule()
+
+    @Inject
+    lateinit var authRepository: AuthRepository
+
+    @Inject
+    lateinit var userRepository: UserRepository
+
+    @Inject
+    lateinit var profileRepository: ProfileRepository
+
+    @Before
+    fun setUp() {
+        hiltRule.inject()
+
+        // User
+        (userRepository as FakeUserRepository).clear()
+        (userRepository as FakeUserRepository).addUser(
+            User(userId = "profile-user", userType = UserType.Entrant)
+        )
+
+        // Auth
+        (authRepository as FakeAuthRepository).setCurrentUserId("profile-user")
+
+        // Profile
+        (profileRepository as FakeProfileRepository).clear()
+        (profileRepository as FakeProfileRepository).addProfile(
+            Profile(
+                userId = "profile-user",
+                firstName = "Ada",
+                lastName = "Lovelace",
+                email = "ada@example.com",
+                phoneNumber = "1234567890"
+            )
+        )
+    }
+
+    private fun openUpdateProfile(): ActivityScenario<MainActivity> {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Account").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Account").performClick()
+        composeRule.onNodeWithText("Update profile").performClick()
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Enter your details").fetchSemanticsNodes().isNotEmpty()
+        }
+        return scenario
+    }
+
+    @Test
+    fun updateProfile_loadsExistingProfileValues() {
+        val scenario = openUpdateProfile()
+
+        composeRule.onNodeWithTag("updateFirstName").assertIsDisplayed()
+        composeRule.onNodeWithText("Ada").assertIsDisplayed()
+        composeRule.onNodeWithText("Lovelace").assertIsDisplayed()
+        composeRule.onNodeWithText("ada@example.com").assertIsDisplayed()
+        composeRule.onNodeWithText("1234567890").assertIsDisplayed()
+
+        scenario.close()
+    }
+
+    @Test
+    fun updateProfile_requiresRequiredFieldsBeforeSaving() {
+        val scenario = openUpdateProfile()
+
+        composeRule.onNodeWithText("Ada").performTextReplacement("")
+        composeRule.onNodeWithTag("updateButton")
+            .performScrollTo()
+            .assertIsNotEnabled()
+
+        scenario.close()
+    }
+
+    @Test
+    fun updateProfile_savesEditedValuesAndReturnsToAccount() {
+        val scenario = openUpdateProfile()
+
+        composeRule.onNodeWithText("Ada").performTextReplacement("Grace")
+        composeRule.onNodeWithText("Lovelace").performTextReplacement("Hopper")
+        composeRule.onNodeWithText("ada@example.com")
+            .performTextReplacement("grace@example.com")
+        composeRule.onNodeWithText("1234567890").performTextReplacement("0987654321")
+        composeRule.onNodeWithTag("updateButton").performScrollTo().performClick()
+
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Update profile").fetchSemanticsNodes(
+                atLeastOneRootRequired = false
+            ).isNotEmpty()
+        }
+
+        val saved = runBlocking { profileRepository.getProfile("profile-user") }
+        assertEquals("Grace", saved?.firstName)
+        assertEquals("Hopper", saved?.lastName)
+        assertEquals("grace@example.com", saved?.email)
+        assertEquals("0987654321", saved?.phoneNumber)
+
+        scenario.close()
+    }
+
+    @Test
+    fun updateProfile_cancelLeavesProfileUnchanged() {
+        val scenario = openUpdateProfile()
+
+        composeRule.onNodeWithText("Ada").performTextReplacement("Changed")
+        composeRule.onNodeWithTag("cancelButton").performScrollTo().performClick()
+
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Update profile").fetchSemanticsNodes(
+                atLeastOneRootRequired = false
+            ).isNotEmpty()
+        }
+        val unchanged = runBlocking { profileRepository.getProfile("profile-user") }
+        assertEquals("Ada", unchanged?.firstName)
+
+        scenario.close()
+    }
+}
