@@ -465,7 +465,12 @@ fun CampsiteDetailsScreen(
                         } else {
                             activeLotteries.forEach { lottery ->
                                 ElevatedCard(
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .testTag("lottery_card_${lottery.lotteryId}"),
+                                    onClick = {
+                                        navController.navigate(Screen.LotteryDetails.createRoute(lottery.lotteryId))
+                                    }
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(16.dp),

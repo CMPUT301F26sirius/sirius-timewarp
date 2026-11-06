@@ -32,6 +32,9 @@ sealed class Screen(
     data object Policy : Screen("policy", "Policy", "App Policy & Guidelines",  Icons.Outlined.Policy)
 
     // Dynamic routes.
+    data object LotteryDetails : Screen("lottery/details", "Details", "Lottery details", Icons.Outlined.Token) {
+        fun createRoute(lotteryId: String) = "$route/$lotteryId"
+    }
     data object CampsiteDetails : Screen("campsite/details", "Details", "Camp details", Icons.Outlined.Home) {
         fun createRoute(campsiteId: String) = "$route/$campsiteId"
     }
