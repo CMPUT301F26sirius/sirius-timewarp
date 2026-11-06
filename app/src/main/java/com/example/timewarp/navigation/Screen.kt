@@ -65,6 +65,9 @@ sealed class Screen(
     data object ReservationCancellation : Screen("reservation/cancellation", "Cancellation", "Cancellation registered", Icons.Outlined.CalendarMonth) {
         fun createRoute(reservationId: String) = "$route/$reservationId"
     }
+    data object ReservationConfirmation : Screen("reservation/confirmation", "Confirmation", "Reservation confirmed", Icons.Outlined.CalendarMonth) {
+        fun createRoute(reservationId: String) = "$route/$reservationId"
+    }
     data object MakeReservation : Screen("reservation/make", "Reserve", "Make a reservation", Icons.Outlined.CalendarMonth) {
         fun createRoute(reservationId: String) = "$route/$reservationId"
     }
