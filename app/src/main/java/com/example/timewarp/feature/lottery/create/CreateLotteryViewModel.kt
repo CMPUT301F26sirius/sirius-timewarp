@@ -1,3 +1,8 @@
+// Parts of this code were made with the assistance of Claude AI
+// While no functionally was implemented wholly by the AI
+// I prompted it with questions about how to do certain things in Kotlin/Android
+// Or assistance in debugging
+
 package com.example.timewarp.feature.lottery.create
 
 import androidx.compose.runtime.getValue
@@ -42,6 +47,25 @@ sealed interface CreateLotteryState {
     data class Error(val message: String) : CreateLotteryState
 }
 
+/**
+ * The View Model for CreateLotteryScreen
+ *
+ * @param campsiteRepository to get user's owned Campsites
+ * @param lotteryRepository to save newly created lottery to
+ * @param observeUserProfile used to get user ID
+ * @param observeCurrentUser used to get current user
+ *
+ * @property _selectedCampsites List of Campsites while selecting campsites
+ * @property _chosenCampsites List of Campsites passed to Detail Screen
+ * @property winnerCount Number of Winners, set by user
+ * @property waitlistCount Waitlist capacity, set by user
+ * @property registrationPeriod Period of registration, set by user
+ * @property bookingPeriod Period of booking, set by user
+ *
+ * @property createError Error raised if Lottery Creation Failed
+ * @property isCreating Used to flag current creation process and disable some navigation.
+ *
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CreateLotteryViewModel @Inject constructor(

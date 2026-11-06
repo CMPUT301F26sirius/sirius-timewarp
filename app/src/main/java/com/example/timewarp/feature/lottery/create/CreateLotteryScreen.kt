@@ -1,3 +1,8 @@
+// Parts of this code were made with the assistance of Claude AI
+// While no functionally was implemented wholly by the AI
+// I prompted it with questions about how to do certain things in Kotlin/Android
+// Or assistance in debugging
+
 package com.example.timewarp.feature.lottery.create
 
 import androidx.activity.compose.BackHandler
@@ -65,6 +70,11 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
+/**
+ * Screen(s) for CreateLottery
+ *
+ * See CreateLotteryViewModel for params/properties
+ */
 @Composable
 fun CreateLotteryScreen(
     modifier: Modifier = Modifier,
@@ -148,6 +158,13 @@ fun CreateLotteryScreen(
     }
 }
 
+/**
+ * Displays all user owned campsite as a list of Card
+ *
+ * @param campsites List of user owned Campsites
+ * @param selectedCampsites List of currently selected campsites
+ * @param onToggleCampsite Add/remove campsite from list
+ */
 @Composable
 private fun CampsiteCardList (
     campsites: List<Campsite>,
@@ -176,6 +193,13 @@ private fun CampsiteCardList (
     }
 }
 
+/**
+ * Displays a single Campsite as a Card
+ *
+ * @param campsite the campsite to list
+ * @param selected weather or not campsite is currently selected
+ * @param onToggle updates onToggleCampsite in CampsiteCardList
+ */
 @Composable
 private fun CampsiteCard (
     campsite: Campsite,
@@ -215,6 +239,12 @@ private fun CampsiteCard (
     }
 }
 
+/**
+ * Button to move from campsite selection to details selection
+ *
+ * @param enabled whether the button can be clicked
+ * @param onClick Go to lottery details on click
+ */
 @Composable
 private fun CreateLotteryDetailsButton (
     enabled: Boolean,
@@ -229,6 +259,12 @@ private fun CreateLotteryDetailsButton (
     )
 }
 
+/**
+ * Button to create lottery
+ *
+ * @param enabled whether the button can be clicked
+ * @param onClick Add Lottery to Firestore on click
+ */
 @Composable
 private fun CreateLotteryButton(
     enabled: Boolean,
@@ -243,6 +279,22 @@ private fun CreateLotteryButton(
     )
 }
 
+/**
+ * Lottery Details Screen
+ *
+ * @param winnerCount number of winners
+ * @param waitlistCount waitlist capacity
+ * @param registrationPeriod period for registration
+ * @param bookingPeriod period for booking
+ * @param canCreate weather or not all conditions met to create lottery
+ * @param createError Error to raise if creation fails
+ * @param onWinnerCountChange update winnerCount on change
+ * @param onWaitlistCountChange update waitlistCount on change
+ * @param onRegistrationPeriodChange update Registration period on change
+ * @param onBookingPeriodChange update Booking period on change
+ * @param onCreate Create Lottery on create
+ * @param onBack return to campsite selection
+ */
 @Composable
 private fun LotteryDetails (
     winnerCount: Int?,
@@ -316,7 +368,13 @@ private fun LotteryDetails (
 
 private const val MILLIS_PER_DAY = 86_400_000L
 
-
+/**
+ * Selection for Date Picker (borrowed heavily from Filter Implementation)
+ *
+ * @param label for type of date selection
+ * @param period the period of time selected
+ * @param onPeriodChange update period when change
+ */
 @Composable
 private fun DatePicker (
     label: String,
@@ -418,6 +476,14 @@ private fun DatePicker (
     }
 }
 
+/**
+ * Numeric Entry Field
+ *
+ * @param label label for field
+ * @param value value entered for field
+ * @param onValueChange Update when value changes
+ * @param min minimum value for field
+ */
 @Composable
 private fun NumEntry (
     label: String,
