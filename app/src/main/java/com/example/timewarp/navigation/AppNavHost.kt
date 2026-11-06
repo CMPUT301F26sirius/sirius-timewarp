@@ -21,7 +21,9 @@ import com.example.timewarp.feature.qr.generate.GenerateQRScreen
 import com.example.timewarp.feature.startup.StartupScreen
 import com.example.timewarp.feature.registration.RegistrationScreen
 import com.example.timewarp.feature.reservation.cancellation.CancellationScreen
+import com.example.timewarp.feature.reservation.confirmation.ReservationConfirmationScreen
 import com.example.timewarp.feature.reservation.details.ReservationDetailsScreen
+import com.example.timewarp.feature.reservation.make.MakeReservationScreen
 import com.example.timewarp.feature.reservations.ReservationsScreen
 import com.example.timewarp.navigation.Screen
 
@@ -144,6 +146,20 @@ fun AppNavHost() {
         deepComposable(Screen.ReservationCancellation.route) { reservationId ->
             CancellationScreen(
                 screen = Screen.ReservationCancellation,
+                reservationId = reservationId,
+                navController = navController
+            )
+        }
+        deepComposable(Screen.MakeReservation.route) { reservationId ->
+            MakeReservationScreen(
+                screen = Screen.MakeReservation,
+                reservationId = reservationId,
+                navController = navController
+            )
+        }
+        deepComposable(Screen.ReservationConfirmation.route) { reservationId ->
+            ReservationConfirmationScreen(
+                screen = Screen.ReservationConfirmation,
                 reservationId = reservationId,
                 navController = navController
             )
