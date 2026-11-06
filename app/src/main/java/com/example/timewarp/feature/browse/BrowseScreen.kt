@@ -61,7 +61,6 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.CampsiteCard
-import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -189,6 +188,7 @@ fun BrowseContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 15.dp, vertical = 8.dp)
+                    .testTag("register_campsite_button")
             )
         }
 
@@ -204,13 +204,6 @@ fun BrowseContent(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        BaseButton(
-                            onClick = onRegisterCampsite,
-                            text = "Register campsite",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("register_campsite_button")
-                        )
                         if (state.campsites.isEmpty()) {
                             Box(
                                 modifier = Modifier
