@@ -224,7 +224,9 @@ class BrowseTest {
         scenario.close()
     }
 
-
+    /*
+    * US 03.04.01: This will test the entrant seeing no tabs
+    */
     @Test
     fun entrant_seeNoTabs_030401() {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
@@ -235,6 +237,9 @@ class BrowseTest {
         scenario.close()
     }
 
+    /*
+    * US 03.04.01: This will test the owner seeing two tabs
+    */
     @Test
     fun owner_seeTwoTabs_030401() {
         (authRepository as FakeAuthRepository).setCurrentUserId("owner-user")
@@ -255,6 +260,9 @@ class BrowseTest {
         scenario.close()
     }
 
+    /*
+    * US 03.04.01: This will test the admin seeing three tabs
+    */
     @Test
     fun admin_seeThreeTab_030401() {
         (authRepository as FakeAuthRepository).setCurrentUserId("admin-user")
@@ -268,6 +276,38 @@ class BrowseTest {
         composeRule.onNodeWithTag("browse_tab_Browse").assertIsDisplayed()
         composeRule.onNodeWithTag("browse_tab_AllCampsites").assertIsDisplayed()
         scenario.close()
+    }
+
+    /*
+    * US 02.03.01: This will test the owner seeing only their own campsites on teh My Campsites tab
+    */
+    @Test
+    fun owner_myCampsiteTab_OnlyShow_OwnedCampsites_020301() {
+        val repository = campsiteRepository as FakeCampsiteRepository
+        repository.clear()
+        repository.addCampsite(
+            campsite("1", "Bear Creek", "Dryton Valley, AB", 8)
+                .copy(ownerUserId = "owner_browse")
+        )
+        repository.addCampsite(
+            campsite("2", "Crimson lake", "Rocky Mountain House, AB", 4)
+                .copy(ownerUserId = "someone_else")
+        )
+        (authRepository as FakeAuthRepository).setCurrentUserId("owner_user")
+        (userRepository as FakeUserRepository).addUser(
+            User(userId = "owner_user", userType = UserType.CampsiteOwner)
+        )
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithTag("browse_tab_MyCampsites").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("browse_tab_MyCampsites").performClick()
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Crimson lake").fetchSemanticsNodes().isEmpty()
+        }
+        composeRule.onNodeWithText("Bear Creek").assertIsDisplayed()
+        scenario.close()
+
     }
 
 }
