@@ -91,6 +91,12 @@ fun AppNavHost() {
                 navController = navController
             )
         }
+        composable(Screen.CreateLottery.route) {
+            CreateLotteryScreen(
+                screen = Screen.CreateLottery,
+                navController = navController
+            )
+        }
 
         // Dynamic routes.
         deepComposable(Screen.CampsiteDetails.route) { campsiteId ->
@@ -118,12 +124,6 @@ fun AppNavHost() {
             GenerateQRScreen(
                 screen = Screen.GenerateQR,
                 url = url,
-                navController = navController
-            )
-        }
-        composable(Screen.CreateLottery.route) {
-            CreateLotteryScreen(
-                screen = Screen.CreateLottery,
                 navController = navController
             )
         }
