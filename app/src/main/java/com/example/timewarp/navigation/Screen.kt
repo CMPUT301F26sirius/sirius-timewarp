@@ -13,6 +13,16 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Token
 import androidx.compose.ui.graphics.vector.ImageVector
 
+/**
+ * Screen objects, that store useful information about each respective screen
+ * data object. Includes the route that the nav controller will recognize for this
+ * screen, a label, title and icon as well.
+ *
+ * @property route - navController recognized route
+ * @property label - displayed on nav buttons
+ * @property title - displayed on screen headers
+ * @property icon - displayed on nav buttons
+ */
 sealed class Screen(
     val route: String,
     val label: String,
