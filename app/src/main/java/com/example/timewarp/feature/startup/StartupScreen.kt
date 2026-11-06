@@ -120,6 +120,10 @@ fun StartupScreen(
             onDraw = { drawRect(BrandGradient) }
         )
 
+        if (state is StartupState.Error) {
+            Text((state as StartupState.Error).message)
+        }
+
         // Brand container
         Box(
             modifier = Modifier

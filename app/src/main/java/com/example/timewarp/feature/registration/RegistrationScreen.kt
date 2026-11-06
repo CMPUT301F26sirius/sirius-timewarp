@@ -51,6 +51,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.R
 import com.example.timewarp.domain.model.UserType
+import com.example.timewarp.feature.startup.StartupState
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.BaseInput
 import com.example.timewarp.ui.component.BaseInputType
@@ -285,6 +286,9 @@ fun RegistrationScreen(
                             .fillMaxWidth()
                             .testTag("registration_button")
                     )
+                    if (state is RegistrationState.Error) {
+                        Text((state as RegistrationState.Error).message)
+                    }
                     Text(
                         text = "Next time, pitch will authenticate this device automatically. No username, no password, no hassle.",
                         style = MaterialTheme.typography.bodySmall,

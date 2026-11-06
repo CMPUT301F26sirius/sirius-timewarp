@@ -77,7 +77,7 @@ fun CancellationScreen(
                         modifier = Modifier.size(64.dp)
                     )
                     Text(
-                        text = "Your cancellation has been registered by the system.",
+                        text = "Your reservation has been cancelled and a refund has been issued :)",
                         color = PitchMutedText
                     )
 
