@@ -176,7 +176,7 @@ fun BrowseContent(
 
         //Check if owner type and show register campsite button
         val isOwnerType =
-            state.currentUser?.userType == UserType.CampsiteOwner
+            state.currentUser?.userType == UserType.CampsiteOwner || state.currentUser?.userType == UserType.Admin
 
         if (isOwnerType) {
             BaseButton(
