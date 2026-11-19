@@ -32,7 +32,8 @@ sealed interface WaitlistState {
     data object Loading : WaitlistState
 
     data class Content(
-        val lotteryID: String,
+        val lotteryId: String,
+        val reservations: List<Reservation>
     ): WaitlistState
 
     data class Error(val message: String): WaitlistState
@@ -90,10 +91,14 @@ class WaitlistViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadContent(lotteryId: String, user: User) {
+    private suspend fun loadContent(lotteryId: String, user: User): WaitlistState {
+
         val reservations = getWaitlistForLottery(lotteryId)
 
-        // TODO: THIS!
+        return WaitlistState.Content(
+            lotteryId = lotteryId,
+            reservations = reservations
+        )
     }
 
     private suspend fun getWaitlistForLottery(lotteryId: String): List<Reservation> {
