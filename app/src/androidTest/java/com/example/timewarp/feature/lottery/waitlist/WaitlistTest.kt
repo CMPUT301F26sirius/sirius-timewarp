@@ -85,5 +85,50 @@ class WaitlistTest {
         (reservationRepository as FakeReservationRepository).clear()
     }
 
+    @Test
+    fun lotteryDoesNotExist_returnError() {
+        
+        openWaitlist()
+    }
+
+    @Test
+    fun lotteryExists_butNoReservations_showEmpty() {
+        openWaitlist()
+    }
+
+    @Test
+    fun lotteryExists_butNoWaitlistedReservations_showEmpty() {
+        openWaitlist()
+    }
+
+    @Test
+    fun lotteryExists_hasWaitlist_showList() {
+        openWaitlist()
+    }
+
+    private fun openWaitlist() {
+        // TODO: Need to plan/implement a way to open waitlist screen
+    }
+
+    private fun waitForTag(tag: String) = composeRule.waitUntil(5_000) {
+        composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()
+    }
+
+    private fun wait_clickButtonWithTag(tag: String) {
+        waitForTag(tag)
+        composeRule.onNodeWithTag(tag)
+            .performScrollTo()
+            .performClick()
+    }
+
+    private fun wait_assertTextExists(text: String) {
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText(text)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeRule.onNodeWithText(text).assertExists()
+    }
+
 
 }
