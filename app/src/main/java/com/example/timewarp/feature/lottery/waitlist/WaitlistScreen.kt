@@ -10,10 +10,67 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.feature.lottery.waitlist.WaitlistViewModel
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.ui.theme.TimewarpTheme
+
+import android.content.Intent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import com.example.timewarp.R
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.rememberNavController
+import com.example.timewarp.feature.navigation.NavigationScreen
+import com.example.timewarp.ui.component.BaseButton
+import com.example.timewarp.ui.component.IconButton
+import com.example.timewarp.ui.theme.TimewarpTheme
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.ConfirmationNumber
+import androidx.compose.material.icons.outlined.Landscape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.draw.clip
+import java.util.concurrent.TimeUnit
 
 /**
  * [WaitlistScreen]
@@ -42,6 +99,54 @@ fun WaitlistScreen(
         navController = navController,
     ) {
 
+    }
+}
+
+@Composable
+fun WaitListContent(lotteryID: String, reservations: List<Reservation>) {
+    Text(
+        text = "Lottery #$lotteryID Waitlist",
+        style = MaterialTheme.typography.titleMedium,
+    )
+    WaitlistList(reservations)
+}
+
+@Composable
+private fun WaitlistList(reservations: List<Reservation>) {
+    if (reservations.isEmpty()) {
+        Text(
+            text = "Empty Waitlist",
+            style = MaterialTheme.typography.bodyMedium
+        )
+    } else {
+        reservations.forEach { reservation ->
+            WaitlistEntry(reservation)
+        }
+    }
+}
+
+// TODO: STYLE THIS BETTER
+//  PROBABLY USE CARDS
+//  FIELDS SHOULD HAVE LABELS
+//  PROBABLY FETCH USER'S NAME
+@Composable
+private fun WaitlistEntry(
+    reservation: Reservation,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = reservation.userId,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        Text(
+            text = reservation.reservationId,
+            style = MaterialTheme.typography.labelMedium,
+        )
     }
 }
 
