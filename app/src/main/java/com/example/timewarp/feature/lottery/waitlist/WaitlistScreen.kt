@@ -59,15 +59,19 @@ import com.example.timewarp.ui.theme.TimewarpTheme
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Landscape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.draw.clip
 import java.util.concurrent.TimeUnit
@@ -103,50 +107,85 @@ fun WaitlistScreen(
 }
 
 @Composable
-fun WaitListContent(lotteryID: String, reservations: List<Reservation>) {
-    Text(
-        text = "Lottery #$lotteryID Waitlist",
-        style = MaterialTheme.typography.titleMedium,
-    )
-    WaitlistList(reservations)
+fun WaitListContent(
+    lotteryID: String,
+    reservations: List<Reservation>,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = "Lottery #$lotteryID Waitlist",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+        )
+        WaitlistList(
+            reservations = reservations,
+            modifier = Modifier,
+        )
+    }
 }
 
 @Composable
-private fun WaitlistList(reservations: List<Reservation>) {
+private fun WaitlistList(
+    reservations: List<Reservation>,
+    modifier: Modifier = Modifier,
+) {
     if (reservations.isEmpty()) {
-        Text(
-            text = "Empty Waitlist",
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "Empty Waitlist",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     } else {
-        reservations.forEach { reservation ->
-            WaitlistEntry(reservation)
+        LazyColumn(
+            modifier = modifier,
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(
+                items = reservations,
+            ) { reservation ->
+                WaitlistEntry(reservation)
+            }
         }
     }
 }
 
 // TODO: STYLE THIS BETTER
-//  PROBABLY USE CARDS
-//  FIELDS SHOULD HAVE LABELS
 //  PROBABLY FETCH USER'S NAME
 @Composable
 private fun WaitlistEntry(
     reservation: Reservation,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    Card(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = reservation.userId,
-            style = MaterialTheme.typography.labelMedium,
-        )
-        Text(
-            text = reservation.reservationId,
-            style = MaterialTheme.typography.labelMedium,
-        )
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+
+        ) {
+            Text(
+                text = "User ID: ${reservation.userId}",
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
+
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = "Reservation ID: ${reservation.reservationId}",
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
     }
 }
 
