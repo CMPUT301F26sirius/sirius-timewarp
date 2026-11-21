@@ -130,7 +130,9 @@ internal fun CreateCampsiteForm(
     state: CreateCampsiteState,
     onChange: (CreateCampsiteState) -> Unit,
     onRegister: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    isEditing: Boolean = false,
+
 ) {
     val errors = if (state.showErrors) state.fieldErrors else emptyMap()
     val context = LocalContext.current
@@ -306,13 +308,21 @@ internal fun CreateCampsiteForm(
         Text("* Required fields", style = MaterialTheme.typography.bodySmall)
         state.saveError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         BaseButton(
-            text = if (state.isSaving) "Registering…" else "Register campsite",
+
+
+            text = when {
+                isEditing && state.isSaving -> "Saving..."
+                isEditing -> "Save changes"
+                state.isSaving -> "Registering..."
+                else -> "Register campsite"
+            },
             onClick = onRegister,
             enabled = !state.isSaving && state.savedCampsiteId == null,
             modifier = Modifier.fillMaxWidth().testTag("registerCampsiteButton")
         )
         BaseButton(
-            text = "Cancel registration",
+            text = if (isEditing) "Cancel" else "Cancel registration",
+
             type = BaseButtonType.Outlined,
             onClick = onCancel,
             enabled = !state.isSaving,

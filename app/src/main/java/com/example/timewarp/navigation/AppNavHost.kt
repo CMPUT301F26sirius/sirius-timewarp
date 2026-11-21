@@ -106,6 +106,14 @@ fun AppNavHost() {
             )
         }
 
+        deepComposable(Screen.EditCampsite.route) { campsiteId ->
+            EditCampsiteScreen(
+                screen = Screen.EditCampsite,
+                campsiteId = campsiteId,
+                navController = navController
+            )
+        }
+
 
 
         // Dynamic routes.
