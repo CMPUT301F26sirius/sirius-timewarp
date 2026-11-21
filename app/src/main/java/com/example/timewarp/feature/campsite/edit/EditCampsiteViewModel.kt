@@ -22,6 +22,15 @@ sealed interface EditCampsiteState {
     ) : EditCampsiteState
 }
 
+
+
+/**
+ * Loads an existing campsite into an editable draft and saves changes after
+ * validating the form and verifying that the signed-in user owns the campsite.
+ *
+ * @param campsiteRepository Reads and updates the existing campsite record.
+ * @param authRepository Provides the signed-in user ID for ownership checks.
+ */
 @HiltViewModel
 class EditCampsiteViewModel @Inject constructor(
     private val campsiteRepository: CampsiteRepository,
@@ -33,6 +42,13 @@ class EditCampsiteViewModel @Inject constructor(
 
     private var requestedId: String? = null
     private var loadJob: Job? = null
+
+    /**
+     * Loads the campsite and prefills the edit form.
+     * A failed load can be retried by calling this again with the same ID.
+     *
+     * @param campsiteId ID of the campsite to load.
+     */
 
     fun observe(campsiteId: String) {
         if (requestedId == campsiteId && _state.value !is EditCampsiteState.Error) return
@@ -83,13 +99,22 @@ class EditCampsiteViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Updates the current form values and clears the previous save error.
+     *
+     * @param draft The latest form values from the screen.
+     */
+
     fun updateDraft(draft: CreateCampsiteState) {
         val current = _state.value as? EditCampsiteState.Ready ?: return
         if (current.draft.isSaving || current.draft.savedCampsiteId != null) return
 
         _state.value = current.copy(draft = draft.copy(saveError = null))
     }
-
+    /**
+     * Validates the draft, checks ownership, and updates the existing campsite.
+     * If the save fails, keeps the draft available for retry.
+     */
     fun save() {
         val current = _state.value as? EditCampsiteState.Ready ?: return
         val draft = current.draft

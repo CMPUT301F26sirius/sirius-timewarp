@@ -16,6 +16,18 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.BaseButton
 
+
+
+/**
+ * Displays an existing campsite in the shared form so its owner can edit it.
+ * Returns to campsite details after saving or cancelling.
+ *
+ * @param campsiteId ID of the campsite to load and update.
+ * @param modifier Modifier applied to the screen layout.
+ * @param screen Destination that supplies the screen title.
+ * @param navController Handles navigation back to campsite details.
+ * @param viewModel Loads the campsite, tracks edits, and saves changes.
+ */
 @Composable
 fun EditCampsiteScreen(
     campsiteId: String,
