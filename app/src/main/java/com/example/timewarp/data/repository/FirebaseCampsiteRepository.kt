@@ -54,8 +54,31 @@ class FirebaseCampsiteRepository @Inject constructor(
      * @param campsiteId id of the campsite document to edit.
      * @param campsite Campsite object to write.
      */
+
     override suspend fun editCampsite(campsiteId: String, campsite: Campsite) {
-        TODO("Not yet implemented")
+        firestore.collection("campsite")
+            .document(campsiteId)
+            .update(
+                mapOf(
+                    "name" to campsite.name,
+                    "description" to campsite.description,
+                    "location.address" to campsite.location.address,
+                    "occupancy.maxGuests" to campsite.occupancy.maxGuests,
+                    "pricing.costPerNight" to campsite.pricing.costPerNight,
+                    "pricing.preparationFee" to campsite.pricing.preparationFee,
+                    "amenities" to campsite.amenities,
+                    "tags" to campsite.tags,
+                    "rules" to campsite.rules,
+                    "cancellationPolicy.policy" to campsite.cancellationPolicy.policy,
+                    "minimumStayNights" to campsite.minimumStayNights,
+                    "checkInTime" to campsite.checkInTime,
+                    "checkOutTime" to campsite.checkOutTime,
+                    "availability.startDate" to campsite.availability.startDate,
+                    "availability.endDate" to campsite.availability.endDate,
+                    "availability.daysOfWeek" to campsite.availability.daysOfWeek
+                )
+            )
+            .await()
     }
 
     /**
