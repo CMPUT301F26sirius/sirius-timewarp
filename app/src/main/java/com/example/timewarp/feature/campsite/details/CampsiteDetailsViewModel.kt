@@ -7,17 +7,14 @@ import com.example.timewarp.domain.model.Lottery
 import com.example.timewarp.domain.model.Profile
 import com.example.timewarp.domain.model.Rating
 import com.example.timewarp.domain.model.User
+import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.LotteryRepository
-import com.example.timewarp.domain.repository.ProfileRepository
 import com.example.timewarp.domain.repository.RatingRepository
-import com.example.timewarp.domain.repository.UserRepository
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import com.example.timewarp.domain.usecase.ObserveUserProfileUseCase
 import com.example.timewarp.feature.startup.StartupScreen
-import com.example.timewarp.feature.startup.StartupState
-import com.example.timewarp.feature.startup.StartupViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -28,7 +25,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -45,7 +41,25 @@ sealed interface CampsiteDetailsState {
         val ownerUser: User?,
         val ownerProfile: Profile?,
         val currentUser: User?
-    ) : CampsiteDetailsState
+    ) : CampsiteDetailsState {
+
+        // Current logged-in user's own rating for the campsite. If they did not rate then null
+        val myRating: Rating?
+            get() = ratings.firstOrNull { it.userId == currentUser?.userId }
+
+        // Show 0.0 for no rating. If there are ratings then average star across all ratings
+        val averageRating: Double
+            get() = if (ratings.isEmpty()) 0.0
+            else ratings.map {it.rating}.average()
+
+        val ratingCount: Int
+            get() = ratings.size
+
+        // The entrant can rate the campsite
+        val canRate: Boolean
+            get() = currentUser?.userType == UserType.Entrant
+    }
+
     data class Error(val message: String) : CampsiteDetailsState
 }
 
@@ -117,6 +131,38 @@ class CampsiteDetailsViewModel @Inject constructor(
                     )
                 }
                 .collect { _state.value = it }
+        }
+    }
+
+    /**
+    * This function posts or update the signed in entrant's rating.
+     *
+     * @param stars This is the Star rating. you can give rating from 1 to 5 stars
+     * @param review This is the review text.
+    */
+
+    fun onSubmitRating(stars: Int, review: String) {
+        val content = _state.value as? CampsiteDetailsState.Content ?: return
+
+        // User who is not an Entrant cannot submit
+        val user = content.currentUser?: return
+        if (user.userType != UserType.Entrant) return
+
+        if (stars !in 1..5) return
+        val userId = user.userId
+
+        // The user needs to be signed in to rate a campsite
+        val campsiteId = content.campsite.campsiteId
+        viewModelScope.launch {
+            ratingRepository.createRating(
+                Rating(
+                    ratingId = "${campsiteId}_$userId",
+                    campsiteId = campsiteId,
+                    userId = userId,
+                    rating = stars,
+                    review = review.trim()
+                )
+            )
         }
     }
 }
