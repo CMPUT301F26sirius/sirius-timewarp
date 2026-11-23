@@ -36,11 +36,16 @@ class FirebaseLotteryRepository @Inject constructor(
     }
 
     /**
-     * NEEDS_DOCUMENTATION
+     * Updates existing lottery entry
+     *
+     * @param lotteryId ID of Lottery to Update
+     * @param lottery Lottery Object to replace with
      */
     override suspend fun editLottery(lotteryId: String, lottery: Lottery) {
-        TODO("Not yet implemented")
-
+        firestore.collection("lottery")
+            .document(lotteryId)
+            .set(lottery.copy(lotteryId = lotteryId))
+            .await()
     }
 
     /**
