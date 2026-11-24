@@ -1,7 +1,10 @@
 package com.example.timewarp.feature.lottery.edit
 
-import android.icu.util.TimeUnit
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasSetTextAction
@@ -11,10 +14,13 @@ import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.isNotEnabled
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
@@ -33,12 +39,18 @@ import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlin.collections.isNotEmpty
+import kotlin.collections.orEmpty
+import kotlin.collections.single
 
 /**
  * Instrumented tests, for editing a lottery as a campsite owner
@@ -69,6 +81,8 @@ class EditLotteryTest {
     private val ownerId = "lottery-owner"
     private val lotteryId = "lottery-1"
 
+    private val today = TimeUnit.MILLISECONDS.toDays((System.currentTimeMillis())).toInt()
+
     private  lateinit var scenario: ActivityScenario<MainActivity>
 
     @Before
@@ -88,8 +102,8 @@ class EditLotteryTest {
         lottRepository.addLottery(
             Lottery(
                 lotteryId = lotteryId,
-                registrationPeriod = Period(start = 0, end = 1),
-                bookingPeriod = Period(start = 2, end = 3),
+                registrationPeriod = Period(start = today, end = today + 2),
+                bookingPeriod = Period(start = today + 4, end = today + 6),
                 winnerCount = 3,
                 waitlistCapacity = 25,
                 campsiteIds = listOf("1"),
@@ -106,6 +120,60 @@ class EditLotteryTest {
         composeRule.onNodeWithText("Diamond Lake").assertDoesNotExist()
     }
 
+    @Test
+    fun campsiteList_notOwner_hideEdit() {
+        scenario = ActivityScenario.launch(MainActivity::class.java)
+        waitForText("Crimson Lake")
+        composeRule.onNodeWithText("Crimson Lake").performClick()
+        (authRepository as FakeAuthRepository).setCurrentUserId("different-owner")
+        waitForTag("lottery_card_$lotteryId")
+        composeRule.onNodeWithTag("lottery_card_$lotteryId").performScrollTo().performClick()
+        waitForText("PITCH/LOTTERY/DETAILS")
+        composeRule.onNodeWithText("Edit lottery").assertDoesNotExist()
+
+    }
+
+    @Test
+    fun continueButton_isEnabledOnlyWhenCampsiteSelected() {
+        openEditLottery()
+        waitForText("Crimson Lake")
+        composeRule.onNodeWithTag("lottery_details_button").assertIsEnabled()
+        waitForButton("lottery_details_button", enabled = true)
+        composeRule.onNodeWithText("Crimson Lake").assertIsOn()
+        composeRule.onNodeWithText("Emerald Lake").assertIsOff()
+        composeRule.onNodeWithText("Crimson Lake").performClick()
+        waitForButton("lottery_details_button", enabled = false)
+        composeRule.onNodeWithText("Crimson Lake").assertIsOff()
+    }
+
+    @Test
+    fun editLottery_AllValidEntries_saveLotterytoRepository() {
+        openEditLottery()
+        fillCampsitesGoToDetails("Emerald Lake")
+
+        pickDates("registration_picker", 10, 12)
+        pickDates("booking_picker", 15, 18)
+        numberField("winner_count_field").performTextReplacement("3")
+        numberField("waitlist_count_field").performTextReplacement("25")
+
+        waitForButton("lottery_create_button", enabled = true)
+        composeRule.onNodeWithTag("lottery_create_button").performScrollTo().performClick()
+
+        composeRule.waitUntil(5_000) {
+            runBlocking { lotteryRepository.getLotteries() }.orEmpty().isNotEmpty()
+        }
+        val lottery = runBlocking { lotteryRepository.getLotteries() }.orEmpty().single()
+        assertEquals(3, lottery.winnerCount)
+        assertEquals(25, lottery.waitlistCapacity)
+        assertEquals(setOf("1", "2"), lottery.campsiteIds.toSet())
+
+        assertEquals(2, lottery.registrationPeriod.end - lottery.registrationPeriod.start)
+        assertEquals(3, lottery.bookingPeriod.end - lottery.bookingPeriod.start)
+
+        waitForText("Crimson Lake Lottery")
+        composeRule.onNodeWithText("Complete Lottery Creation").assertDoesNotExist()
+    }
+
     /*
     ##############################################################################
      */
@@ -117,11 +185,11 @@ class EditLotteryTest {
         scenario = ActivityScenario.launch(MainActivity::class.java)
         waitForText("Crimson Lake")
         composeRule.onNodeWithText("Crimson Lake").performClick()
-        waitForText("lottery_card_\$lotteryId")
-        composeRule.onNodeWithText("lottery_card_\$lotteryId").performClick()
+        waitForTag("lottery_card_$lotteryId")
+        composeRule.onNodeWithTag("lottery_card_$lotteryId").performScrollTo().performClick()
         waitForText("PITCH/LOTTERY/DETAILS")
         waitForText("Edit lottery")
-        composeRule.onNodeWithText("lottery_card_\$lotteryId").performClick()
+        composeRule.onNodeWithText("Edit lottery").performScrollTo().performClick()
         waitForText("PITCH/LOTTERY/EDIT")
     }
 
@@ -190,6 +258,10 @@ class EditLotteryTest {
      */
     private fun waitForText(text: String) = composeRule.waitUntil(5_000) {
         composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+    }
+
+    private fun waitForTag(tag: String) = composeRule.waitUntil(5_000) {
+        composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()
     }
 
     /*
