@@ -220,6 +220,7 @@ class LotteryDetailsViewModel @Inject constructor(
             val reservation = Reservation(
                 // Random unique ID
                 reservationId = UUID.randomUUID().toString(),
+                lotteryId = lottery.lotteryId,
                 reservationState = ReservationState.Waitlisted,
                 timestamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toInt(),
                 campsiteId = lottery.campsiteIds[0],
