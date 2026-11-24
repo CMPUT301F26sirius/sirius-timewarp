@@ -55,7 +55,7 @@ sealed interface CreateLotteryState {
  * @param lotteryRepository to save newly created lottery to
  * @param observeCurrentUser used to get current user
  *
- *
+ * @property form An instance of the General Lottery
  * @property createError Error raised if Lottery Creation Failed
  * @property isCreating Used to flag current creation process and disable some navigation.
  *
