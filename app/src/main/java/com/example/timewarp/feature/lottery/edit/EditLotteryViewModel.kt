@@ -40,6 +40,15 @@ sealed interface EditLotteryState {
 
 /**
  * [EditLotteryViewModel] for the [EditLotteryScreen].
+ *
+ * @param campsiteRepository to get user's owned Campsites
+ * @param lotteryRepository to save newly created lottery to
+ * @param authRepository to get user
+ *
+ * @property lotteryId the ID for the lottery to be edited
+ * @property form An instance of the General Lottery
+ * @property saveError Error raised if Lottery Edit Failed
+ *
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -47,23 +56,16 @@ class EditLotteryViewModel @Inject constructor(
     private val campsiteRepository: CampsiteRepository,
     private val lotteryRepository: LotteryRepository,
     private val authRepository: AuthRepository,
-    private val observeUserProfile: ObserveUserProfileUseCase,
-    private val observeCurrentUser: ObserveCurrentUserUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow<EditLotteryState>(EditLotteryState.Loading)
     val state: StateFlow<EditLotteryState> = _state.asStateFlow()
 
-    // Current launched job
-    private var observationJob: Job? = null
 
     private var lotteryId: String = ""
 
     val form = LotteryFormState()
 
     var saveError by mutableStateOf<String?>(null)
-
-    private var loadedLottery: Lottery? = null
-
 
     // Observes the supplied campsite id. Called by screen when changed.
     fun observe(lotteryId: String) {
