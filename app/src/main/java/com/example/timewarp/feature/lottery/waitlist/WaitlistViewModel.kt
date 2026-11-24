@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.timewarp.data.repository.FirebaseReservationRepository
 import com.example.timewarp.domain.model.Lottery
 import com.example.timewarp.domain.model.Reservation
+import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
@@ -13,6 +14,7 @@ import com.example.timewarp.domain.repository.RatingRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import com.example.timewarp.domain.usecase.ObserveUserProfileUseCase
+import com.example.timewarp.feature.lotteries.LotteryTab
 import com.example.timewarp.feature.lottery.details.LotteryDetailsState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -103,6 +105,6 @@ class WaitlistViewModel @Inject constructor(
 
     private suspend fun getWaitlistForLottery(lotteryId: String): List<Reservation> {
         val reservations = reservationRepository.getReservations()
-        return reservations?.filter {it.lotteryId == lotteryId } ?: emptyList()
+        return reservations?.filter {it.lotteryId == lotteryId && it.reservationState == ReservationState.Waitlisted } ?: emptyList()
     }
 }

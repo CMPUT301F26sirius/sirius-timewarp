@@ -155,8 +155,7 @@ private fun WaitlistList(
     }
 }
 
-// TODO: STYLE THIS BETTER
-//  PROBABLY FETCH USER'S NAME
+
 @Composable
 private fun WaitlistEntry(
     reservation: Reservation,
@@ -170,22 +169,31 @@ private fun WaitlistEntry(
             verticalArrangement = Arrangement.spacedBy(4.dp),
 
         ) {
-            Text(
-                text = "User ID: ${reservation.userId}",
-                style = MaterialTheme.typography.labelMedium,
-            )
+
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "User ID: ${reservation.userId}",
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
+
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "Reservation ID: ${reservation.reservationId}",
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
         }
 
-        Row(
-            modifier = modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = "Reservation ID: ${reservation.reservationId}",
-                style = MaterialTheme.typography.labelMedium,
-            )
-        }
+
     }
 }
 
