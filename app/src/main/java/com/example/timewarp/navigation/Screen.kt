@@ -50,6 +50,9 @@ sealed class Screen(
     data object EditLottery : Screen("lottery/edit", "Edit", "Edit lottery", Icons.Outlined.Home) {
         fun createRoute(lotteryId: String) = "$route/$lotteryId"
     }
+    data object ViewWaitlist : Screen("lottery/waitlist", "Waitlist", "View Waitlist", Icons.Outlined.Home) {
+        fun createRoute(lotteryId: String) = "$route/$lotteryId"
+    }
     data object CreateLottery : Screen("lottery/create", "Create Lottery", "Create Lottery",  Icons.Outlined.AccountBox) {
         fun createRoute(campsiteId: String) = "$route/$campsiteId"
     }

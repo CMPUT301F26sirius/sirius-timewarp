@@ -83,7 +83,7 @@ import java.util.concurrent.TimeUnit
 fun WaitlistScreen(
     lotteryId: String,
     modifier: Modifier = Modifier,
-    // screen: Screen = Screen.Waitlist,
+    screen: Screen = Screen.ViewWaitlist,
     navController: NavController = rememberNavController(),
     viewModel: WaitlistViewModel = hiltViewModel()
 ) {
