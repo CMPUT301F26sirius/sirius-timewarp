@@ -34,4 +34,11 @@ interface ReservationRepository {
      * @param state new state for the reservation.
      */
     suspend fun updateReservationState(reservationId: String, state: ReservationState)
+
+    /**
+     * deletes a reservation
+     *
+     * @param reservationId Identifier of the reservation to retrieve
+     */
+    suspend fun deleteReservation(reservationId: String)
 }

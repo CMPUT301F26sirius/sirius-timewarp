@@ -88,4 +88,11 @@ class FirebaseReservationRepository @Inject constructor(
     override suspend fun editReservation(reservationId: String, campsite: Reservation) {
         TODO("Not yet implemented")
     }
+
+    override suspend fun deleteReservation(reservationId: String) {
+        firestore.collection("reservation")
+            .document(reservationId)
+            .delete()
+            .await()
+    }
 }
