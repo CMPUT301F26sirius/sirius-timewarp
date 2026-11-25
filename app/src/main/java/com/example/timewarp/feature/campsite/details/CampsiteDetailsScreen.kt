@@ -46,9 +46,15 @@ import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.IconButton
 import com.example.timewarp.ui.theme.TimewarpTheme
 import android.net.Uri
-import com.example.timewarp.feature.browse.BrowseScreen
-import com.example.timewarp.feature.registration.RegistrationScreen
-import com.example.timewarp.feature.startup.StartupScreen
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.timewarp.domain.model.Rating
 import java.util.concurrent.TimeUnit
 
 
@@ -138,13 +144,15 @@ fun CampsiteDetailsScreen(
                             )
 
                             Text(
-                                text = campsite.rating.toString(),
-                                color = MaterialTheme.colorScheme.onSurface
+                                text = "%.1f".format(currentState.averageRating),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.testTag("details_average_rating")
                             )
 
                             Text(
-                                text = "${currentState.ratings.size} reviews",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = "${currentState.ratingCount} reviews",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.testTag("details_rating_count")
                             )
                         }
 
@@ -493,6 +501,19 @@ fun CampsiteDetailsScreen(
                         HorizontalDivider()
 
                         //Ratings
+                        var editing by remember {mutableStateOf(false)}
+                        if (currentState.canRate && (currentState.myRating == null || editing)) {
+                            RatingInput(
+                                myRating = currentState.myRating,
+                                onSubmit = {
+                                    stars, review -> viewModel.onSubmitRating(stars,review)
+                                    editing = false
+                                },
+                                onCancel = if (editing) ({editing = false})
+                                else null
+                            )
+                            HorizontalDivider()
+                        }
 
                         Text(
                             text = "Reviews (${currentState.ratings.size})",
@@ -503,7 +524,10 @@ fun CampsiteDetailsScreen(
                         if (currentState.ratings.isEmpty()) {
                             Text("No reviews yet")
                         } else {
-                            currentState.ratings.forEach { rating ->
+                            currentState.ratings.sortedByDescending {
+                                it.userId == currentState.currentUser?.userId
+                            }.forEach { rating ->
+                                val isMine = rating.userId == currentState.currentUser?.userId
                                 ElevatedCard(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
@@ -511,12 +535,31 @@ fun CampsiteDetailsScreen(
                                         modifier = Modifier.padding(16.dp),
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
+                                        if (isMine) {
+                                            Text(
+                                                text = "Your Review",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                         Text(
                                             text = "${rating.rating}/5 ★",
                                             fontWeight = FontWeight.SemiBold
                                         )
 
-                                        Text(text = rating.review)
+                                        if (rating.review.isNotBlank()){
+                                            Text(text = rating.review,
+                                                modifier = Modifier.testTag("review_item"))
+                                        }
+
+                                        if (isMine && currentState.canRate && !editing) {
+                                            TextButton(
+                                                onClick = {editing = true},
+                                                modifier = Modifier.testTag("edit_rating_button")
+                                            ) {
+                                                Text("Edit")
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -532,6 +575,71 @@ fun CampsiteDetailsScreen(
         }
     }
 }
+
+
+@Composable
+private fun RatingInput (
+    myRating: Rating?,
+    onSubmit: (stars: Int, review: String) -> Unit,
+    modifier: Modifier = Modifier,
+    onCancel: (() -> Unit)? = null,
+) {
+    var stars by remember (myRating) { mutableStateOf(myRating?.rating?: 0) }
+    var review by remember (myRating) { mutableStateOf(myRating?.review?: "") }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = if (myRating == null) "Rate This Campsite"
+            else "Your Ratings",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        // This is for the rating stars between 1 - 5
+        Row {
+            (1..5).forEach {
+                rate ->
+                Icon(
+                    imageVector = if (rate <= stars) Icons.Filled.Star
+                    else Icons.Outlined.StarOutline,
+                    contentDescription = "$rate stars",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(30.dp).clickable{stars = rate}.testTag("rating_star_$rate")
+
+                )
+            }
+        }
+        OutlinedTextField(
+            value = review,
+            onValueChange = {review = it},
+            label = {Text("Please leave a review (Optional)")},
+            modifier = Modifier.fillMaxWidth().testTag("review_field")
+        )
+
+        Button(
+            onClick = {onSubmit(stars, review)},
+            enabled = stars in 1..5,
+            modifier = Modifier.fillMaxWidth().testTag("submit_rating_button")
+        ) {
+            Text(
+                if (onCancel == null) "Submit"
+                else "Update"
+            )
+        }
+
+            if (onCancel != null) {
+                TextButton(
+                    onClick = onCancel,
+                    modifier = Modifier.fillMaxWidth().testTag("cancel_edit_button")
+                ) {
+                    Text("Cancel")
+                }
+            }
+        }
+    }
 
 @Preview(showBackground = true)
 @Composable

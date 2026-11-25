@@ -111,7 +111,7 @@ fun LotteryDetailsScreen(
                         navController.navigate(Screen.ReservationDetails.createRoute(reservationId))
                     },
                     editClick = {
-                        // TODO: open edit lottery once that screen is made
+                        navController.navigate(Screen.EditLottery.createRoute(lotteryId))
                     },
                 )
             }
