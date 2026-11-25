@@ -41,9 +41,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-private const val OWNER_ID = "TEST-OWNER-ID"
-
-private const val LOTTERY_ID = "TEST-LOTTERY-ID"
 
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
@@ -65,49 +62,99 @@ class WaitlistTest {
     lateinit var lotteryRepository: LotteryRepository
 
     @Inject
+    lateinit var campsiteRepository: CampsiteRepository
+
+    @Inject
     lateinit var reservationRepository: ReservationRepository
+
+    private val ownerId = "lottery-owner"
+    private val lotteryId = "lottery-1"
+    private  lateinit var scenario: ActivityScenario<MainActivity>
+
+    private val today = TimeUnit.MILLISECONDS.toDays((System.currentTimeMillis())).toInt()
 
     /*
     * This functions logs test owner in, creates one lottery they own
      */
+    @Before
     fun setUp() {
         hiltRule.inject()
-
-        (userRepository as FakeUserRepository).clear()
-        (userRepository as FakeUserRepository).addUser(User(userId = OWNER_ID, userType = UserType.CampsiteOwner))
-        (authRepository as FakeAuthRepository).setCurrentUserId(OWNER_ID)
-
-        (lotteryRepository as FakeLotteryRepository).clear()
-        (lotteryRepository as FakeLotteryRepository).addLottery(
-            Lottery(lotteryId = LOTTERY_ID)
+        (authRepository as FakeAuthRepository).setCurrentUserId(ownerId)
+        (userRepository as FakeUserRepository).addUser(
+            User(userId = ownerId, userType = UserType.CampsiteOwner)
         )
-
-        (reservationRepository as FakeReservationRepository).clear()
-    }
-
-    @Test
-    fun lotteryDoesNotExist_returnError() {
-        
-        openWaitlist()
+        (lotteryRepository as FakeLotteryRepository).clear()
+        val campRepository = campsiteRepository as FakeCampsiteRepository
+        val lottRepository = lotteryRepository as FakeLotteryRepository
+        val resRepository = reservationRepository as FakeReservationRepository
+        campRepository.clear()
+        lottRepository.clear()
+        resRepository.clear()
+        campRepository.addCampsite(Campsite("1", ownerId,"Crimson Lake"))
+        campRepository.addCampsite(Campsite("2", ownerId,"Emerald Lake"))
+        campRepository.addCampsite(Campsite("3", "another-owner-id","Diamond Lake"))
+        lottRepository.addLottery(
+            Lottery(
+                lotteryId = lotteryId,
+                registrationPeriod = Period(start = today, end = today + 2),
+                bookingPeriod = Period(start = today + 4, end = today + 6),
+                winnerCount = 3,
+                waitlistCapacity = 25,
+                campsiteIds = listOf("1"),
+            )
+        )
+        resRepository.addReservation(
+            Reservation(
+                reservationId = "resId",
+                reservationState = ReservationState.Waitlisted,
+                lotteryId = lotteryId,
+                userId = "userId"
+            )
+        )
     }
 
     @Test
     fun lotteryExists_butNoReservations_showEmpty() {
+        (reservationRepository as FakeReservationRepository).clear()
         openWaitlist()
+        waitForText("Empty Waitlist")
     }
 
     @Test
     fun lotteryExists_butNoWaitlistedReservations_showEmpty() {
+        (reservationRepository as FakeReservationRepository).clear()
+        (reservationRepository as FakeReservationRepository).addReservation(
+            Reservation(
+                reservationId = "resId",
+                reservationState = ReservationState.Pending,
+                lotteryId = lotteryId,
+                userId = "userId"
+            )
+        )
         openWaitlist()
+        waitForText("Empty Waitlist")
     }
 
     @Test
     fun lotteryExists_hasWaitlist_showList() {
         openWaitlist()
+        waitForText("User ID: userId")
     }
 
     private fun openWaitlist() {
-        // TODO: Need to plan/implement a way to open waitlist screen
+        scenario = ActivityScenario.launch(MainActivity::class.java)
+        waitForText("Crimson Lake")
+        composeRule.onNodeWithText("Crimson Lake").performClick()
+        waitForTag("lottery_card_$lotteryId")
+        composeRule.onNodeWithTag("lottery_card_$lotteryId").performScrollTo().performClick()
+        waitForText("PITCH/LOTTERY/DETAILS")
+        waitForText("View Waitlist")
+        composeRule.onNodeWithText("View Waitlist").performScrollTo().performClick()
+        waitForText("PITCH/LOTTERY/WAITLIST")
+    }
+
+    private fun waitForText(text: String) = composeRule.waitUntil(5_000) {
+        composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
     }
 
     private fun waitForTag(tag: String) = composeRule.waitUntil(5_000) {
@@ -120,15 +167,5 @@ class WaitlistTest {
             .performScrollTo()
             .performClick()
     }
-
-    private fun wait_assertTextExists(text: String) {
-        composeRule.waitUntil(5_000) {
-            composeRule.onAllNodesWithText(text)
-                .fetchSemanticsNodes()
-                .isNotEmpty()
-        }
-        composeRule.onNodeWithText(text).assertExists()
-    }
-
 
 }

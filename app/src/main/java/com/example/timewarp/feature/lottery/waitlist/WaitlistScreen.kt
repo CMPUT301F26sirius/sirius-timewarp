@@ -53,7 +53,7 @@ fun WaitlistScreen(
 
     // User Interface
     NavigationScreen(
-        // screen = screen,
+        screen = screen,
         modifier = modifier,
         navController = navController,
     ) {
