@@ -46,16 +46,14 @@ sealed interface WaitlistState {
 
 /**
  * [WaitlistViewModel] for the [WaitlistScreen].
+ *
+ * @param reservationRepository reservation Repo to pull reservations from
+ * @param observeCurrentUser Gets current user to get owned Lotteries
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class WaitlistViewModel @Inject constructor(
-    private val campsiteRepository: CampsiteRepository,
-    private val ratingRepository: RatingRepository,
     private val reservationRepository: ReservationRepository,
-    private val lotteryRepository: LotteryRepository,
-    private val authRepository: AuthRepository,
-    private val observeUserProfile: ObserveUserProfileUseCase,
     private val observeCurrentUser: ObserveCurrentUserUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow<WaitlistState>(WaitlistState.Loading)
@@ -63,10 +61,6 @@ class WaitlistViewModel @Inject constructor(
 
     // Current launched job
     private var observationJob: Job? = null
-
-    private var lotteryId: String = ""
-    private var loadLottery: Lottery? = null
-    private var userId: String = ""
 
     // Observes the supplied lottery ID. Called by screen when changed.
     fun observe(lotteryId: String) {
@@ -103,6 +97,11 @@ class WaitlistViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Gets Waitlist entries for a given lotteryID
+     *
+     * @param lotteryId ID of lottery to get waitlisted reservations for
+     */
     private suspend fun getWaitlistForLottery(lotteryId: String): List<Reservation> {
         val reservations = reservationRepository.getReservations()
         return reservations?.filter {it.lotteryId == lotteryId && it.reservationState == ReservationState.Waitlisted } ?: emptyList()

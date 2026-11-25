@@ -68,6 +68,12 @@ fun WaitlistScreen(
     }
 }
 
+/**
+ * Display the content for Waitlist Screen
+ *
+ * @param lotteryId ID of the lottery to show waitlist for
+ * @param reservations filtered list of reservations to display
+ */
 @Composable
 fun WaitListContent(
     lotteryId: String,
@@ -87,6 +93,11 @@ fun WaitListContent(
     }
 }
 
+/**
+ * Shows list of all waitlisted reservations
+ *
+ * @param reservations the list of filtered reservations
+ */
 @Composable
 private fun WaitlistList(
     reservations: List<Reservation>,
@@ -117,7 +128,11 @@ private fun WaitlistList(
     }
 }
 
-
+/**
+ * Card for a single entry of a waitlist reservation
+ *
+ * @param reservation the reservation to display
+ */
 @Composable
 private fun WaitlistEntry(
     reservation: Reservation,

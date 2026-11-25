@@ -74,7 +74,7 @@ class WaitlistTest {
     private val today = TimeUnit.MILLISECONDS.toDays((System.currentTimeMillis())).toInt()
 
     /*
-    * This functions logs test owner in, creates one lottery they own
+    * This functions logs test owner in, creates one lottery they own, creates a waitlist entry in that lottery
      */
     @Before
     fun setUp() {
@@ -112,6 +112,7 @@ class WaitlistTest {
             )
         )
     }
+
 
     @Test
     fun lotteryExists_butNoReservations_showEmpty() {
@@ -159,13 +160,6 @@ class WaitlistTest {
 
     private fun waitForTag(tag: String) = composeRule.waitUntil(5_000) {
         composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()
-    }
-
-    private fun wait_clickButtonWithTag(tag: String) {
-        waitForTag(tag)
-        composeRule.onNodeWithTag(tag)
-            .performScrollTo()
-            .performClick()
     }
 
 }
