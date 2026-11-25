@@ -8,7 +8,6 @@ import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Period
 import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.repository.CampsiteRepository
-import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.usecase.ConfirmReservationUseCase
 import com.example.timewarp.domain.usecase.FindBookableDaysUseCase
@@ -16,26 +15,25 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /*
  * State and logic for the Make reservation screen: loads the won reservation, works out
  * which dates can be booked, and confirms with the picked dates (US 01.05.01, US 01.04.01).
- * Outstanding: without a saved lotteryId, the lottery is found by campsite (ambiguous if lotteries overlap);
- * dates aren't re-checked on Confirm, so two winners on the screen at the same time could pick the same nights.
+ * Available dates come from the owner's campsite availability minus nights other people reserved.
+ * Outstanding: dates aren't re-checked on Confirm, so two winners on the screen at the same time could pick the same nights;
+ * Confirm isn't limited to the lottery's booking period yet.
  */
 
 /** What the Make reservation screen shows: loading, the reservation, confirmed, or an error. */
-
 sealed interface MakeReservationState {
     data object Loading : MakeReservationState
 
     /**
      * Everything the Make reservation screen shows.
      *
-     * @param stayWindow days the winner may stay in, or null if no dates are set anywhere.
+     * @param stayWindow the owner's open dates from today on, or null if the owner set none.
      * @param bookableDays days that can be picked.
      * @param checkIn picked check-in day, or null.
      * @param checkOut picked check-out day, or null.
@@ -73,7 +71,6 @@ sealed interface MakeReservationState {
 class MakeReservationViewModel @Inject constructor(
     private val reservationRepository: ReservationRepository,
     private val campsiteRepository: CampsiteRepository,
-    private val lotteryRepository: LotteryRepository,
     private val confirmReservation: ConfirmReservationUseCase,
     private val findBookableDays: FindBookableDaysUseCase
 ) : ViewModel() {
@@ -105,7 +102,7 @@ class MakeReservationViewModel @Inject constructor(
                         ownerAvailability = campsite.availability
                     }
 
-                    stayWindow = findStayWindow(ownerAvailability, findBookingPeriod(reservation))
+                    stayWindow = findStayWindow(ownerAvailability)
 
                     // Work out the free days only when there are dates to show
                     if (stayWindow != null) {
@@ -178,53 +175,22 @@ class MakeReservationViewModel @Inject constructor(
         }
     }
 
-    // Picks the days to show: the owner's open dates, or the lottery's booking period if the owner set none
-    private fun findStayWindow(ownerAvailability: Availability, lotteryPeriod: Period?): Period? {
-        var window: Period? = null
-
+    // The days to show: the owner's open dates, starting no earlier than today
+    private fun findStayWindow(ownerAvailability: Availability): Period? {
         val ownerStart = DayFormatter.fromDateString(ownerAvailability.startDate)
         val ownerEnd = DayFormatter.fromDateString(ownerAvailability.endDate)
-        if (ownerStart != null && ownerEnd != null && ownerEnd >= ownerStart) {
-            window = Period(start = ownerStart, end = ownerEnd)
-        } else if (lotteryPeriod != null) {
-            window = lotteryPeriod
-        }
 
-        // No dates set anywhere
-        if (window == null) {
+        // Owner set no dates, or they don't make sense
+        if (ownerStart == null || ownerEnd == null || ownerEnd < ownerStart) {
             return null
         }
 
         // Past days can't be booked, so start no earlier than today
         val today = DayFormatter.fromMillis(System.currentTimeMillis())
-        if (window.start < today) {
-            return Period(start = today, end = window.end)
+        if (ownerStart < today) {
+            return Period(start = today, end = ownerEnd)
         }
-        return window
-    }
-
-    // Finds the lottery's booking period: by lotteryId if saved, otherwise the lottery that lists this campsite
-    private suspend fun findBookingPeriod(reservation: Reservation): Period? {
-        if (reservation.lotteryId.isNotEmpty()) {
-            val lottery = lotteryRepository.getLottery(reservation.lotteryId)
-            if (lottery != null) {
-                return usablePeriod(lottery.bookingPeriod)
-            }
-        }
-
-        val lotteries = lotteryRepository.observeCampsiteLotteries(reservation.campsiteId).first()
-        if (lotteries.isEmpty()) {
-            return null
-        }
-        return usablePeriod(lotteries[0].bookingPeriod)
-    }
-
-    // A period of 0 to 0 means it was never set
-    private fun usablePeriod(period: Period): Period? {
-        if (period.start <= 0 && period.end <= 0) {
-            return null
-        }
-        return period
+        return Period(start = ownerStart, end = ownerEnd)
     }
 
     // All reservations at this campsite, used to find booked nights
