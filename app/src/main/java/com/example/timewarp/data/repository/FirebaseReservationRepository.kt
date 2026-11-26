@@ -90,7 +90,9 @@ class FirebaseReservationRepository @Inject constructor(
     }
 
     /**
+     * Deletes a reservation from firestore
      *
+     * @param reservationId identifier of the reservation
      */
 
     override suspend fun deleteReservation(reservationId: String) {
