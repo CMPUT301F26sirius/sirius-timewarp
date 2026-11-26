@@ -34,6 +34,7 @@ sealed interface UpdateProfileState {
         val lastName: String,
         val email: String,
         val phoneNumber: String,
+        val profileImageId: String = "",
         val profileImage: Image? = null,
         val isUploadingImage: Boolean = false,
         val imageUploadError: String? = null,
@@ -124,6 +125,7 @@ class UpdateProfileViewModel @Inject constructor(
             lastName = profile.lastName,
             email = profile.email,
             phoneNumber = profile.phoneNumber,
+            profileImageId = profile.imageId,
             profileImage = profileImage
         )
     }
@@ -145,6 +147,7 @@ class UpdateProfileViewModel @Inject constructor(
                     ?: throw IllegalStateException("Unable to upload image.")
                 updateContent {
                     copy(
+                        profileImageId = image.imageId,
                         profileImage = image,
                         isUploadingImage = false,
                         imageUploadError = null
@@ -160,6 +163,12 @@ class UpdateProfileViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun removeProfileImage() {
+        updateContent {
+            copy(profileImageId = "", profileImage = null)
         }
     }
 
@@ -185,7 +194,7 @@ class UpdateProfileViewModel @Inject constructor(
                         lastName = current.lastName.trim(),
                         email = current.email.trim(),
                         phoneNumber = current.phoneNumber.trim(),
-                        imageId = current.profileImage?.imageId ?: profile.imageId
+                        imageId = current.profileImageId
                     )
                 )
                 updateContent { copy(isSaving = false, isSaved = true) }

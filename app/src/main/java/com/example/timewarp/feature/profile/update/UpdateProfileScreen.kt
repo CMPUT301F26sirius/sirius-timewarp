@@ -107,6 +107,7 @@ fun UpdateProfileScreen(
                     onEmailChange = viewModel::onEmailChange,
                     onPhoneNumberChange = viewModel::onPhoneNumberChange,
                     onProfileImageSelected = viewModel::onProfileImageSelected,
+                    onProfileImageRemoved = viewModel::removeProfileImage,
                     onSave = viewModel::save,
                     onCancel = { navController.popBackStack() }
                 )
@@ -125,6 +126,7 @@ fun UpdateProfileScreen(
  * @param onEmailChange Called when new text
  * @param onPhoneNumberChange Called when new text
  * @param onProfileImageSelected Called when a profile image is selected
+ * @param onProfileImageRemoved Called when the current profile image is removed
  * @param onSave Called when update is pressed
  * @param onCancel Called when cancel is pressed
  */
@@ -137,12 +139,16 @@ internal fun UpdateProfileForm(
     onPhoneNumberChange: (String) -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit,
-    onProfileImageSelected: (Uri) -> Unit
+    onProfileImageSelected: (Uri) -> Unit,
+    onProfileImageRemoved: () -> Unit
 ){
 
     // Not part of Profile yet, so kept on screen only
     val interestOptions = listOf("Camping", "Browsing", "Hiking", "Other")
     var selectedInterests by remember { mutableStateOf(setOf<String>())}
+    val profileImage = state.profileImage?.takeIf {
+        it.imageId.isNotBlank() && it.url.isNotBlank()
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
@@ -219,7 +225,7 @@ internal fun UpdateProfileForm(
                             .background(MaterialTheme.colorScheme.surface)
                             .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                     ) {
-                        state.profileImage?.let { image ->
+                        profileImage?.let { image ->
                             RemoteImage(
                                 image = image,
                                 modifier = Modifier
@@ -245,6 +251,14 @@ internal fun UpdateProfileForm(
                     }
                 }
             }
+        }
+        if (profileImage != null) {
+            BaseButton(
+                type = BaseButtonType.Outlined,
+                text = "Remove photo",
+                onClick = onProfileImageRemoved,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
         if (state.isUploadingImage) {
             Text("Uploading image...", style = MaterialTheme.typography.bodySmall)
@@ -353,6 +367,7 @@ fun UpdateProfilePreview() {
             onEmailChange = {},
             onPhoneNumberChange = {},
             onProfileImageSelected = {},
+            onProfileImageRemoved = {},
             onSave = {},
             onCancel = {}
         )
