@@ -139,7 +139,7 @@ fun AppNavHost() {
         }
         deepComposable(Screen.EditCampsite.route) { campsiteId ->
             EditCampsiteScreen(
-                screen = Screen.CampsiteDetails,
+                screen = Screen.EditCampsite,
                 campsiteId = campsiteId,
                 navController = navController
             )
