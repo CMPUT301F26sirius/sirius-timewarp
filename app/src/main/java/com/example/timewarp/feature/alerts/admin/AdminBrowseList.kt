@@ -1,6 +1,5 @@
 package com.example.timewarp.feature.alerts.admin
 
-import android.text.TextUtils.isEmpty
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +13,14 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text
 
+/**
+ * @param isLoading shows if the data is being loaded. Shows a progress inidcator in center
+ * @param error error message when loading fails
+ * @param emptyText when there is no items in the list to display it shows a message
+ * @param listTag test tag for UI tests
+ * @param isEmpty whether the dataset has any items to show or no
+ * @param modifier Modifier applied to the Box
+ */
 @Composable
 fun AdminBrowseList(
     isLoading: Boolean,

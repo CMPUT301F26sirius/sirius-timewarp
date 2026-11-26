@@ -90,4 +90,11 @@ class FakeReservationRepository @Inject constructor() : ReservationRepository {
     fun addReservation(reservation: Reservation) {
         reservationsState.value = reservationsState.value + (reservation.reservationId to reservation)
     }
+
+    /**
+     * @param reservationId the reservation to overwrite.
+     */
+    override suspend fun cancelReservation(reservationId: String) {
+        updateReservationState(reservationId, ReservationState.Canceled)
+    }
 }

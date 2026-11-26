@@ -51,4 +51,11 @@ class MockReservationRepository @Inject constructor() : ReservationRepository {
             }
         }
     }
+
+    /**
+     * @param reservationId the reservation to overwrite.
+     */
+    override suspend fun cancelReservation(reservationId: String) {
+        updateReservationState(reservationId, ReservationState.Canceled)
+    }
 }

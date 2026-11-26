@@ -23,10 +23,22 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+/**
+ * This interface shows the UI state for the alerts screen
+ */
 sealed interface AlertsState {
     data object Idle : AlertsState
 }
 
+/**
+ * This is the viewmodel for the alerts feature that shows the screen state and checks if the
+ * current user is an admin
+ *
+ * @property notificationRepository for notification data
+ * @property messageRepository for message data
+ * @property authRepository currently signed-in user ID
+ * @property userRepository used to observe the role change for user profile
+ */
 @HiltViewModel
 class AlertsViewModel @Inject constructor(
     private val notificationRepository: NotificationRepository,

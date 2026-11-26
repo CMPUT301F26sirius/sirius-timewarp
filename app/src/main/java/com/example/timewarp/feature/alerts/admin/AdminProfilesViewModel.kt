@@ -17,6 +17,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * @param userId
+ * @param name
+ * @param email
+ * @param userType
+ * @param profile
+ */
 data class AdminProfile(
     val userId: String,
     val name: String,
@@ -25,6 +32,13 @@ data class AdminProfile(
     val profile: Profile?
 )
 
+/**
+ * @param items list of users and profile entries in the admin list
+ * @param isLoading whether the user profile si being loaded or no
+ * @param error shows error message if lading or deleting profile fails
+ * @param isAdmin checks if the current user is admin or no
+ * @param currentUserId prevents self deletion of the profile
+ */
 data class AdminProfilesState(
     val items: List<AdminProfile> = emptyList(),
     val isLoading: Boolean = true,
@@ -33,7 +47,14 @@ data class AdminProfilesState(
     val currentUserId: String? = null
 )
 
-// This ViewModel will load every user profile for the admin Profiles tab
+/**
+ * This ViewModel will load every user profile for the admin Profiles tab
+ *
+ * @property profileRepository used to get the user profile information
+ * @property userRepository used to get the user accounts
+ * @property observeCurrentUserUseCase checks current authenticated user
+ * @property deleteUserProfileUseCase profile deletion
+ */
 @HiltViewModel
 class AdminProfilesViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
@@ -50,7 +71,9 @@ class AdminProfilesViewModel @Inject constructor(
         loadProfiles()
     }
 
-    // This function will load all the users and their profiles
+    /**
+     * This function will load all the users and their profiles
+     */
     fun loadProfiles() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -94,6 +117,10 @@ class AdminProfilesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * This function deletes the target user profile. The admin cannot delete their
+     * own profile from the list
+     */
     fun onDeleteProfile(userId: String){
         val current = state.value
         if(!current.isAdmin || userId == current.currentUserId)

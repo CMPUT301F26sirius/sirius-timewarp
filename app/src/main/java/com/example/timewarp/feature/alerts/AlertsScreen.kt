@@ -30,6 +30,13 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.theme.TimewarpTheme
 
+/**
+ * This function displays an "Admin" tab for the user whose role is admin under the alerts button
+ *
+ * @param modifier Modifier applied to the Navigation Screen
+ * @param screen navigation destination for selection state
+ * @param navController used for screen level navigation actions
+ */
 @Composable
 fun AlertsScreen(
     modifier: Modifier = Modifier,

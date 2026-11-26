@@ -23,6 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
+/**
+ * This function displays a scrollable list of profiles that are registered with the device.
+ * The admin can see all those profiles in Alerts under Admin -> Profile tab.
+ *
+ * @param viewModel ViewModel provides a list of profile state and delete action
+ */
+
 @Composable
 fun AdminProfileList(
     viewModel: AdminProfilesViewModel = hiltViewModel()
@@ -69,6 +76,7 @@ fun AdminProfileList(
         }
     }
 
+    // Selected profiles
     selected?.let {
         item ->
         AlertDialog(
@@ -124,13 +132,14 @@ fun AdminProfileList(
         )
     }
 
+    // Deleting a profile permanently
     toDelete?.let {
         item ->
         AlertDialog(
             onDismissRequest = {toDelete = null},
             title = {Text("Delete this account?")},
             text = {
-                Text("Past reservations stay. Active reservations are cancelled")
+                Text("Active reservations will be cancelled")
             },
             confirmButton = {
                 TextButton(

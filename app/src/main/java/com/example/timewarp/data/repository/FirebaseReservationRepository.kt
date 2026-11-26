@@ -95,4 +95,11 @@ class FirebaseReservationRepository @Inject constructor(
             .set(campsite.copy(reservationId = reservationId))
             .await()
     }
+
+    /**
+     * @param reservationId the reservation to overwrite.
+     */
+    override suspend fun cancelReservation(reservationId: String) {
+        updateReservationState(reservationId, ReservationState.Canceled)
+    }
 }
