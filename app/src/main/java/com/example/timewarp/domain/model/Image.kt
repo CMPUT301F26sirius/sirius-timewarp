@@ -16,4 +16,5 @@ data class Image (
     val uploadingUserId: String = "",
     val imageId: String = "",
     val url: String = "",
+    val storagePath: String = "",
 )
