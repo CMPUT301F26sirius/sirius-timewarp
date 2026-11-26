@@ -3,6 +3,7 @@ package com.example.timewarp.feature.campsite.create
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,9 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ElevatedCard
@@ -36,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -56,6 +61,8 @@ import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.BaseButtonType
 import com.example.timewarp.ui.component.BaseInput
 import com.example.timewarp.ui.component.BaseInputType
+import com.example.timewarp.ui.component.ImagePickerButton
+import com.example.timewarp.ui.component.RemoteImage
 import com.example.timewarp.ui.theme.ComponentStyles
 import com.example.timewarp.ui.theme.TimewarpTheme
 
@@ -102,6 +109,8 @@ fun CreateCampsiteScreen(
         CreateCampsiteForm(
             state = state,
             onChange = viewModel::updateDraft,
+            onImageSelected = viewModel::onCampsiteImageSelected,
+            onImageRemoved = viewModel::removeCampsiteImage,
             onRegister = viewModel::register,
             onCancel = { navController.popBackStack() }
         )
@@ -122,6 +131,8 @@ fun CreateCampsiteScreen(
  *
  * @param state Current form values, validation results, and saving status.
  * @param onChange Called when a form value changes.
+ * @param onImageSelected Called when a campsite photo is selected.
+ * @param onImageRemoved Called when the selected campsite photo is removed.
  * @param onRegister Called when the registration button is pressed.
  * @param onCancel Called when cancellation is requested.
  */
@@ -129,8 +140,12 @@ fun CreateCampsiteScreen(
 internal fun CreateCampsiteForm(
     state: CreateCampsiteState,
     onChange: (CreateCampsiteState) -> Unit,
+    onImageSelected: (Uri) -> Unit,
+    onImageRemoved: () -> Unit,
     onRegister: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    isEditing: Boolean = false,
+
 ) {
     val errors = if (state.showErrors) state.fieldErrors else emptyMap()
     val context = LocalContext.current
@@ -141,12 +156,63 @@ internal fun CreateCampsiteForm(
     ) {
         // 1. Default campsite image
         SectionTitle("Set the scene")
-        Image(
-            painter = painterResource(R.drawable.maligne_lake),
-            contentDescription = "Campsite photo",
-            modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
-            contentScale = ContentScale.Crop
-        )
+        val campsiteImage = state.campsiteImage?.takeIf {
+            it.imageId.isNotBlank() && it.url.isNotBlank()
+        }
+        ImagePickerButton(
+            onImageSelected = onImageSelected,
+            modifier = Modifier.fillMaxWidth().testTag("campsiteImagePicker")
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)
+            ) {
+                if (campsiteImage != null) {
+                    RemoteImage(
+                        image = campsiteImage,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .testTag("campsiteUploadedImage")
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(R.drawable.maligne_lake),
+                        contentDescription = "Campsite photo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(12.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Choose campsite photo",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
+        if (campsiteImage != null) {
+            BaseButton(
+                type = BaseButtonType.Outlined,
+                text = "Remove photo",
+                onClick = onImageRemoved,
+                enabled = !state.isSaving && !state.isUploadingImage,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+        if (state.isUploadingImage) {
+            Text("Uploading campsite photo...", style = MaterialTheme.typography.bodySmall)
+        }
+        state.imageUploadError?.let {
+            Text(it, color = MaterialTheme.colorScheme.error)
+        }
         // 2. Name, location, description, and guest limits
         SectionTitle("About your place")
         RegistrationField("Campsite name *", "name", state.name, { value ->
@@ -306,13 +372,22 @@ internal fun CreateCampsiteForm(
         Text("* Required fields", style = MaterialTheme.typography.bodySmall)
         state.saveError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         BaseButton(
-            text = if (state.isSaving) "Registering…" else "Register campsite",
+
+
+            text = when {
+                isEditing && state.isSaving -> "Saving..."
+                isEditing -> "Save changes"
+                state.isSaving -> "Registering..."
+                else -> "Register campsite"
+            },
             onClick = onRegister,
-            enabled = !state.isSaving && state.savedCampsiteId == null,
+            enabled = !state.isSaving && !state.isUploadingImage &&
+                state.savedCampsiteId == null,
             modifier = Modifier.fillMaxWidth().testTag("registerCampsiteButton")
         )
         BaseButton(
-            text = "Cancel registration",
+            text = if (isEditing) "Cancel" else "Cancel registration",
+
             type = BaseButtonType.Outlined,
             onClick = onCancel,
             enabled = !state.isSaving,

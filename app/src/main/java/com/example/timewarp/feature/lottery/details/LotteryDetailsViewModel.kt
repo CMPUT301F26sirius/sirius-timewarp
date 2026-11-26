@@ -155,9 +155,9 @@ class LotteryDetailsViewModel @Inject constructor(
         val lottery = lotteryRepository.getLottery(lotteryId)
             ?: return LotteryDetailsState.Error("Lottery not found")
 
-        // Every reservation at one of this lottery's campsites
+        // Reservations belong to a lottery, not to all lotteries using its campsites.
         val lotteryReservations = reservationRepository.getReservations().orEmpty()
-            .filter { it.campsiteId in lottery.campsiteIds }
+            .filter { it.lotteryId == lotteryId }
 
         // The user's own entry, if they have one that is still active
         var myReservation: Reservation? = null
@@ -208,21 +208,21 @@ class LotteryDetailsViewModel @Inject constructor(
         )
     }
 
-    /**
-     * Responsible for joining the lottery or its waitlist, creates a Waitlisted reservation for
-     * the user at the lottery's first campsite.
-     */
+    /** Creates a Waitlisted reservation linked to this lottery. */
     fun join() {
+        val current = _state.value as? LotteryDetailsState.Content ?: return
         val lottery = loadedLottery ?: return
-        if (lottery.campsiteIds.isEmpty()) return
+        if (current.action !is LotteryAction.JoinLottery &&
+            current.action !is LotteryAction.JoinWaitlist
+        ) return
 
         runAction {
             val reservation = Reservation(
                 // Random unique ID
                 reservationId = UUID.randomUUID().toString(),
                 reservationState = ReservationState.Waitlisted,
+                lotteryId = lottery.lotteryId,
                 timestamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toInt(),
-                campsiteId = lottery.campsiteIds[0],
                 userId = userId,
             )
             reservationRepository.createReservation(reservation)

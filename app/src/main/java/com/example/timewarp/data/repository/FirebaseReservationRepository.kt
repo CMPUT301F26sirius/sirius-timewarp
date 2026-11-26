@@ -82,10 +82,17 @@ class FirebaseReservationRepository @Inject constructor(
             .await()
     }
 
+
     /**
-     * NEEDS_DOCUMENTATION
+     * Replaces the stored reservation with [reservationId] with new data.
+     *
+     * @param reservationId the reservation to overwrite.
+     * @param campsite the new reservation data (named campsite in the interface).
      */
     override suspend fun editReservation(reservationId: String, campsite: Reservation) {
-        TODO("Not yet implemented")
+        firestore.collection("reservation")
+            .document(reservationId)
+            .set(campsite.copy(reservationId = reservationId))
+            .await()
     }
 }

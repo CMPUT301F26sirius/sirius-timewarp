@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.startup
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.User
@@ -59,6 +60,7 @@ class StartupViewModel @Inject constructor(
                     _state.value = StartupState.Registration
                     return@launch
                 }
+                Log.d("Auth", "userId ${userId}")
 
                 val user = userRepository.getUser(userId)
 
