@@ -166,6 +166,7 @@ class LotteryDetailsTest {
             Reservation(
                 reservationId = id,
                 reservationState = ReservationState.Waitlisted,
+                lotteryId = LOTTERY_ID,
                 campsiteId = CAMPSITE_ID,
                 userId = userId
             )
@@ -199,6 +200,9 @@ class LotteryDetailsTest {
         composeRule.onNodeWithTag("lottery_join").performClick()
         waitForTag("lottery_leave")
         composeRule.onNodeWithTag("lottery_leave").assertIsDisplayed()
+        val reservation = runBlocking { reservationRepository.getReservations()?.singleOrNull() }
+        assertEquals(LOTTERY_ID, reservation?.lotteryId)
+        assertEquals("", reservation?.campsiteId)
         scenario.close()
     }
 
