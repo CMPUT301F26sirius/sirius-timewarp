@@ -51,4 +51,14 @@ class MockReservationRepository @Inject constructor() : ReservationRepository {
             }
         }
     }
+
+    /**
+     * Removes reservation
+     *
+     * @param reservationId identifier of the reservation
+     */
+
+    override suspend fun deleteReservation(reservationId: String) {
+        reservations.removeAll { it.reservationId == reservationId }
+    }
 }

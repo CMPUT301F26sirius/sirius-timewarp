@@ -1,8 +1,13 @@
 package com.example.timewarp.feature.reservation.make
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -10,11 +15,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SelectableDates
@@ -27,7 +37,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,7 +52,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.timewarp.core.util.DayFormatter
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Location
+import com.example.timewarp.domain.model.Occupancy
 import com.example.timewarp.domain.model.Period
+import com.example.timewarp.domain.model.Pricing
 import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.usecase.FindBookableDaysUseCase
@@ -53,12 +67,12 @@ import com.example.timewarp.ui.theme.PitchMutedText
 import com.example.timewarp.ui.theme.TimewarpTheme
 
 /*
-* Make reservation screen for lottery winners: pick dates, then Confirm (US 01.05.01, US 01.04.01).
+* Make reservation screen for lottery winners: choose a campsite and dates, then Confirm (US 01.05.01, US 01.04.01).
 * Days that can't be booked are greyed out in the calendar and can't be picked.
 */
 
 /**
- * Screen where a lottery winner picks dates and confirms their reservation.
+ * Screen where a lottery winner chooses a campsite and dates, and confirms their reservation.
  * After confirming, opens the Reservation confirmed screen.
  *
  * @param reservationId the won reservation to confirm.
@@ -99,7 +113,8 @@ fun MakeReservationScreen(
         MakeReservationContent(
             state = state,
             onConfirm = { viewModel.confirm(reservationId) },
-            onDatesPicked = { checkIn, checkOut -> viewModel.selectDates(checkIn, checkOut) }
+            onDatesPicked = { checkIn, checkOut -> viewModel.selectDates(checkIn, checkOut) },
+            onCampsiteChosen = { campsiteId -> viewModel.selectCampsite(campsiteId) }
         )
     }
 }
@@ -110,12 +125,14 @@ fun MakeReservationScreen(
  * @param state what to show.
  * @param onConfirm called when the user taps Confirm.
  * @param onDatesPicked called with the check-in and check-out days picked in the calendar.
+ * @param onCampsiteChosen called with the id of the campsite picked from the menu.
  */
 @Composable
 fun MakeReservationContent(
     state: MakeReservationState,
     onConfirm: () -> Unit,
-    onDatesPicked: (Int, Int) -> Unit
+    onDatesPicked: (Int, Int) -> Unit,
+    onCampsiteChosen: (String) -> Unit
 ) {
     // Whether the calendar dialog is open
     var showPicker by remember { mutableStateOf(false) }
@@ -150,11 +167,28 @@ fun MakeReservationContent(
                         fontWeight = FontWeight.Bold,
                         color = PitchForest
                     )
-                    Text(text = campsiteName, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
-                    Text(text = address, color = PitchMutedText)
+
+                    if (state.canChooseCampsite) {
+                        // Several campsites: the chosen one shows in a menu field, like a title
+                        CampsiteDropdown(state = state, onCampsiteChosen = onCampsiteChosen)
+                    } else {
+                        // One campsite: show its name and address like before
+                        Text(text = campsiteName, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
+                        Text(text = address, color = PitchMutedText)
+                    }
 
                     DetailRow(label = "Reservation #", value = state.reservation.reservationId)
                     DetailRow(label = "Status", value = state.reservation.reservationState.name)
+
+                    // Capacity and nightly price of the chosen campsite
+                    if (state.campsite != null) {
+                        val pricing = state.campsite.pricing
+                        DetailRow(label = "Max guests", value = state.campsite.occupancy.maxGuests.toString())
+                        DetailRow(
+                            label = "Price per night",
+                            value = formatPrice(pricing.costPerNight, pricing.currencyCode)
+                        )
+                    }
                 }
 
                 // Bottom: dates and Confirm stay at the bottom of the screen
@@ -172,6 +206,9 @@ fun MakeReservationContent(
                         // Keep Confirm off until valid dates are picked
                         var confirmEnabled = true
                         if (state.needsDates && !state.datesAreValid) {
+                            confirmEnabled = false
+                        }
+                        if (state.campsite == null) {
                             confirmEnabled = false
                         }
 
@@ -208,7 +245,75 @@ fun MakeReservationContent(
     }
 }
 
-// Picked dates (or a hint), an error if they don't work, and the Choose dates button
+// The chosen campsite in a box like a form field; tapping it opens a menu of the lottery's campsites
+@Composable
+private fun CampsiteDropdown(state: MakeReservationState.Content, onCampsiteChosen: (String) -> Unit) {
+    // Whether the menu is open
+    var expanded by remember { mutableStateOf(false) }
+
+    // Name and address shown in the box
+    var chosenName = "Choose a campsite"
+    var chosenAddress = ""
+    if (state.campsite != null) {
+        chosenName = state.campsite.name
+        chosenAddress = state.campsite.location.address
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(text = "Campsite", style = MaterialTheme.typography.labelMedium)
+
+        // Box keeps the menu anchored under the field
+        Box {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(ComponentStyles.InputShape)
+                    .background(ComponentStyles.InputBackgroundColor)
+                    .border(ComponentStyles.InputBorderWidth, ComponentStyles.InputBorderColor, ComponentStyles.InputShape)
+                    .clickable { expanded = true }
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .testTag("campsite_dropdown")
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = chosenName, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = chosenAddress, color = PitchMutedText)
+                }
+                // Arrow hints that tapping opens a list
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowDown,
+                    contentDescription = "Show campsites",
+                    tint = PitchForest
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(ComponentStyles.InputBackgroundColor)
+            ) {
+                for (campsite in state.campsites) {
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(text = campsite.name, fontWeight = FontWeight.SemiBold)
+                                Text(text = campsite.location.address, color = PitchMutedText)
+                            }
+                        },
+                        onClick = {
+                            // Close the menu after a pick
+                            expanded = false
+                            onCampsiteChosen(campsite.campsiteId)
+                        },
+                        modifier = Modifier.testTag("campsite_option_${campsite.campsiteId}")
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Picked dates (or a hint), the total cost, an error if they don't work, and the Choose dates button
 @Composable
 private fun DatesSection(state: MakeReservationState.Content, onChooseDates: () -> Unit) {
     Text(text = "Your dates", style = MaterialTheme.typography.labelMedium)
@@ -227,6 +332,22 @@ private fun DatesSection(state: MakeReservationState.Content, onChooseDates: () 
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier.testTag("chosen_dates")
     )
+
+    // Total once valid dates are picked, e.g. "Total: 90.00 CAD for 2 nights"
+    val totalCost = state.totalCost
+    if (totalCost != null && state.campsite != null && checkIn != null && checkOut != null) {
+        val nights = checkOut - checkIn
+        var nightsText = "$nights nights"
+        if (nights == 1) {
+            nightsText = "1 night"
+        }
+        Text(
+            text = "Total: ${formatPrice(totalCost, state.campsite.pricing.currencyCode)} for $nightsText",
+            color = PitchForest,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.testTag("total_cost")
+        )
+    }
 
     // Explain why Confirm is still off
     if (checkIn != null && checkOut != null && !state.datesAreValid) {
@@ -332,11 +453,31 @@ private fun DetailRow(label: String, value: String) {
     }
 }
 
+// Formats an amount with its currency, e.g. "45.00 CAD"
+private fun formatPrice(amount: Double, currencyCode: String): String {
+    return "%.2f %s".format(amount, currencyCode)
+}
+
 @Preview(showBackground = true, showSystemUi = true, device = "id:pixel_7")
 @Composable
 private fun MakeReservationContentPreview() {
     val reservation = Reservation(reservationId = "PT-271204", reservationState = ReservationState.Pending)
-    val campsite = Campsite(name = "Pocahontas", location = Location(address = "Jasper, Alberta"))
+
+    // A lottery with two campsites, the first one chosen
+    val campsite = Campsite(
+        campsiteId = "camp-1",
+        name = "Pocahontas",
+        location = Location(address = "Jasper, Alberta"),
+        occupancy = Occupancy(maxGuests = 6),
+        pricing = Pricing(costPerNight = 45.0)
+    )
+    val otherCampsite = Campsite(
+        campsiteId = "camp-2",
+        name = "Wapiti",
+        location = Location(address = "Jasper, Alberta"),
+        occupancy = Occupancy(maxGuests = 4),
+        pricing = Pricing(costPerNight = 38.0)
+    )
 
     // Christmas week 2027, with Christmas Eve to Boxing Day picked
     val dec22 = 21174
@@ -344,6 +485,7 @@ private fun MakeReservationContentPreview() {
         reservation = reservation,
         campsite = campsite,
         canConfirm = true,
+        campsites = listOf(campsite, otherCampsite),
         stayWindow = Period(start = dec22, end = dec22 + 6),
         bookableDays = (dec22..dec22 + 6).toList(),
         checkIn = dec22 + 2,
@@ -361,7 +503,8 @@ private fun MakeReservationContentPreview() {
             MakeReservationContent(
                 state = state,
                 onConfirm = {},
-                onDatesPicked = { checkIn, checkOut -> }
+                onDatesPicked = { checkIn, checkOut -> },
+                onCampsiteChosen = { campsiteId -> }
             )
         }
     }
