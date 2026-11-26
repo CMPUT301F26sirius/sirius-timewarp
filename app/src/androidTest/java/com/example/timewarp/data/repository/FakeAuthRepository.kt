@@ -47,6 +47,14 @@ class FakeAuthRepository @Inject constructor() : AuthRepository {
     }
 
     /**
+     * Deletes the fake signed-in user
+     */
+    override suspend fun deleteAccount() {
+        if (currentUserIdState.value == null) error("No user is signed in.")
+        currentUserIdState.value = null
+    }
+
+    /**
      * Sets the authenticated user used by the next app launch.
      *
      * @param userId the user ID to authenticate, or `null` to sign out.

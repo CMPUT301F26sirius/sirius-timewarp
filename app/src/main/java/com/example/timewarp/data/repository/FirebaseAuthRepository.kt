@@ -79,4 +79,17 @@ class FirebaseAuthRepository @Inject constructor(
             // Firebase should always return a user after a successful sign-in.
             ?: error("Anonymous sign-in did not return a user.")
     }
+
+    /**
+     * Deletes the current user Firebase
+     *
+     * @throws IllegalStateException if no user is signed in
+     */
+
+    override suspend fun deleteAccount() {
+        val user = auth.currentUser ?: error("No user is currently signed in.")
+        user.delete().await()
+        auth.signOut()
+    }
+
 }
