@@ -90,7 +90,10 @@ class AccountViewModel @Inject constructor(
                             reservation.reservationState == ReservationState.Reserved
 
                     if (reservation.userId == user.userId && isActive){
-                        reservationRepository.deleteReservation(reservation.reservationId)
+                        reservationRepository.updateReservationState(
+                            reservation.reservationId,
+                            ReservationState.Canceled,
+                        )
                     }
                 }
 
