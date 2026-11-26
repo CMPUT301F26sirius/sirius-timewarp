@@ -2,10 +2,12 @@ package com.example.timewarp.feature.reservations
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.timewarp.core.util.DayFormatter
 import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.CampsiteRepository
+import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,7 +55,7 @@ sealed class ReservationTab(
         states = setOf(ReservationState.Reserved),
     )
 
-    // Lotteries that the user is either in or won, but does not hold a current reservation
+    // Lottery entries the user has won but has not booked yet
     data object Booking : ReservationTab(
         label = "Pending",
         heading = "There is still a chance!",
@@ -70,7 +72,7 @@ sealed class ReservationTab(
         emptyHeading = "No past trips yet!",
         cardSubtitle = "Hope you had a great trip",
         datePrefix = "",
-        states = emptySet(),
+        states = setOf(ReservationState.Reserved),
     )
 
     // Any reservations that were canceled either by the user or the owner
@@ -100,6 +102,8 @@ data class ReservationItem(
     val title: String,
     val dateText: String,
     val canMakeReservation: Boolean = false,
+    val hasEnded: Boolean = false,
+    val isInBookingPeriod: Boolean = false,
 )
 
 // interface for everything reservation screen is allowed to show
@@ -119,7 +123,17 @@ sealed interface ReservationsState {
     ) : ReservationsState {
         // Only the reservations belonging to the current tab (selectedTab)
         val visibleItems: List<ReservationItem>
-            get() = items.filter { it.state in selectedTab.states }
+            get() = items.filter { item ->
+                when (selectedTab) {
+                    ReservationTab.Booked ->
+                        item.state == ReservationState.Reserved && !item.hasEnded
+                    ReservationTab.Past ->
+                        item.state == ReservationState.Reserved && item.hasEnded
+                    ReservationTab.Booking ->
+                        item.state in selectedTab.states && item.isInBookingPeriod
+                    else -> item.state in selectedTab.states
+                }
+            }
     }
 
     // Could not load, send error
@@ -137,6 +151,7 @@ sealed interface ReservationsState {
 @HiltViewModel
 class ReservationsViewModel @Inject constructor(
     private val campsiteRepository: CampsiteRepository,
+    private val lotteryRepository: LotteryRepository,
     private val reservationRepository: ReservationRepository,
     private val observeCurrentUser: ObserveCurrentUserUseCase
 ) : ViewModel() {
@@ -205,6 +220,8 @@ class ReservationsViewModel @Inject constructor(
                 val selectedTab = ReservationTab.Booked
 
                 val allReservations = reservationRepository.getReservations().orEmpty()
+                val lotteriesById = lotteryRepository.getLotteries().orEmpty()
+                    .associateBy { it.lotteryId }
 
                 // Each mode decides which reservations to show
                 val reservations = when (user.userType) {
@@ -215,11 +232,18 @@ class ReservationsViewModel @Inject constructor(
 
                 }.sortedByDescending { it.timestamp }
 
+                val today = DayFormatter.fromMillis(System.currentTimeMillis())
                 val items = reservations.map { reservation ->
-                    reservation.toItem(campsiteName = campsiteRepository.getCampsite(reservation.campsiteId)?.name,
+                    val bookingPeriod = lotteriesById[reservation.lotteryId]?.bookingPeriod
+                    val isInBookingPeriod = bookingPeriod != null &&
+                            today >= bookingPeriod.start && today <= bookingPeriod.end
+                    reservation.toItem(
+                        campsiteName = campsiteRepository.getCampsite(reservation.campsiteId)?.name,
                         canMakeReservation = reservation.userId == user.userId &&
                                 reservation.reservationState == ReservationState.Pending,
-                        )
+                        today = today,
+                        isInBookingPeriod = isInBookingPeriod,
+                    )
                 }
 
                 _state.value = ReservationsState.Content(selectedTab = selectedTab, items = items)
@@ -235,13 +259,23 @@ class ReservationsViewModel @Inject constructor(
      * @param campsiteName Name of campsite
      * @param canMakeReservation boolean for if we can make a reservation
      */
-    private fun Reservation.toItem(campsiteName: String?, canMakeReservation: Boolean): ReservationItem {
+    private fun Reservation.toItem(
+        campsiteName: String?,
+        canMakeReservation: Boolean,
+        today: Int,
+        isInBookingPeriod: Boolean,
+    ): ReservationItem {
+        val endDay = DayFormatter.fromDateString(datesBooked.endDate)
+        // The stored end date has day precision, so it remains current through that UTC day.
+        val hasEnded = endDay != null && endDay < today
         return ReservationItem(
             reservationId = reservationId,
             state = reservationState,
             title = campsiteName?.takeIf { it.isNotBlank() }?: "Campsite",
             dateText = daysAgoText(timestamp),
             canMakeReservation = canMakeReservation,
+            hasEnded = hasEnded,
+            isInBookingPeriod = isInBookingPeriod,
         )
     }
 
