@@ -49,7 +49,8 @@ sealed interface MakeReservationState {
         val stayWindow: Period? = null,
         val bookableDays: List<Int> = emptyList(),
         val checkIn: Int? = null,
-        val checkOut: Int? = null
+        val checkOut: Int? = null,
+        val rulesAcknowledged: Boolean = false
     ) : MakeReservationState {
 
         /** True when the lottery has more than one campsite, so the winner picks one. */
@@ -69,6 +70,13 @@ sealed interface MakeReservationState {
                 return FindBookableDaysUseCase.isRangeFree(checkIn, checkOut, bookableDays)
             }
 
+
+        val canSubmit: Boolean
+            get() = canConfirm &&
+                    campsite != null &&
+                    rulesAcknowledged &&
+                    (!needsDates || datesAreValid)
+
         /** Price of the picked nights at the chosen campsite, or null until valid dates are picked. */
         val totalCost: Double?
             get() {
@@ -86,6 +94,7 @@ sealed interface MakeReservationState {
                 val nights = end - start
                 return nights * chosen.pricing.costPerNight
             }
+
     }
 
     data class Confirmed(val reservationId: String) : MakeReservationState
@@ -165,30 +174,21 @@ class MakeReservationViewModel @Inject constructor(
         }
     }
 
-    /** Confirms the reservation with [reservationId], saving the chosen campsite and dates, and notifies the entrant. */
+
+    fun setRulesAcknowledged(acknowledged: Boolean) {
+        val current = _state.value as? MakeReservationState.Content ?: return
+        _state.value = current.copy(rulesAcknowledged = acknowledged)
+    }
+
+    /** Confirms the reservation with [reservationId], saving the picked dates, and notifies the entrant. */
     fun confirm(reservationId: String) {
-        var campsite: Campsite? = null
-        var checkIn: Int? = null
-        var checkOut: Int? = null
+        val current = _state.value as? MakeReservationState.Content ?: return
+        if (!current.canSubmit || current.reservation.reservationId != reservationId) return
 
-        val current = _state.value
-        if (current is MakeReservationState.Content) {
-            // Don't confirm without a campsite; the button should already be off
-            if (current.campsite == null) {
-                return
-            }
-            // Saved on the reservation and used in the notification text
-            campsite = current.campsite
+        val campsite = current.campsite
+        val checkIn = current.checkIn.takeIf { current.needsDates }
+        val checkOut = current.checkOut.takeIf { current.needsDates }
 
-            if (current.needsDates) {
-                // Don't confirm without valid dates; the button should already be off
-                if (!current.datesAreValid) {
-                    return
-                }
-                checkIn = current.checkIn
-                checkOut = current.checkOut
-            }
-        }
 
         viewModelScope.launch {
             try {
