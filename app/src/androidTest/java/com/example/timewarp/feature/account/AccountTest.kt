@@ -30,8 +30,6 @@ import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -180,10 +178,22 @@ class AccountTest {
 
         deleteAccount()
         runBlocking {
-            assertNull(reservationRepository.getReservation("waitlisted"))
-            assertNull(reservationRepository.getReservation("pending"))
-            assertNull(reservationRepository.getReservation("reserved"))
-            assertNotNull(reservationRepository.getReservation("canceled"))
+            assertEquals(
+                ReservationState.Canceled,
+                reservationRepository.getReservation("waitlisted")?.reservationState,
+            )
+            assertEquals(
+                ReservationState.Canceled,
+                reservationRepository.getReservation("pending")?.reservationState,
+            )
+            assertEquals(
+                ReservationState.Canceled,
+                reservationRepository.getReservation("reserved")?.reservationState,
+            )
+            assertEquals(
+                ReservationState.Canceled,
+                reservationRepository.getReservation("canceled")?.reservationState,
+            )
         }
 
         scenario.close()
