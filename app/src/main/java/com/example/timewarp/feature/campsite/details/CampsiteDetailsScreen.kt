@@ -109,15 +109,13 @@ fun CampsiteDetailsScreen(
 
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
+                            .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
 
                         val campsiteImageModifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(16f / 9f)
-                            .testTag("details_campsite_image")
                         if (campsiteImage != null) {
                             RemoteImage(
                                 image = campsiteImage,
@@ -129,7 +127,9 @@ fun CampsiteDetailsScreen(
                             Image(
                                 painter = painterResource(R.drawable.maligne_lake),
                                 contentDescription = "Campsite photo",
-                                modifier = campsiteImageModifier,
+                                modifier = campsiteImageModifier.testTag(
+                                    "details_campsite_image"
+                                ),
                                 contentScale = ContentScale.Crop
                             )
                         }
@@ -201,59 +201,55 @@ fun CampsiteDetailsScreen(
                                 }
                             }
                         }
-                    }
 
-                    //Check if owner
-                    val isOwner = currentState.currentUser?.userId == campsite.ownerUserId &&
-                            currentState.currentUser != null
+                        //Check if owner
+                        val isOwner = currentState.currentUser?.userId == campsite.ownerUserId &&
+                                currentState.currentUser != null
 
-                    if (isOwner) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            IconButton(
-                                onClick = {
-                                    navController.navigate(Screen.EditCampsite.createRoute(campsiteId))
-                                },
-                                icon = Icons.Outlined.Edit,
-                                text = "Edit campsite",
+                        if (isOwner) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        navController.navigate(Screen.EditCampsite.createRoute(campsiteId))
+                                    },
+                                    icon = Icons.Outlined.Edit,
+                                    text = "Edit campsite",
 
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                                    modifier = Modifier.fillMaxWidth()
+                                )
 
-                            BaseButton(
-                                onClick = {
-                                    navController.navigate(
-                                        Screen.GenerateQR.createRoute(
-                                            "pitch://${Screen.CampsiteDetails.createRoute(campsiteId)}"
+                                BaseButton(
+                                    onClick = {
+                                        navController.navigate(
+                                            Screen.GenerateQR.createRoute(
+                                                "pitch://${Screen.CampsiteDetails.createRoute(campsiteId)}"
+                                            )
                                         )
-                                    )
-                                },
-                                text = "Generate QR Code",
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                                    },
+                                    text = "Generate QR Code",
+                                    modifier = Modifier.fillMaxWidth()
+                                )
 
-                            BaseButton(
-                                onClick = {
-                                    navController.navigate(
-                                        Screen.CreateLottery.createRoute(campsiteId)
-                                    )
-                                },
-                                text = "Create lottery",
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                                BaseButton(
+                                    onClick = {
+                                        navController.navigate(
+                                            Screen.CreateLottery.createRoute(campsiteId)
+                                        )
+                                    },
+                                    text = "Create lottery",
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
-
-
-
-
 
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                            .padding(vertical = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         // Description
@@ -340,8 +336,7 @@ fun CampsiteDetailsScreen(
 
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
+                            .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
@@ -403,7 +398,6 @@ fun CampsiteDetailsScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
                             .testTag("details_rules"),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -445,8 +439,7 @@ fun CampsiteDetailsScreen(
 
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
+                            .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
@@ -474,8 +467,7 @@ fun CampsiteDetailsScreen(
 
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
+                            .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
