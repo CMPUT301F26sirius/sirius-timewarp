@@ -100,4 +100,38 @@ class ConfirmReservationUseCaseTest {
 
         assertEquals(0, notificationRepository.getNotifications()?.size)
     }
+
+    @Test
+    fun confirmingWithDates_savesDates() = runBlocking {
+        addReservation("r1", ReservationState.Pending)
+
+        // Check in Christmas Eve 2027, check out Boxing Day
+        confirmReservation("r1", campsite, 21176, 21178)
+
+        val saved = reservationRepository.getReservation("r1")
+        assertEquals(ReservationState.Reserved, saved?.reservationState)
+        assertEquals("2027-12-24", saved?.datesBooked?.startDate)
+        assertEquals("2027-12-26", saved?.datesBooked?.endDate)
+    }
+
+    @Test
+    fun confirmingWithDates_notificationIncludesDates() = runBlocking {
+        addReservation("r1", ReservationState.Pending)
+
+        confirmReservation("r1", campsite, 21176, 21178)
+
+        val received = notificationRepository.getIncomingNotifications(userId)
+        assertTrue(received!![0].notification.contains("2027-12-24"))
+    }
+
+    @Test
+    fun confirmingWithCampsite_savesCampsiteId() = runBlocking {
+        addReservation("r1", ReservationState.Pending)
+
+        // The winner chose this campsite from the lottery's campsites
+        val chosen = Campsite(campsiteId = "camp-2", name = "Wapiti", location = Location(address = "Jasper"))
+        confirmReservation("r1", chosen)
+
+        assertEquals("camp-2", reservationRepository.getReservation("r1")?.campsiteId)
+    }
 }

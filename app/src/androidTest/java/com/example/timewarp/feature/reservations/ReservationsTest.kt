@@ -10,14 +10,20 @@ import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
+import com.example.timewarp.core.util.DayFormatter
 import com.example.timewarp.data.repository.FakeAuthRepository
+import com.example.timewarp.data.repository.FakeLotteryRepository
 import com.example.timewarp.data.repository.FakeReservationRepository
 import com.example.timewarp.data.repository.FakeUserRepository
+import com.example.timewarp.domain.model.Availability
+import com.example.timewarp.domain.model.Lottery
+import com.example.timewarp.domain.model.Period
 import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
+import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -53,19 +59,42 @@ class ReservationsTest {
     @Inject
     lateinit var reservationRepository: ReservationRepository
 
+    @Inject
+    lateinit var lotteryRepository: LotteryRepository
+
     /*
     * This function builds a test reservation with the given id, user, and state
     */
     private fun reservation(
         id: String,
         userId: String,
-        state: ReservationState
+        state: ReservationState,
+        lotteryId: String = "",
     ) =
         Reservation(
             reservationId = id,
             reservationState = state,
+            lotteryId = lotteryId,
             campsiteId = "campsite",
             userId = userId
+        )
+
+    private fun addLottery(lotteryId: String, bookingStart: Int, bookingEnd: Int) {
+        (lotteryRepository as FakeLotteryRepository).addLottery(
+            Lottery(
+                lotteryId = lotteryId,
+                bookingPeriod = Period(start = bookingStart, end = bookingEnd),
+            )
+        )
+    }
+
+    private fun reservedReservation(id: String, endDay: Int) =
+        Reservation(
+            reservationId = id,
+            reservationState = ReservationState.Reserved,
+            campsiteId = "campsite",
+            userId = "reservations-user",
+            datesBooked = Availability(endDate = DayFormatter.toDateString(endDay)),
         )
 
     /*
@@ -79,6 +108,7 @@ class ReservationsTest {
             User(userId = "reservations-user", userType = UserType.Entrant)
         )
         (reservationRepository as FakeReservationRepository).clear()
+        (lotteryRepository as FakeLotteryRepository).clear()
     }
 
     /*
@@ -96,8 +126,7 @@ class ReservationsTest {
             composeRule.onAllNodesWithText("Reservations").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("Reservations").performClick()
-
-        waitForTag("tab_${ReservationTab.Booked.label}")
+        waitForTag("tab_Reserved")
     }
 
     /*
@@ -115,7 +144,7 @@ class ReservationsTest {
     }
 
     /*
-    * US 01.06.01: This shows waitlisted and pending reservations on the Booking tab
+    * US 01.06.01: This shows only pending winner reservations on the Booking tab
     */
     @Test
     fun bookingTab_showsPending() {
@@ -127,7 +156,43 @@ class ReservationsTest {
         composeRule.onNodeWithTag("tab_${ReservationTab.Booking.label}").performClick()
         waitForTag("reservation_won")
         composeRule.onNodeWithTag("reservation_won").assertIsDisplayed()
-        composeRule.onNodeWithTag("reservation_waiting").assertDoesNotExist()
+        scenario.close()
+    }
+
+    @Test
+    fun bookingTabOnlyShowsEntriesDuringTheirBookingPeriod() {
+        val today = DayFormatter.fromMillis(System.currentTimeMillis())
+        addLottery("open-lottery", today, today)
+        addLottery("ended-lottery", today - 5, today - 1)
+        addLottery("future-lottery", today + 1, today + 5)
+
+        val repository = reservationRepository as FakeReservationRepository
+        repository.addReservation(
+            reservation("open-pending", "reservations-user", ReservationState.Pending, "open-lottery")
+        )
+        repository.addReservation(
+            reservation("open-waitlisted", "reservations-user", ReservationState.Waitlisted, "open-lottery")
+        )
+        repository.addReservation(
+            reservation("ended-pending", "reservations-user", ReservationState.Pending, "ended-lottery")
+        )
+        repository.addReservation(
+            reservation("ended-waitlisted", "reservations-user", ReservationState.Waitlisted, "ended-lottery")
+        )
+        repository.addReservation(
+            reservation("future-pending", "reservations-user", ReservationState.Pending, "future-lottery")
+        )
+
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openReservations()
+        composeRule.onNodeWithTag("tab_Pending").performClick()
+        waitForTag("reservation_open-pending")
+
+        composeRule.onNodeWithTag("reservation_open-pending").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_open-waitlisted").assertDoesNotExist()
+        composeRule.onNodeWithTag("reservation_ended-pending").assertDoesNotExist()
+        composeRule.onNodeWithTag("reservation_ended-waitlisted").assertDoesNotExist()
+        composeRule.onNodeWithTag("reservation_future-pending").assertDoesNotExist()
         scenario.close()
     }
 
@@ -178,6 +243,32 @@ class ReservationsTest {
         openReservations()
         waitForTag("reservation_active")
         composeRule.onNodeWithTag("reservation_cancelled").assertDoesNotExist()
+        scenario.close()
+    }
+
+    @Test
+    fun reservedTripsAreGroupedByEndDateAcrossTabs() {
+        val today = DayFormatter.fromMillis(System.currentTimeMillis())
+        val repository = reservationRepository as FakeReservationRepository
+        repository.addReservation(reservedReservation("past", today - 1))
+        repository.addReservation(reservedReservation("ending-today", today))
+        repository.addReservation(reservedReservation("upcoming", today + 1))
+        repository.addReservation(reservation("pending", "reservations-user", ReservationState.Pending))
+
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openReservations()
+        waitForTag("reservation_upcoming")
+        composeRule.onNodeWithTag("reservation_upcoming").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_ending-today").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_past").assertDoesNotExist()
+        composeRule.onNodeWithTag("reservation_pending").assertDoesNotExist()
+
+        composeRule.onNodeWithTag("tab_Past").performClick()
+        waitForTag("reservation_past")
+        composeRule.onNodeWithTag("reservation_past").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_ending-today").assertDoesNotExist()
+        composeRule.onNodeWithTag("reservation_upcoming").assertDoesNotExist()
+        composeRule.onNodeWithTag("reservation_pending").assertDoesNotExist()
         scenario.close()
     }
 }

@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,7 +25,12 @@ class FirebaseRatingRepository @Inject constructor(
      * NEEDS_DOCUMENTATION
      */
     override suspend fun getRatings(): MutableList<Rating>? {
-        TODO("Not yet implemented")
+        return firestore.collection("rating")
+            .get()
+            .await()
+            .documents
+            .mapNotNull { it.toObject(Rating::class.java)?.copy(ratingId = it.id) }
+            .toMutableList()
     }
 
     /**
@@ -45,14 +51,21 @@ class FirebaseRatingRepository @Inject constructor(
      * NEEDS_DOCUMENTATION
      */
     override suspend fun createRating(rating: Rating) {
-        TODO("Not yet implemented")
+        firestore.collection("rating")
+            .document(rating.ratingId)
+            .set(rating)
+            .await()
     }
 
     /**
      * NEEDS_DOCUMENTATION
      */
     override suspend fun getRating(ratingId: String): Rating? {
-        TODO("Not yet implemented")
+        return firestore.collection("rating")
+            .document(ratingId)
+            .get()
+            .await()
+            .toObject(Rating::class.java)?.copy(ratingId = ratingId)
     }
 
     /**

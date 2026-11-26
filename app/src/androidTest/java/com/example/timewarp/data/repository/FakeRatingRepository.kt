@@ -42,10 +42,13 @@ class FakeRatingRepository @Inject constructor() : RatingRepository {
     }
 
     /**
-     * NEEDS_DOCUMENTATION
+     * This function saves a rating from the user and replaces any existing rating with the same Id
+     * @param rating The rating to create or update
      */
     override suspend fun createRating(rating: Rating) {
-        ratings.value = ratings.value + rating
+        ratings.value = ratings.value.filterNot {
+            it.ratingId == rating.ratingId
+        } + rating
     }
 
     /**

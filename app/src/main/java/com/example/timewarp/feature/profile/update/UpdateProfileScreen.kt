@@ -1,8 +1,8 @@
 package com.example.timewarp.feature.profile.update
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,9 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +47,8 @@ import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.BaseButtonType
 import com.example.timewarp.ui.component.BaseInput
 import com.example.timewarp.ui.component.BaseInputType
+import com.example.timewarp.ui.component.ImagePickerButton
+import com.example.timewarp.ui.component.RemoteImage
 import com.example.timewarp.ui.theme.TimewarpTheme
 /**
  * Screen where we connect UpdateProfileViewModel to the UI. It collects
@@ -104,6 +103,9 @@ fun UpdateProfileScreen(
                     onLastNameChange = viewModel::onLastNameChange,
                     onEmailChange = viewModel::onEmailChange,
                     onPhoneNumberChange = viewModel::onPhoneNumberChange,
+                    onInterestToggle = viewModel::onInterestToggle,
+                    onProfileImageSelected = viewModel::onProfileImageSelected,
+                    onProfileImageRemoved = viewModel::removeProfileImage,
                     onSave = viewModel::save,
                     onCancel = { navController.popBackStack() }
                 )
@@ -121,6 +123,9 @@ fun UpdateProfileScreen(
  * @param onLastNameChange Called when new text
  * @param onEmailChange Called when new text
  * @param onPhoneNumberChange Called when new text
+ * @param onInterestToggle Called when an interest is selected or deselected
+ * @param onProfileImageSelected Called when a profile image is selected
+ * @param onProfileImageRemoved Called when the current profile image is removed
  * @param onSave Called when update is pressed
  * @param onCancel Called when cancel is pressed
  */
@@ -131,13 +136,17 @@ internal fun UpdateProfileForm(
     onLastNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPhoneNumberChange: (String) -> Unit,
+    onInterestToggle: (String, Boolean) -> Unit,
     onSave: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onProfileImageSelected: (Uri) -> Unit,
+    onProfileImageRemoved: () -> Unit
 ){
 
-    // Not part of Profile yet, so kept on screen only
     val interestOptions = listOf("Camping", "Browsing", "Hiking", "Other")
-    var selectedInterests by remember { mutableStateOf(setOf<String>())}
+    val profileImage = state.profileImage?.takeIf {
+        it.imageId.isNotBlank() && it.url.isNotBlank()
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
@@ -198,35 +207,62 @@ internal fun UpdateProfileForm(
 
         // Photo
         Text("Update photo", style = MaterialTheme.typography.titleMedium)
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+        ImagePickerButton(
+            onImageSelected = onProfileImageSelected,
+            modifier = Modifier.testTag("profileImagePicker")
         ) {
-            Box(modifier = Modifier.size(120.dp)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                        .clickable { /* open image picker */ }
-                )
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .align(Alignment.BottomEnd)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Add photo",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(20.dp)
-                    )
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(modifier = Modifier.size(120.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                    ) {
+                        profileImage?.let { image ->
+                            RemoteImage(
+                                image = image,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .align(Alignment.BottomEnd)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Add photo",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
+        }
+        if (profileImage != null) {
+            BaseButton(
+                type = BaseButtonType.Outlined,
+                text = "Remove photo",
+                onClick = onProfileImageRemoved,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+        if (state.isUploadingImage) {
+            Text("Uploading image...", style = MaterialTheme.typography.bodySmall)
+        }
+        state.imageUploadError?.let {
+            Text(text = it, color = MaterialTheme.colorScheme.error)
         }
 
         // Interests
@@ -237,7 +273,7 @@ internal fun UpdateProfileForm(
         ) {
             Text("What are your interests?", style = MaterialTheme.typography.titleMedium)
             Text(
-                text = "${selectedInterests.size} selected",
+                text = "${state.selectedInterests.size} selected",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -252,31 +288,15 @@ internal fun UpdateProfileForm(
                     Box(
                         modifier = Modifier.fillMaxWidth().weight(1f)
                     ) {
-                        var value by remember { mutableStateOf("False")}
                         BaseInput(
                             label = option,
-                            value = value,
+                            value = (option in state.selectedInterests).toString(),
                             onValueChange = { newValue ->
-                                if (newValue.toBoolean()) {
-                                    selectedInterests + option
-                                } else {
-                                    selectedInterests - option
-                                }
-                                value = newValue
+                                onInterestToggle(option, newValue.toBoolean())
                             },
                             type = BaseInputType.Boolean,
                         )
                     }
-//                    InterestOption(
-//                        text = option,
-//                        checked = option in selectedInterests,
-//                        onToggle = {
-//                            selectedInterests =
-//                                if (option in selectedInterests) selectedInterests - option
-//                                else selectedInterests + option
-//                        },
-//                        modifier = Modifier.weight(1f)
-//                    )
                 }
                 if (pair.size == 1) Spacer(Modifier.weight(1f))
             }
@@ -328,6 +348,9 @@ fun UpdateProfilePreview() {
             onLastNameChange = {},
             onEmailChange = {},
             onPhoneNumberChange = {},
+            onInterestToggle = { _, _ -> },
+            onProfileImageSelected = {},
+            onProfileImageRemoved = {},
             onSave = {},
             onCancel = {}
         )

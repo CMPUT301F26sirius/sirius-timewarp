@@ -108,7 +108,7 @@ class BrowseViewModel @Inject constructor(
                 val campsites = campsiteRepository.getCampsites()
                     .orEmpty()
                     .filter { it.ownerUserId == ownerId }
-                _state.update { it.copy(campsites = campsites, isLoading = false) }
+                _state.update { it.copy(campsites = liveRatings(campsites), isLoading = false) }
             } catch (error: CancellationException) {
                 throw error
             } catch (e: Exception) {
@@ -131,7 +131,7 @@ class BrowseViewModel @Inject constructor(
             _state.update { it.copy(filters = newFilters, isLoading = true, error = null) }
             try {
                 val list = campsiteRepository.filterCampsites(newFilters).orEmpty()
-                _state.update { it.copy(campsites = list, isLoading = false) }
+                _state.update { it.copy(campsites = liveRatings(list), isLoading = false) }
             }
             catch (error: CancellationException) {
                 throw error
@@ -152,4 +152,25 @@ class BrowseViewModel @Inject constructor(
     * This function applies filter from the filter sheet and keeps the current search text
     */
     fun onApplyFilters(filter: CampsiteFilter) = onFiltersChanged(filter.copy(query = state.value.filters.query))
+
+    /*
+    * This function refreshes the list for the selected tab. Once a user changes or adds ratings
+    * to the campsite it refreshes the browse tab to show the updated ratings
+    */
+    fun refresh() {
+        if (state.value.selectedTab == BrowseTab.MyCampsites) loadCampsites()
+        else loadCampsites()
+    }
+
+    /*
+    * This function replaces each campsite stored rating with the average of its real rating
+    */
+    private suspend fun liveRatings(campsites: List<Campsite>): List<Campsite> {
+        val ratingsByCampsite = ratingRepository.getRatings().orEmpty().groupBy { it.campsiteId }
+        return campsites.map { campsites ->
+            val ratings = ratingsByCampsite[campsites.campsiteId]
+            if(ratings.isNullOrEmpty()) campsites
+            else campsites.copy(rating = ratings.map { it.rating }.average())
+        }
+    }
 }

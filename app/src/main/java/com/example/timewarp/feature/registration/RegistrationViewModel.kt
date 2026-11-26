@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.registration
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.User
@@ -54,6 +55,7 @@ class RegistrationViewModel @Inject constructor(
 
             try {
                 val userId = authRepository.signIn()
+                Log.d("Auth", "userId ${userId}")
 
                 val existingUser = userRepository.getUser(userId)
 

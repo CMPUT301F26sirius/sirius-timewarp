@@ -118,7 +118,7 @@ fun AppNavHost() {
         }
         deepComposable(Screen.EditLottery.route) { lotteryId ->
             EditLotteryScreen(
-                screen = Screen.CampsiteDetails,
+                screen = Screen.EditLottery,
                 lotteryId = lotteryId,
                 navController = navController
             )
@@ -139,7 +139,7 @@ fun AppNavHost() {
         }
         deepComposable(Screen.EditCampsite.route) { campsiteId ->
             EditCampsiteScreen(
-                screen = Screen.CampsiteDetails,
+                screen = Screen.EditCampsite,
                 campsiteId = campsiteId,
                 navController = navController
             )

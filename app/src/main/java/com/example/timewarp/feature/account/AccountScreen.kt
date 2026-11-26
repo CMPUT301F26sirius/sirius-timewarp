@@ -33,6 +33,8 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.BaseButtonType
+import com.example.timewarp.ui.component.BaseInput
+import com.example.timewarp.ui.component.BaseInputType
 import com.example.timewarp.ui.theme.PitchLink
 import com.example.timewarp.ui.theme.PitchMutedText
 import com.example.timewarp.ui.theme.TimewarpTheme
@@ -95,17 +97,19 @@ fun AccountScreen(
         ) {
             Spacer(modifier = Modifier.weight(1f))
             currentUser?.let { user ->
-                BaseButton(
-                    text = if (user.notificationsEnabled) {
+                BaseInput(
+                    label = if (user.notificationsEnabled) {
                         "Notifications: On"
                     } else {
                         "Notifications: Off"
                     },
+                    value = user.notificationsEnabled.toString(),
+                    onValueChange = { enabled ->
+                        viewModel.setNotificationsEnabled(enabled.toBoolean())
+                    },
+                    type = BaseInputType.Boolean,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isUpdatingNotifications,
-                    onClick = {
-                        viewModel.setNotificationsEnabled(!user.notificationsEnabled)
-                    }
                 )
             }
             BaseButton(

@@ -110,7 +110,7 @@ class ReservationDetailsTest {
     @Test
     fun confirmingCancel_opensCancellationScreen_andCancelsReservation() {
         addReservation(ReservationState.Reserved)
-        val scenario = openReservationDetails("Booked")
+        val scenario = openReservationDetails("Reserved")
 
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithTag("cancel_booking_button").fetchSemanticsNodes().isNotEmpty()
@@ -138,7 +138,7 @@ class ReservationDetailsTest {
     @Test
     fun keepBooking_doesNotCancel() {
         addReservation(ReservationState.Reserved)
-        val scenario = openReservationDetails("Booked")
+        val scenario = openReservationDetails("Reserved")
 
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithTag("cancel_booking_button").fetchSemanticsNodes().isNotEmpty()

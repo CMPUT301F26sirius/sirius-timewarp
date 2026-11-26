@@ -336,8 +336,20 @@ private fun ReservationsScreenPreview() {
             state = ReservationsState.Content(
                 selectedTab = ReservationTab.Booking,
                 items = listOf(
-                    ReservationItem("1", ReservationState.Pending, "You Won Super Cool Lottery!", "Drawn 3 days ago"),
-                    ReservationItem("2", ReservationState.Pending, "You Won Super Cool Lottery!", "Drawn 3 days ago"),
+                    ReservationItem(
+                        "1",
+                        ReservationState.Pending,
+                        "You Won Super Cool Lottery!",
+                        "Drawn 3 days ago",
+                        isInBookingPeriod = true,
+                    ),
+                    ReservationItem(
+                        "2",
+                        ReservationState.Pending,
+                        "You Won Super Cool Lottery!",
+                        "Drawn 3 days ago",
+                        isInBookingPeriod = true,
+                    ),
                 ),
             ),
             tabs = previewTabs,
