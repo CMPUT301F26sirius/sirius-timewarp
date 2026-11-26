@@ -31,9 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -106,6 +103,7 @@ fun UpdateProfileScreen(
                     onLastNameChange = viewModel::onLastNameChange,
                     onEmailChange = viewModel::onEmailChange,
                     onPhoneNumberChange = viewModel::onPhoneNumberChange,
+                    onInterestToggle = viewModel::onInterestToggle,
                     onProfileImageSelected = viewModel::onProfileImageSelected,
                     onProfileImageRemoved = viewModel::removeProfileImage,
                     onSave = viewModel::save,
@@ -125,6 +123,7 @@ fun UpdateProfileScreen(
  * @param onLastNameChange Called when new text
  * @param onEmailChange Called when new text
  * @param onPhoneNumberChange Called when new text
+ * @param onInterestToggle Called when an interest is selected or deselected
  * @param onProfileImageSelected Called when a profile image is selected
  * @param onProfileImageRemoved Called when the current profile image is removed
  * @param onSave Called when update is pressed
@@ -137,15 +136,14 @@ internal fun UpdateProfileForm(
     onLastNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPhoneNumberChange: (String) -> Unit,
+    onInterestToggle: (String, Boolean) -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit,
     onProfileImageSelected: (Uri) -> Unit,
     onProfileImageRemoved: () -> Unit
 ){
 
-    // Not part of Profile yet, so kept on screen only
     val interestOptions = listOf("Camping", "Browsing", "Hiking", "Other")
-    var selectedInterests by remember { mutableStateOf(setOf<String>())}
     val profileImage = state.profileImage?.takeIf {
         it.imageId.isNotBlank() && it.url.isNotBlank()
     }
@@ -275,7 +273,7 @@ internal fun UpdateProfileForm(
         ) {
             Text("What are your interests?", style = MaterialTheme.typography.titleMedium)
             Text(
-                text = "${selectedInterests.size} selected",
+                text = "${state.selectedInterests.size} selected",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -290,31 +288,15 @@ internal fun UpdateProfileForm(
                     Box(
                         modifier = Modifier.fillMaxWidth().weight(1f)
                     ) {
-                        var value by remember { mutableStateOf("False")}
                         BaseInput(
                             label = option,
-                            value = value,
+                            value = (option in state.selectedInterests).toString(),
                             onValueChange = { newValue ->
-                                if (newValue.toBoolean()) {
-                                    selectedInterests + option
-                                } else {
-                                    selectedInterests - option
-                                }
-                                value = newValue
+                                onInterestToggle(option, newValue.toBoolean())
                             },
                             type = BaseInputType.Boolean,
                         )
                     }
-//                    InterestOption(
-//                        text = option,
-//                        checked = option in selectedInterests,
-//                        onToggle = {
-//                            selectedInterests =
-//                                if (option in selectedInterests) selectedInterests - option
-//                                else selectedInterests + option
-//                        },
-//                        modifier = Modifier.weight(1f)
-//                    )
                 }
                 if (pair.size == 1) Spacer(Modifier.weight(1f))
             }
@@ -366,6 +348,7 @@ fun UpdateProfilePreview() {
             onLastNameChange = {},
             onEmailChange = {},
             onPhoneNumberChange = {},
+            onInterestToggle = { _, _ -> },
             onProfileImageSelected = {},
             onProfileImageRemoved = {},
             onSave = {},

@@ -34,6 +34,7 @@ sealed interface UpdateProfileState {
         val lastName: String,
         val email: String,
         val phoneNumber: String,
+        val selectedInterests: Set<String> = emptySet(),
         val profileImageId: String = "",
         val profileImage: Image? = null,
         val isUploadingImage: Boolean = false,
@@ -125,6 +126,7 @@ class UpdateProfileViewModel @Inject constructor(
             lastName = profile.lastName,
             email = profile.email,
             phoneNumber = profile.phoneNumber,
+            selectedInterests = profile.interests.toSet(),
             profileImageId = profile.imageId,
             profileImage = profileImage
         )
@@ -135,6 +137,15 @@ class UpdateProfileViewModel @Inject constructor(
     fun onLastNameChange(value: String) = updateContent { copy(lastName = value) }
     fun onEmailChange(value: String) = updateContent { copy(email = value) }
     fun onPhoneNumberChange(value: String) = updateContent { copy(phoneNumber = value) }
+    fun onInterestToggle(interest: String, selected: Boolean) = updateContent {
+        copy(
+            selectedInterests = if (selected) {
+                selectedInterests + interest
+            } else {
+                selectedInterests - interest
+            }
+        )
+    }
 
     fun onProfileImageSelected(uri: Uri) {
         val current = _state.value as? UpdateProfileState.Content ?: return
@@ -194,7 +205,8 @@ class UpdateProfileViewModel @Inject constructor(
                         lastName = current.lastName.trim(),
                         email = current.email.trim(),
                         phoneNumber = current.phoneNumber.trim(),
-                        imageId = current.profileImageId
+                        imageId = current.profileImageId,
+                        interests = current.selectedInterests.toList()
                     )
                 )
                 updateContent { copy(isSaving = false, isSaved = true) }
