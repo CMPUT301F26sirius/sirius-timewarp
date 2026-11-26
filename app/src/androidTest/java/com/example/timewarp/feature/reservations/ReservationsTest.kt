@@ -108,7 +108,7 @@ class ReservationsTest {
     /*
     * US 01.06.01: This shows a reserved reservation on the Booked tab
     */
-    //@Test
+    @Test
     fun bookedTab_showsReserved() {
         val repository = reservationRepository as FakeReservationRepository
         repository.addReservation(reservation("r1", "reservations-user", ReservationState.Reserved))
@@ -122,7 +122,7 @@ class ReservationsTest {
     /*
     * US 01.06.01: This shows waitlisted and pending reservations on the Booking tab
     */
-    //@Test
+    @Test
     fun bookingTab_showsWaitlistedAndPending() {
         val repository = reservationRepository as FakeReservationRepository
         repository.addReservation(reservation("r1", "reservations-user", ReservationState.Waitlisted))
@@ -139,7 +139,7 @@ class ReservationsTest {
     /*
     * US 01.06.01: This shows only the signed in user's reservations, not other users'
     */
-    //@Test
+    @Test
     fun showsOnlyOwnReservations() {
         val repository = reservationRepository as FakeReservationRepository
         repository.addReservation(reservation("mine", "reservations-user", ReservationState.Reserved))
@@ -155,7 +155,7 @@ class ReservationsTest {
     /*
     * US 01.06.02: This shows canceled, declined and rejected reservations on the Cancelled tab
     */
-    //@Test
+    @Test
     fun showsCancelledReservations() {
         val repository = reservationRepository as FakeReservationRepository
         repository.addReservation(reservation("r1", "reservations-user", ReservationState.Canceled))
@@ -174,7 +174,7 @@ class ReservationsTest {
     /*
     * US 01.06.02: This shows past reservations are kept apart from active ones
     */
-    //@Test
+    @Test
     fun past_cancelledReservation_notOnBookedTab() {
         val repository = reservationRepository as FakeReservationRepository
         repository.addReservation(reservation("active", "reservations-user", ReservationState.Reserved))
