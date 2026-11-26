@@ -7,6 +7,7 @@ import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.CampsiteRepository
+import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -54,7 +55,7 @@ sealed class ReservationTab(
         states = setOf(ReservationState.Reserved),
     )
 
-    // Lottery entries the user has won, but has not booked yet
+    // Lottery entries the user has won but has not booked yet
     data object Booking : ReservationTab(
         label = "Pending",
         heading = "There is still a chance!",
@@ -102,6 +103,7 @@ data class ReservationItem(
     val dateText: String,
     val canMakeReservation: Boolean = false,
     val hasEnded: Boolean = false,
+    val isInBookingPeriod: Boolean = false,
 )
 
 // interface for everything reservation screen is allowed to show
@@ -127,6 +129,8 @@ sealed interface ReservationsState {
                         item.state == ReservationState.Reserved && !item.hasEnded
                     ReservationTab.Past ->
                         item.state == ReservationState.Reserved && item.hasEnded
+                    ReservationTab.Booking ->
+                        item.state in selectedTab.states && item.isInBookingPeriod
                     else -> item.state in selectedTab.states
                 }
             }
@@ -147,6 +151,7 @@ sealed interface ReservationsState {
 @HiltViewModel
 class ReservationsViewModel @Inject constructor(
     private val campsiteRepository: CampsiteRepository,
+    private val lotteryRepository: LotteryRepository,
     private val reservationRepository: ReservationRepository,
     private val observeCurrentUser: ObserveCurrentUserUseCase
 ) : ViewModel() {
@@ -215,6 +220,8 @@ class ReservationsViewModel @Inject constructor(
                 val selectedTab = ReservationTab.Booked
 
                 val allReservations = reservationRepository.getReservations().orEmpty()
+                val lotteriesById = lotteryRepository.getLotteries().orEmpty()
+                    .associateBy { it.lotteryId }
 
                 // Each mode decides which reservations to show
                 val reservations = when (user.userType) {
@@ -227,11 +234,15 @@ class ReservationsViewModel @Inject constructor(
 
                 val today = DayFormatter.fromMillis(System.currentTimeMillis())
                 val items = reservations.map { reservation ->
+                    val bookingPeriod = lotteriesById[reservation.lotteryId]?.bookingPeriod
+                    val isInBookingPeriod = bookingPeriod != null &&
+                            today >= bookingPeriod.start && today <= bookingPeriod.end
                     reservation.toItem(
                         campsiteName = campsiteRepository.getCampsite(reservation.campsiteId)?.name,
                         canMakeReservation = reservation.userId == user.userId &&
                                 reservation.reservationState == ReservationState.Pending,
                         today = today,
+                        isInBookingPeriod = isInBookingPeriod,
                     )
                 }
 
@@ -252,6 +263,7 @@ class ReservationsViewModel @Inject constructor(
         campsiteName: String?,
         canMakeReservation: Boolean,
         today: Int,
+        isInBookingPeriod: Boolean,
     ): ReservationItem {
         val endDay = DayFormatter.fromDateString(datesBooked.endDate)
         // The stored end date has day precision, so it remains current through that UTC day.
@@ -263,6 +275,7 @@ class ReservationsViewModel @Inject constructor(
             dateText = daysAgoText(timestamp),
             canMakeReservation = canMakeReservation,
             hasEnded = hasEnded,
+            isInBookingPeriod = isInBookingPeriod,
         )
     }
 
