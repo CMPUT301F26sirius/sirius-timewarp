@@ -53,7 +53,7 @@ data class Campsite(
     val rules: List<String> = emptyList<String>(),
     val cancellationPolicy: CancellationPolicy = CancellationPolicy(),
 
-    val images: List<String> = emptyList<String>(),
+    val imageId: String = "",
 
     val minimumStayNights: Int = 1,
     val checkInTime: String = "",

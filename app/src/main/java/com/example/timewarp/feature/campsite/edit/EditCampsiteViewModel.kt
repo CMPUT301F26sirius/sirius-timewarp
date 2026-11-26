@@ -1,9 +1,11 @@
 package com.example.timewarp.feature.campsite.edit
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
+import com.example.timewarp.domain.repository.ImageRepository
 import com.example.timewarp.feature.campsite.create.CreateCampsiteState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -11,6 +13,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 sealed interface EditCampsiteState {
@@ -29,11 +32,13 @@ sealed interface EditCampsiteState {
  * validating the form and verifying that the signed-in user owns the campsite.
  *
  * @param campsiteRepository Reads and updates the existing campsite record.
+ * @param imageRepository Loads and uploads campsite photos.
  * @param authRepository Provides the signed-in user ID for ownership checks.
  */
 @HiltViewModel
 class EditCampsiteViewModel @Inject constructor(
     private val campsiteRepository: CampsiteRepository,
+    private val imageRepository: ImageRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
@@ -69,27 +74,36 @@ class EditCampsiteViewModel @Inject constructor(
                     userId.isNullOrBlank() || userId != campsite.ownerUserId ->
                         EditCampsiteState.Error("Only the owner can edit this campsite.")
 
-                    else -> EditCampsiteState.Ready(
-                        campsiteId = campsiteId,
-                        draft = CreateCampsiteState(
-                            name = campsite.name,
-                            description = campsite.description,
-                            address = campsite.location.address,
-                            maxGuests = campsite.occupancy.maxGuests.toString(),
-                            costPerNight = campsite.pricing.costPerNight.toString(),
-                            preparationFee = campsite.pricing.preparationFee.toString(),
-                            minimumStayNights = campsite.minimumStayNights.toString(),
-                            amenities = campsite.amenities,
-                            tags = campsite.tags,
-                            rules = campsite.rules.joinToString("\n"),
-                            cancellationPolicy = campsite.cancellationPolicy.policy,
-                            startDate = campsite.availability.startDate,
-                            endDate = campsite.availability.endDate,
-                            daysOfWeek = campsite.availability.daysOfWeek,
-                            checkInTime = campsite.checkInTime.ifBlank { "14:00" },
-                            checkOutTime = campsite.checkOutTime.ifBlank { "11:00" }
+                    else -> {
+                        val campsiteImage = if (campsite.imageId.isNotBlank()) {
+                            imageRepository.getImage(campsite.imageId)
+                        } else {
+                            null
+                        }
+                        EditCampsiteState.Ready(
+                            campsiteId = campsiteId,
+                            draft = CreateCampsiteState(
+                                name = campsite.name,
+                                description = campsite.description,
+                                address = campsite.location.address,
+                                maxGuests = campsite.occupancy.maxGuests.toString(),
+                                costPerNight = campsite.pricing.costPerNight.toString(),
+                                preparationFee = campsite.pricing.preparationFee.toString(),
+                                minimumStayNights = campsite.minimumStayNights.toString(),
+                                amenities = campsite.amenities,
+                                tags = campsite.tags,
+                                rules = campsite.rules.joinToString("\n"),
+                                cancellationPolicy = campsite.cancellationPolicy.policy,
+                                startDate = campsite.availability.startDate,
+                                endDate = campsite.availability.endDate,
+                                daysOfWeek = campsite.availability.daysOfWeek,
+                                checkInTime = campsite.checkInTime.ifBlank { "14:00" },
+                                checkOutTime = campsite.checkOutTime.ifBlank { "11:00" },
+                                imageId = campsite.imageId,
+                                campsiteImage = campsiteImage
+                            )
                         )
-                    )
+                    }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -111,6 +125,63 @@ class EditCampsiteViewModel @Inject constructor(
 
         _state.value = current.copy(draft = draft.copy(saveError = null))
     }
+
+    fun onCampsiteImageSelected(uri: Uri) {
+        val current = _state.value as? EditCampsiteState.Ready ?: return
+        if (current.draft.isSaving || current.draft.isUploadingImage ||
+            current.draft.savedCampsiteId != null
+        ) return
+
+        _state.value = current.copy(
+            draft = current.draft.copy(isUploadingImage = true, imageUploadError = null)
+        )
+        viewModelScope.launch {
+            try {
+                val image = imageRepository.uploadImage(uri)
+                    ?.takeIf { it.imageId.isNotBlank() && it.url.isNotBlank() }
+                    ?: throw IllegalStateException("Unable to upload campsite image.")
+                updateReadyDraft {
+                    copy(
+                        imageId = image.imageId,
+                        campsiteImage = image,
+                        isUploadingImage = false,
+                        imageUploadError = null
+                    )
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                updateReadyDraft {
+                    copy(
+                        isUploadingImage = false,
+                        imageUploadError = error.message ?: "Unable to upload campsite image."
+                    )
+                }
+            }
+        }
+    }
+
+    fun removeCampsiteImage() {
+        val current = _state.value as? EditCampsiteState.Ready ?: return
+        if (current.draft.isSaving || current.draft.isUploadingImage ||
+            current.draft.savedCampsiteId != null
+        ) return
+
+        updateReadyDraft {
+            copy(imageId = "", campsiteImage = null, imageUploadError = null)
+        }
+    }
+
+    private fun updateReadyDraft(
+        transform: CreateCampsiteState.() -> CreateCampsiteState
+    ) {
+        _state.update { state ->
+            (state as? EditCampsiteState.Ready)?.let { current ->
+                current.copy(draft = current.draft.transform())
+            } ?: state
+        }
+    }
+
     /**
      * Validates the draft, checks ownership, and updates the existing campsite.
      * If the save fails, keeps the draft available for retry.
@@ -119,7 +190,7 @@ class EditCampsiteViewModel @Inject constructor(
         val current = _state.value as? EditCampsiteState.Ready ?: return
         val draft = current.draft
 
-        if (draft.isSaving || draft.savedCampsiteId != null) return
+        if (draft.isSaving || draft.isUploadingImage || draft.savedCampsiteId != null) return
         if (draft.fieldErrors.isNotEmpty()) {
             _state.value = current.copy(draft = draft.copy(showErrors = true))
             return
@@ -156,6 +227,7 @@ class EditCampsiteViewModel @Inject constructor(
                     cancellationPolicy = campsite.cancellationPolicy.copy(
                         policy = draft.cancellationPolicy.trim()
                     ),
+                    imageId = draft.imageId,
                     minimumStayNights = draft.minimumStayNights.toInt(),
                     checkInTime = draft.checkInTime,
                     checkOutTime = draft.checkOutTime,

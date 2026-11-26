@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.campsite.edit
 
+import android.net.Uri
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasAnyAncestor
@@ -17,8 +18,10 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
+import com.example.timewarp.R
 import com.example.timewarp.data.repository.FakeAuthRepository
 import com.example.timewarp.data.repository.FakeCampsiteRepository
+import com.example.timewarp.data.repository.FakeImageRepository
 import com.example.timewarp.data.repository.FakeUserRepository
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Location
@@ -28,6 +31,7 @@ import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
+import com.example.timewarp.domain.repository.ImageRepository
 import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -53,6 +57,7 @@ class EditCampsiteTest {
     @Inject lateinit var authRepository: AuthRepository
     @Inject lateinit var userRepository: UserRepository
     @Inject lateinit var campsiteRepository: CampsiteRepository
+    @Inject lateinit var imageRepository: ImageRepository
 
     private var scenario: ActivityScenario<MainActivity>? = null
 
@@ -81,6 +86,7 @@ class EditCampsiteTest {
             addUser(User(userId = campsite.ownerUserId, userType = UserType.CampsiteOwner))
         }
         (authRepository as FakeAuthRepository).setCurrentUserId(campsite.ownerUserId)
+        (imageRepository as FakeImageRepository).clear()
     }
 
     @After
@@ -90,9 +96,14 @@ class EditCampsiteTest {
 
     @Test
     fun save_prefillsAndUpdatesExistingCampsite() {
+        val imageId = seedCampsiteImage()
         openEdit()
         val updatedName = "Pine Ridge Lakefront"
 
+        composeRule.onNodeWithTag(
+            "campsiteUploadedImage",
+            useUnmergedTree = true
+        ).assertIsDisplayed()
         nameField().performScrollTo().assertTextEquals(campsite.name)
         nameField().performTextReplacement(updatedName)
         closeSoftKeyboard()
@@ -101,7 +112,23 @@ class EditCampsiteTest {
         waitForTag("details_name")
         composeRule.onNodeWithTag("details_name").assertTextEquals(updatedName)
         val stored = runBlocking { campsiteRepository.getCampsites().orEmpty() }
-        assertEquals(listOf(campsite.copy(name = updatedName)), stored)
+        assertEquals(listOf(campsite.copy(name = updatedName, imageId = imageId)), stored)
+    }
+
+    @Test
+    fun removePhoto_clearsImageIdWhenSaving() {
+        val imageId = seedCampsiteImage()
+        openEdit()
+
+        composeRule.onNodeWithText("Remove photo")
+            .performScrollTo()
+            .performClick()
+        composeRule.onNodeWithText("Save changes").performScrollTo().performClick()
+
+        waitForTag("details_name")
+        val saved = runBlocking { campsiteRepository.getCampsite(campsite.campsiteId) }
+        assertEquals("", saved?.imageId)
+        assertEquals(imageId, runBlocking { imageRepository.getImage(imageId) }?.imageId)
     }
 
     @Test
@@ -136,6 +163,21 @@ class EditCampsiteTest {
         hasSetTextAction() and hasAnyAncestor(hasTestTag("registerCampsite_name")),
         useUnmergedTree = true
     )
+
+    private fun seedCampsiteImage(): String {
+        val image = checkNotNull(runBlocking {
+            imageRepository.uploadImage(
+                Uri.parse("android.resource://com.example.timewarp/${R.drawable.maligne_lake}")
+            )
+        })
+        runBlocking {
+            campsiteRepository.editCampsite(
+                campsiteId = campsite.campsiteId,
+                campsite = campsite.copy(imageId = image.imageId)
+            )
+        }
+        return image.imageId
+    }
 
     private fun waitForTag(tag: String) {
         composeRule.waitUntil(10_000) {
