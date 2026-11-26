@@ -110,6 +110,7 @@ fun CreateCampsiteScreen(
             state = state,
             onChange = viewModel::updateDraft,
             onImageSelected = viewModel::onCampsiteImageSelected,
+            onImageRemoved = viewModel::removeCampsiteImage,
             onRegister = viewModel::register,
             onCancel = { navController.popBackStack() }
         )
@@ -131,6 +132,7 @@ fun CreateCampsiteScreen(
  * @param state Current form values, validation results, and saving status.
  * @param onChange Called when a form value changes.
  * @param onImageSelected Called when a campsite photo is selected.
+ * @param onImageRemoved Called when the selected campsite photo is removed.
  * @param onRegister Called when the registration button is pressed.
  * @param onCancel Called when cancellation is requested.
  */
@@ -139,6 +141,7 @@ internal fun CreateCampsiteForm(
     state: CreateCampsiteState,
     onChange: (CreateCampsiteState) -> Unit,
     onImageSelected: (Uri) -> Unit,
+    onImageRemoved: () -> Unit,
     onRegister: () -> Unit,
     onCancel: () -> Unit,
     isEditing: Boolean = false,
@@ -153,6 +156,9 @@ internal fun CreateCampsiteForm(
     ) {
         // 1. Default campsite image
         SectionTitle("Set the scene")
+        val campsiteImage = state.campsiteImage?.takeIf {
+            it.imageId.isNotBlank() && it.url.isNotBlank()
+        }
         ImagePickerButton(
             onImageSelected = onImageSelected,
             modifier = Modifier.fillMaxWidth().testTag("campsiteImagePicker")
@@ -160,9 +166,6 @@ internal fun CreateCampsiteForm(
             Box(
                 modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)
             ) {
-                val campsiteImage = state.campsiteImage?.takeIf {
-                    it.imageId.isNotBlank() && it.url.isNotBlank()
-                }
                 if (campsiteImage != null) {
                     RemoteImage(
                         image = campsiteImage,
@@ -194,6 +197,15 @@ internal fun CreateCampsiteForm(
                     )
                 }
             }
+        }
+        if (campsiteImage != null) {
+            BaseButton(
+                type = BaseButtonType.Outlined,
+                text = "Remove photo",
+                onClick = onImageRemoved,
+                enabled = !state.isSaving && !state.isUploadingImage,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
         if (state.isUploadingImage) {
             Text("Uploading campsite photo...", style = MaterialTheme.typography.bodySmall)

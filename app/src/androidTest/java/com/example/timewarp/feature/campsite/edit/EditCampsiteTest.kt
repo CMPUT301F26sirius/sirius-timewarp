@@ -18,6 +18,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
+import com.example.timewarp.R
 import com.example.timewarp.data.repository.FakeAuthRepository
 import com.example.timewarp.data.repository.FakeCampsiteRepository
 import com.example.timewarp.data.repository.FakeImageRepository
@@ -99,7 +100,10 @@ class EditCampsiteTest {
         openEdit()
         val updatedName = "Pine Ridge Lakefront"
 
-        composeRule.onNodeWithTag("campsiteUploadedImage").assertIsDisplayed()
+        composeRule.onNodeWithTag(
+            "campsiteUploadedImage",
+            useUnmergedTree = true
+        ).assertIsDisplayed()
         nameField().performScrollTo().assertTextEquals(campsite.name)
         nameField().performTextReplacement(updatedName)
         closeSoftKeyboard()
@@ -109,6 +113,22 @@ class EditCampsiteTest {
         composeRule.onNodeWithTag("details_name").assertTextEquals(updatedName)
         val stored = runBlocking { campsiteRepository.getCampsites().orEmpty() }
         assertEquals(listOf(campsite.copy(name = updatedName, imageId = imageId)), stored)
+    }
+
+    @Test
+    fun removePhoto_clearsImageIdWhenSaving() {
+        val imageId = seedCampsiteImage()
+        openEdit()
+
+        composeRule.onNodeWithText("Remove photo")
+            .performScrollTo()
+            .performClick()
+        composeRule.onNodeWithText("Save changes").performScrollTo().performClick()
+
+        waitForTag("details_name")
+        val saved = runBlocking { campsiteRepository.getCampsite(campsite.campsiteId) }
+        assertEquals("", saved?.imageId)
+        assertEquals(imageId, runBlocking { imageRepository.getImage(imageId) }?.imageId)
     }
 
     @Test
@@ -146,7 +166,9 @@ class EditCampsiteTest {
 
     private fun seedCampsiteImage(): String {
         val image = checkNotNull(runBlocking {
-            imageRepository.uploadImage(Uri.parse("content://test.images/campsite"))
+            imageRepository.uploadImage(
+                Uri.parse("android.resource://com.example.timewarp/${R.drawable.maligne_lake}")
+            )
         })
         runBlocking {
             campsiteRepository.editCampsite(

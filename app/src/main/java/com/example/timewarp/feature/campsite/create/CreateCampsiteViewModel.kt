@@ -189,6 +189,15 @@ class CreateCampsiteViewModel @Inject constructor(
         }
     }
 
+    fun removeCampsiteImage() {
+        val current = _state.value
+        if (current.isSaving || current.isUploadingImage || current.savedCampsiteId != null) return
+
+        _state.update {
+            it.copy(imageId = "", campsiteImage = null, imageUploadError = null)
+        }
+    }
+
     /**
      * Validates the form and saves a campsite belonging to the signed-in owner.
      *

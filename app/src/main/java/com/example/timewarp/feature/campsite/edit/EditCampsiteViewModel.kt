@@ -161,6 +161,17 @@ class EditCampsiteViewModel @Inject constructor(
         }
     }
 
+    fun removeCampsiteImage() {
+        val current = _state.value as? EditCampsiteState.Ready ?: return
+        if (current.draft.isSaving || current.draft.isUploadingImage ||
+            current.draft.savedCampsiteId != null
+        ) return
+
+        updateReadyDraft {
+            copy(imageId = "", campsiteImage = null, imageUploadError = null)
+        }
+    }
+
     private fun updateReadyDraft(
         transform: CreateCampsiteState.() -> CreateCampsiteState
     ) {

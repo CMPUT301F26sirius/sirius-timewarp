@@ -17,6 +17,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
+import com.example.timewarp.R
 import com.example.timewarp.data.repository.FakeAuthRepository
 import com.example.timewarp.data.repository.FakeCampsiteRepository
 import com.example.timewarp.data.repository.FakeImageRepository
@@ -164,7 +165,9 @@ class CampsiteDetailsTest {
     @Test
     fun details_displaysUploadedCampsiteImage() {
         val image = checkNotNull(runBlocking {
-            imageRepository.uploadImage(Uri.parse("content://test.images/campsite"))
+            imageRepository.uploadImage(
+                Uri.parse("android.resource://com.example.timewarp/${R.drawable.maligne_lake}")
+            )
         })
         val campsite = checkNotNull(runBlocking { campsiteRepository.getCampsite("1") })
         runBlocking {
@@ -174,7 +177,10 @@ class CampsiteDetailsTest {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         openDetails()
 
-        composeRule.onNodeWithTag("details_campsite_remote_image").assertIsDisplayed()
+        composeRule.onNodeWithTag(
+            "details_campsite_remote_image",
+            useUnmergedTree = true
+        ).assertIsDisplayed()
         scenario.close()
     }
 
