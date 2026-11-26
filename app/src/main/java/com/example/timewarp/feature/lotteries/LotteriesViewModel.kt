@@ -191,6 +191,7 @@ class LotteriesViewModel @Inject constructor(
 
                 val allReservations = reservationRepository.getReservations().orEmpty()
                 val lotteries = lotteryRepository.getLotteries().orEmpty()
+                val lotteriesById = lotteries.associateBy { it.lotteryId }
 
                 // The user's lottery entries
                 val entries = allReservations
@@ -199,23 +200,17 @@ class LotteriesViewModel @Inject constructor(
                                     == ReservationState.Waitlisted)}
                     .sortedByDescending { it.timestamp } // newest first
 
-                // An entry belongs to the lottery that includes its campsite
-                // Entries with no matching lottery are skipped.
+                // Entries without a matching lottery ID are skipped.
                 val items = mutableListOf<LotteryItem>()
                 for (entry in entries) {
-                    for (lottery in lotteries) {
-                        if (entry.campsiteId in lottery.campsiteIds) {
-                            val peopleWaiting = allReservations.count {
-                                it.campsiteId in lottery.campsiteIds && it.reservationState ==
-                                        ReservationState.Waitlisted
-                            }
-
-                            val title = lotteryTitle(lottery)
-
-                            items.add(entry.toItem(lottery, title, peopleWaiting))
-                            break
-                        }
+                    val lottery = lotteriesById[entry.lotteryId] ?: continue
+                    val peopleWaiting = allReservations.count {
+                        it.lotteryId == lottery.lotteryId &&
+                                it.reservationState == ReservationState.Waitlisted
                     }
+
+                    val title = lotteryTitle(lottery)
+                    items.add(entry.toItem(lottery, title, peopleWaiting))
                 }
 
                 _state.value = LotteriesState.Content(
