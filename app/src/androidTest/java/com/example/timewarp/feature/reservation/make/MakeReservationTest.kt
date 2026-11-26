@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.reservation.make
 
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -27,6 +28,8 @@ import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.NotificationRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.repository.UserRepository
+import com.example.timewarp.core.util.DayFormatter
+import com.example.timewarp.domain.model.Availability
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
@@ -39,9 +42,10 @@ import org.junit.runner.RunWith
 import javax.inject.Inject
 
 /**
- * Instrumented tests for confirming a won reservation (US 01.05.01)
- * and the confirmation notification and CSV (US 01.05.02).
+ * Instrumented tests for confirming a won reservation (US 01.05.01),
+ * the confirmation notification and CSV (US 01.05.02), and picking dates (US 01.04.01).
  */
+
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class MakeReservationTest {
@@ -105,11 +109,10 @@ class MakeReservationTest {
         }
         composeRule.onNodeWithText("Reservations").performClick()
 
-        // Won reservations are under the Booking tab
         composeRule.waitUntil(5_000) {
-            composeRule.onAllNodesWithTag("tab_Booking").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithTag("tab_Pending").fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithTag("tab_Booking").performClick()
+        composeRule.onNodeWithTag("tab_Pending").performClick()
 
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithTag("reservation_$reservationId").fetchSemanticsNodes().isNotEmpty()
@@ -174,6 +177,51 @@ class MakeReservationTest {
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithTag("reservation_$reservationId").fetchSemanticsNodes().isNotEmpty()
         }
+
+        scenario.close()
+    }
+
+    // Gives the won campsite open dates a month from now, so the screen asks for dates
+    private fun openCampsiteDates() {
+        val today = DayFormatter.fromMillis(System.currentTimeMillis())
+        val campsite = Campsite(
+            campsiteId = campsiteId,
+            name = "Pocahontas",
+            location = Location(address = "Jasper"),
+            availability = Availability(
+                startDate = DayFormatter.toDateString(today + 30),
+                endDate = DayFormatter.toDateString(today + 40)
+            )
+        )
+        // Same ID, so this replaces the campsite added in setUp
+        (campsiteRepository as FakeCampsiteRepository).addCampsite(campsite)
+    }
+
+    @Test
+    fun withOpenDates_confirmDisabledUntilDatesChosen() {
+        openCampsiteDates()
+        val scenario = openMakeReservation()
+
+        composeRule.onNodeWithTag("choose_dates_button").assertIsDisplayed()
+        composeRule.onNodeWithText("No dates chosen yet").assertIsDisplayed()
+        composeRule.onNodeWithTag("confirm_reservation_button").assertIsNotEnabled()
+
+        scenario.close()
+    }
+
+    @Test
+    fun chooseDates_opensCalendar() {
+        openCampsiteDates()
+        val scenario = openMakeReservation()
+
+        composeRule.onNodeWithTag("choose_dates_button").performClick()
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Select your dates").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Closing without picking keeps Confirm off
+        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.onNodeWithText("No dates chosen yet").assertIsDisplayed()
 
         scenario.close()
     }

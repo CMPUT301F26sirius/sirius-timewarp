@@ -1,5 +1,7 @@
 package com.example.timewarp.domain.usecase
 
+import com.example.timewarp.core.util.DayFormatter
+import com.example.timewarp.domain.model.Availability
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Notification
 import com.example.timewarp.domain.model.Reservation
@@ -35,38 +37,69 @@ class ConfirmReservationUseCase @Inject constructor(
      * Confirms the reservation with [reservationId] and notifies its entrant.
      *
      * @param campsite the reserved campsite, used in the notification text; null if unknown.
+     * @param checkIn first night of the stay as a day number, or null if no dates were picked.
+     * @param checkOut check-out day as a day number, or null if no dates were picked.
      * @return true if it was confirmed, false if it doesn't exist or isn't Pending.
      */
-    suspend operator fun invoke(reservationId: String, campsite: Campsite?): Boolean {
+    suspend operator fun invoke(
+        reservationId: String,
+        campsite: Campsite?,
+        checkIn: Int? = null,
+        checkOut: Int? = null
+    ): Boolean {
         val reservation = reservationRepository.getReservation(reservationId)
 
+        // Nothing to confirm
         if (reservation == null) {
             return false
         }
 
+        // Already reserved, cancelled, waitlisted, etc.
         if (!canConfirm(reservation)) {
             return false
         }
 
-        reservationRepository.updateReservationState(reservationId, ReservationState.Reserved)
+        var confirmed = reservation.copy(reservationState = ReservationState.Reserved)
+
+        if (checkIn != null && checkOut != null) {
+            // Save the picked dates together with the new state (US 01.04.01)
+            val dates = Availability(
+                startDate = DayFormatter.toDateString(checkIn),
+                endDate = DayFormatter.toDateString(checkOut)
+            )
+            confirmed = confirmed.copy(datesBooked = dates)
+            reservationRepository.editReservation(reservationId, confirmed)
+        } else {
+            // No dates picked, so only the state changes
+            reservationRepository.updateReservationState(reservationId, ReservationState.Reserved)
+        }
 
         // Tell the entrant their booking went through (US 01.05.02)
-        notificationRepository.sendNotification(buildConfirmationNotification(reservation, campsite))
+        notificationRepository.sendNotification(buildConfirmationNotification(confirmed, campsite))
         return true
     }
 
     /**
-     * Builds the confirmation notification for [reservation], including the campsite details.
+     * Builds the confirmation notification for [reservation], including the campsite and dates.
      */
     fun buildConfirmationNotification(reservation: Reservation, campsite: Campsite?): Notification {
+        // Fall back to generic text if the campsite couldn't be loaded
         var campsiteText = "your campsite"
         if (campsite != null) {
             campsiteText = "${campsite.name}, ${campsite.location.address}"
         }
 
+        // Add the stay dates when they were picked
+        var datesText = ""
+        val start = reservation.datesBooked.startDate
+        val end = reservation.datesBooked.endDate
+        if (start.isNotEmpty() && end.isNotEmpty()) {
+            datesText = " from $start to $end"
+        }
+
         return Notification(
             notificationId = UUID.randomUUID().toString(),
-            notification = "Your reservation #${reservation.reservationId} at $campsiteText is confirmed.",
+            notification = "Your reservation #${reservation.reservationId} at $campsiteText$datesText is confirmed.",
             fromUserId = CancelReservationUseCase.SYSTEM_SENDER,
             toUserId = reservation.userId
         )
