@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.reservation.make
 
+import android.R.attr.enabled
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -51,6 +53,12 @@ import com.example.timewarp.ui.theme.PitchError
 import com.example.timewarp.ui.theme.PitchForest
 import com.example.timewarp.ui.theme.PitchMutedText
 import com.example.timewarp.ui.theme.TimewarpTheme
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Checkbox
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+
 
 /*
 * Make reservation screen for lottery winners: pick dates, then Confirm (US 01.05.01, US 01.04.01).
@@ -99,7 +107,10 @@ fun MakeReservationScreen(
         MakeReservationContent(
             state = state,
             onConfirm = { viewModel.confirm(reservationId) },
-            onDatesPicked = { checkIn, checkOut -> viewModel.selectDates(checkIn, checkOut) }
+            onDatesPicked = { checkIn, checkOut -> viewModel.selectDates(checkIn, checkOut)},
+            onRulesAcknowledgedChange = { checked ->
+                viewModel.setRulesAcknowledged(checked)
+            }
         )
     }
 }
@@ -115,7 +126,8 @@ fun MakeReservationScreen(
 fun MakeReservationContent(
     state: MakeReservationState,
     onConfirm: () -> Unit,
-    onDatesPicked: (Int, Int) -> Unit
+    onDatesPicked: (Int, Int) -> Unit,
+    onRulesAcknowledgedChange: (Boolean) -> Unit
 ) {
     // Whether the calendar dialog is open
     var showPicker by remember { mutableStateOf(false) }
@@ -155,6 +167,19 @@ fun MakeReservationContent(
 
                     DetailRow(label = "Reservation #", value = state.reservation.reservationId)
                     DetailRow(label = "Status", value = state.reservation.reservationState.name)
+
+                    val campsite = state.campsite
+                    if (state.canConfirm && campsite != null) {
+                        Text("Campsite rules", style = MaterialTheme.typography.titleMedium)
+                        if (campsite.rules.isEmpty()) {
+                            Text("The owner has listed no campsite rules.")
+                        } else {
+                            campsite.rules.forEach { rule -> Text("• $rule") }
+                        }
+
+                        Text("Cancellation policy", style = MaterialTheme.typography.titleMedium)
+                        Text(campsite.cancellationPolicy.policy.ifBlank { "No cancellation policy listed." })
+                    }
                 }
 
                 // Bottom: dates and Confirm stay at the bottom of the screen
@@ -169,15 +194,31 @@ fun MakeReservationContent(
 
                     // Only won (Pending) reservations can be confirmed
                     if (state.canConfirm) {
-                        // Keep Confirm off until valid dates are picked
-                        var confirmEnabled = true
-                        if (state.needsDates && !state.datesAreValid) {
-                            confirmEnabled = false
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("campsite_rules_acknowledgment")
+                                .toggleable(
+                                    value = state.rulesAcknowledged,
+                                    enabled = state.campsite != null,
+                                    role = Role.Checkbox,
+                                    onValueChange = onRulesAcknowledgedChange
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = state.rulesAcknowledged,
+                                onCheckedChange = null,
+                                enabled = state.campsite != null
+                            )
+                            Text("I have read the campsite rules and cancellation policy.")
                         }
+
 
                         Button(
                             onClick = onConfirm,
-                            enabled = confirmEnabled,
+                            enabled = state.canSubmit,
                             shape = ComponentStyles.ButtonShape,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -361,7 +402,8 @@ private fun MakeReservationContentPreview() {
             MakeReservationContent(
                 state = state,
                 onConfirm = {},
-                onDatesPicked = { checkIn, checkOut -> }
+                onDatesPicked = { checkIn, checkOut -> },
+                onRulesAcknowledgedChange = {}
             )
         }
     }

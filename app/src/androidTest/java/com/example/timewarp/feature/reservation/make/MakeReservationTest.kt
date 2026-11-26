@@ -2,6 +2,7 @@ package com.example.timewarp.feature.reservation.make
 
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -40,6 +41,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import javax.inject.Inject
+import androidx.compose.ui.test.assertIsEnabled
+import com.example.timewarp.data.repository.FakeLotteryRepository
+import com.example.timewarp.domain.model.Lottery
+import com.example.timewarp.domain.model.Period
+import com.example.timewarp.domain.repository.LotteryRepository
 
 /**
  * Instrumented tests for confirming a won reservation (US 01.05.01),
@@ -70,6 +76,9 @@ class MakeReservationTest {
     @Inject
     lateinit var notificationRepository: NotificationRepository
 
+    @Inject
+    lateinit var lotteryRepository: LotteryRepository
+
     private val userId = "test-entrant"
     private val reservationId = "0"
     private val campsiteId = "camp-1"
@@ -90,12 +99,29 @@ class MakeReservationTest {
         val campsite = Campsite(campsiteId = campsiteId, name = "Pocahontas", location = Location(address = "Jasper"))
         (campsiteRepository as FakeCampsiteRepository).addCampsite(campsite)
 
+
+
+        val lotteryId = "test-lottery"
+        val today = DayFormatter.fromMillis(System.currentTimeMillis())
+        val fakeLotteryRepository = lotteryRepository as FakeLotteryRepository
+
+        fakeLotteryRepository.clear()
+        fakeLotteryRepository.addLottery(
+            Lottery(
+                lotteryId = lotteryId,
+                bookingPeriod = Period(start = today - 1, end = today + 1),
+                campsiteIds = listOf(campsiteId)
+            )
+        )
+
         // A won reservation that still needs to be confirmed
         val reservation = Reservation(
             reservationId = reservationId,
             reservationState = ReservationState.Pending,
             userId = userId,
-            campsiteId = campsiteId
+            campsiteId = campsiteId,
+            lotteryId = lotteryId,
+
         )
         (reservationRepository as FakeReservationRepository).addReservation(reservation)
     }
@@ -129,7 +155,14 @@ class MakeReservationTest {
     fun confirming_reservesAndOpensConfirmationScreen() {
         val scenario = openMakeReservation()
 
-        composeRule.onNodeWithTag("confirm_reservation_button").performClick()
+        val confirmButton = composeRule.onNodeWithTag("confirm_reservation_button")
+
+        confirmButton.assertIsNotEnabled()
+
+        composeRule.onNodeWithTag("campsite_rules_acknowledgment").performClick()
+
+        confirmButton.assertIsEnabled()
+        confirmButton.performClick()
 
         // Confirmation screen appears
         composeRule.waitUntil(5_000) {
@@ -150,6 +183,9 @@ class MakeReservationTest {
     fun confirming_sendsNotificationWithCampsite() {
         val scenario = openMakeReservation()
 
+
+        composeRule.onNodeWithTag("campsite_rules_acknowledgment").performClick()
+
         composeRule.onNodeWithTag("confirm_reservation_button").performClick()
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithTag("confirmation_screen").fetchSemanticsNodes().isNotEmpty()
@@ -166,6 +202,8 @@ class MakeReservationTest {
     @Test
     fun confirmedReservation_showsUnderBooked() {
         val scenario = openMakeReservation()
+
+        composeRule.onNodeWithTag("campsite_rules_acknowledgment").performClick()
 
         composeRule.onNodeWithTag("confirm_reservation_button").performClick()
         composeRule.waitUntil(5_000) {
@@ -204,6 +242,9 @@ class MakeReservationTest {
 
         composeRule.onNodeWithTag("choose_dates_button").assertIsDisplayed()
         composeRule.onNodeWithText("No dates chosen yet").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("campsite_rules_acknowledgment").performClick()
+
         composeRule.onNodeWithTag("confirm_reservation_button").assertIsNotEnabled()
 
         scenario.close()
