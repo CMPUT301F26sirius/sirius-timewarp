@@ -76,6 +76,7 @@ fun EditCampsiteScreen(
             is EditCampsiteState.Ready -> CreateCampsiteForm(
                 state = current.draft,
                 onChange = viewModel::updateDraft,
+                onImageSelected = viewModel::onCampsiteImageSelected,
                 onRegister = viewModel::save,
                 onCancel = { navController.popBackStack() },
                 isEditing = true

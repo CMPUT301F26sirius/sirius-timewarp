@@ -1,16 +1,19 @@
 package com.example.timewarp.feature.campsite.create
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.Availability
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.CancellationPolicy
+import com.example.timewarp.domain.model.Image
 import com.example.timewarp.domain.model.Location
 import com.example.timewarp.domain.model.Occupancy
 import com.example.timewarp.domain.model.Pricing
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
+import com.example.timewarp.domain.repository.ImageRepository
 import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.RatingRepository
 import com.example.timewarp.domain.repository.UserRepository
@@ -55,6 +58,10 @@ data class CreateCampsiteState(
     val daysOfWeek: List<Int> = (1..7).toList(),
     val checkInTime: String = "14:00",
     val checkOutTime: String = "11:00",
+    val imageId: String = "",
+    val campsiteImage: Image? = null,
+    val isUploadingImage: Boolean = false,
+    val imageUploadError: String? = null,
     val isSaving: Boolean = false,
     val showErrors: Boolean = false,
     val saveError: String? = null,
@@ -103,6 +110,7 @@ data class CreateCampsiteState(
  * Reuses the generated campsite ID when retrying a failed save.
  *
  * @property campsiteRepository Repository used to save the campsite.
+ * @property imageRepository Uploads campsite photos and stores their metadata.
  * @property authRepository Provides the signed-in user's ID.
  * @property userRepository Provides the user record for checking owner status.
  */
@@ -110,6 +118,7 @@ data class CreateCampsiteState(
 @HiltViewModel
 class CreateCampsiteViewModel @Inject constructor(
     private val campsiteRepository: CampsiteRepository,
+    private val imageRepository: ImageRepository,
     private val ratingRepository: RatingRepository,
     private val lotteryRepository: LotteryRepository,
     private val authRepository: AuthRepository,
@@ -149,6 +158,37 @@ class CreateCampsiteViewModel @Inject constructor(
 
     }
 
+    fun onCampsiteImageSelected(uri: Uri) {
+        val current = _state.value
+        if (current.isSaving || current.isUploadingImage || current.savedCampsiteId != null) return
+
+        _state.update { it.copy(isUploadingImage = true, imageUploadError = null) }
+        viewModelScope.launch {
+            try {
+                val image = imageRepository.uploadImage(uri)
+                    ?.takeIf { it.imageId.isNotBlank() && it.url.isNotBlank() }
+                    ?: throw IllegalStateException("Unable to upload campsite image.")
+                _state.update {
+                    it.copy(
+                        imageId = image.imageId,
+                        campsiteImage = image,
+                        isUploadingImage = false,
+                        imageUploadError = null
+                    )
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _state.update {
+                    it.copy(
+                        isUploadingImage = false,
+                        imageUploadError = error.message ?: "Unable to upload campsite image."
+                    )
+                }
+            }
+        }
+    }
+
     /**
      * Validates the form and saves a campsite belonging to the signed-in owner.
      *
@@ -161,7 +201,7 @@ class CreateCampsiteViewModel @Inject constructor(
 
     fun register() {
         val draft = _state.value
-        if (draft.isSaving || draft.savedCampsiteId != null) return
+        if (draft.isSaving || draft.isUploadingImage || draft.savedCampsiteId != null) return
         if (draft.fieldErrors.isNotEmpty()) {
             _state.update { it.copy(showErrors = true) }
             return
@@ -198,6 +238,7 @@ class CreateCampsiteViewModel @Inject constructor(
                         amenities = draft.amenities.distinct(),
                         rules = draft.rules.lines().map { it.trim() }.filter { it.isNotEmpty() },
                         cancellationPolicy = CancellationPolicy(draft.cancellationPolicy.trim()),
+                        imageId = draft.imageId,
                         tags = draft.tags,
                         minimumStayNights = draft.minimumStayNights.toInt(),
                         checkInTime = draft.checkInTime,

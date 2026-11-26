@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.campsite.details
 
+import android.net.Uri
 import android.nfc.Tag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
@@ -18,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
 import com.example.timewarp.data.repository.FakeAuthRepository
 import com.example.timewarp.data.repository.FakeCampsiteRepository
+import com.example.timewarp.data.repository.FakeImageRepository
 import com.example.timewarp.data.repository.FakeLotteryRepository
 import com.example.timewarp.data.repository.FakeRatingRepository
 import com.example.timewarp.data.repository.FakeUserRepository
@@ -30,6 +32,7 @@ import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
+import com.example.timewarp.domain.repository.ImageRepository
 import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.RatingRepository
 import com.example.timewarp.domain.repository.UserRepository
@@ -65,6 +68,9 @@ class CampsiteDetailsTest {
     lateinit var campsiteRepository: CampsiteRepository
 
     @Inject
+    lateinit var imageRepository: ImageRepository
+
+    @Inject
     lateinit var lotteryRepository: LotteryRepository
 
     @Inject
@@ -82,6 +88,7 @@ class CampsiteDetailsTest {
         // Entrant
         (authRepository as FakeAuthRepository).setCurrentUserId("browse-user")
         (userRepository as FakeUserRepository).addUser(User(userId = "browse-user", userType = UserType.Entrant))
+        (imageRepository as FakeImageRepository).clear()
 
         // Campsite
         (campsiteRepository as FakeCampsiteRepository).clear()
@@ -151,6 +158,23 @@ class CampsiteDetailsTest {
         openDetails()
         composeRule.onNodeWithTag("details_name").assertIsDisplayed()
         composeRule.onNodeWithTag("details_address").assertIsDisplayed()
+        scenario.close()
+    }
+
+    @Test
+    fun details_displaysUploadedCampsiteImage() {
+        val image = checkNotNull(runBlocking {
+            imageRepository.uploadImage(Uri.parse("content://test.images/campsite"))
+        })
+        val campsite = checkNotNull(runBlocking { campsiteRepository.getCampsite("1") })
+        runBlocking {
+            campsiteRepository.editCampsite("1", campsite.copy(imageId = image.imageId))
+        }
+
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openDetails()
+
+        composeRule.onNodeWithTag("details_campsite_remote_image").assertIsDisplayed()
         scenario.close()
     }
 
