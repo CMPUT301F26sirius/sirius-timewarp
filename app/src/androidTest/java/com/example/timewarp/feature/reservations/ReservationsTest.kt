@@ -10,9 +10,11 @@ import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
+import com.example.timewarp.core.util.DayFormatter
 import com.example.timewarp.data.repository.FakeAuthRepository
 import com.example.timewarp.data.repository.FakeReservationRepository
 import com.example.timewarp.data.repository.FakeUserRepository
+import com.example.timewarp.domain.model.Availability
 import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.model.User
@@ -68,6 +70,15 @@ class ReservationsTest {
             userId = userId
         )
 
+    private fun reservedReservation(id: String, endDay: Int) =
+        Reservation(
+            reservationId = id,
+            reservationState = ReservationState.Reserved,
+            campsiteId = "campsite",
+            userId = "reservations-user",
+            datesBooked = Availability(endDate = DayFormatter.toDateString(endDay)),
+        )
+
     /*
     * This function logs a test entrant in and clears all reservations before each test
     */
@@ -96,7 +107,7 @@ class ReservationsTest {
             composeRule.onAllNodesWithText("Reservations").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("Reservations").performClick()
-        waitForTag("tab_Booked")
+        waitForTag("tab_Reserved")
     }
 
     /*
@@ -123,7 +134,7 @@ class ReservationsTest {
         repository.addReservation(reservation("r2", "reservations-user", ReservationState.Pending))
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         openReservations()
-        composeRule.onNodeWithTag("tab_Booking").performClick()
+        composeRule.onNodeWithTag("tab_Pending").performClick()
         waitForTag("reservation_r1")
         composeRule.onNodeWithTag("reservation_r1").assertIsDisplayed()
         composeRule.onNodeWithTag("reservation_r2").assertIsDisplayed()
@@ -177,6 +188,32 @@ class ReservationsTest {
         openReservations()
         waitForTag("reservation_active")
         composeRule.onNodeWithTag("reservation_cancelled").assertDoesNotExist()
+        scenario.close()
+    }
+
+    @Test
+    fun reservedTripsAreGroupedByEndDateAcrossTabs() {
+        val today = DayFormatter.fromMillis(System.currentTimeMillis())
+        val repository = reservationRepository as FakeReservationRepository
+        repository.addReservation(reservedReservation("past", today - 1))
+        repository.addReservation(reservedReservation("ending-today", today))
+        repository.addReservation(reservedReservation("upcoming", today + 1))
+        repository.addReservation(reservation("pending", "reservations-user", ReservationState.Pending))
+
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openReservations()
+        waitForTag("reservation_upcoming")
+        composeRule.onNodeWithTag("reservation_upcoming").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_ending-today").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_past").assertDoesNotExist()
+        composeRule.onNodeWithTag("reservation_pending").assertDoesNotExist()
+
+        composeRule.onNodeWithTag("tab_Past").performClick()
+        waitForTag("reservation_past")
+        composeRule.onNodeWithTag("reservation_past").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_ending-today").assertDoesNotExist()
+        composeRule.onNodeWithTag("reservation_upcoming").assertDoesNotExist()
+        composeRule.onNodeWithTag("reservation_pending").assertDoesNotExist()
         scenario.close()
     }
 }
