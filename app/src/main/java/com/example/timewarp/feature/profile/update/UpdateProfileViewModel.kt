@@ -1,12 +1,16 @@
 package com.example.timewarp.feature.profile.update
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.timewarp.domain.model.Image
 import com.example.timewarp.domain.model.Profile
+import com.example.timewarp.domain.repository.ImageRepository
 import com.example.timewarp.domain.repository.ProfileRepository
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import com.example.timewarp.domain.usecase.ObserveUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,13 +34,16 @@ sealed interface UpdateProfileState {
         val lastName: String,
         val email: String,
         val phoneNumber: String,
+        val profileImage: Image? = null,
+        val isUploadingImage: Boolean = false,
+        val imageUploadError: String? = null,
         val isSaving: Boolean = false,
         val saveError: String? = null,
         val isSaved: Boolean = false
     ) : UpdateProfileState {
         val canSave: Boolean
             get() = firstName.isNotBlank() && lastName.isNotBlank() &&
-                    email.isNotBlank() && !isSaving
+                    email.isNotBlank() && !isSaving && !isUploadingImage
     }
     data class Error (val message: String) : UpdateProfileState
 }
@@ -52,6 +59,7 @@ sealed interface UpdateProfileState {
 @HiltViewModel
 class UpdateProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
+    private val imageRepository: ImageRepository,
     private val observeCurrentUser: ObserveCurrentUserUseCase,
     private val observeUserProfile: ObserveUserProfileUseCase
 ) : ViewModel() {
@@ -90,7 +98,13 @@ class UpdateProfileViewModel @Inject constructor(
                 }
 
                 // No profile yet: start blank, and saving creates it
-                showProfile(profile ?: Profile(userId = userId))
+                val loadedProfile = profile ?: Profile(userId = userId)
+                val profileImage = if (loadedProfile.imageId.isNotBlank()) {
+                    imageRepository.getImage(loadedProfile.imageId)
+                } else {
+                    null
+                }
+                showProfile(loadedProfile, profileImage)
             } catch (error: Exception) {
                 _state.value = UpdateProfileState.Error(
                     error.message ?: "Unable to load profile."
@@ -103,13 +117,14 @@ class UpdateProfileViewModel @Inject constructor(
      *
      * @param profile Profile, whose values are the form's starting values.
      */
-    private fun showProfile(profile: Profile) {
+    private fun showProfile(profile: Profile, profileImage: Image?) {
         originalProfile = profile
         _state.value = UpdateProfileState.Content(
             firstName = profile.firstName,
             lastName = profile.lastName,
             email = profile.email,
-            phoneNumber = profile.phoneNumber
+            phoneNumber = profile.phoneNumber,
+            profileImage = profileImage
         )
     }
 
@@ -118,6 +133,35 @@ class UpdateProfileViewModel @Inject constructor(
     fun onLastNameChange(value: String) = updateContent { copy(lastName = value) }
     fun onEmailChange(value: String) = updateContent { copy(email = value) }
     fun onPhoneNumberChange(value: String) = updateContent { copy(phoneNumber = value) }
+
+    fun onProfileImageSelected(uri: Uri) {
+        val current = _state.value as? UpdateProfileState.Content ?: return
+        if (current.isUploadingImage) return
+
+        updateContent { copy(isUploadingImage = true, imageUploadError = null) }
+        viewModelScope.launch {
+            try {
+                val image = imageRepository.uploadImage(uri)
+                    ?: throw IllegalStateException("Unable to upload image.")
+                updateContent {
+                    copy(
+                        profileImage = image,
+                        isUploadingImage = false,
+                        imageUploadError = null
+                    )
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                updateContent {
+                    copy(
+                        isUploadingImage = false,
+                        imageUploadError = error.message ?: "Unable to upload image."
+                    )
+                }
+            }
+        }
+    }
 
     /**
      * Trim each field (in case of whitespaces), copies values into profile.
@@ -140,7 +184,8 @@ class UpdateProfileViewModel @Inject constructor(
                         firstName = current.firstName.trim(),
                         lastName = current.lastName.trim(),
                         email = current.email.trim(),
-                        phoneNumber = current.phoneNumber.trim()
+                        phoneNumber = current.phoneNumber.trim(),
+                        imageId = current.profileImage?.imageId ?: profile.imageId
                     )
                 )
                 updateContent { copy(isSaving = false, isSaved = true) }

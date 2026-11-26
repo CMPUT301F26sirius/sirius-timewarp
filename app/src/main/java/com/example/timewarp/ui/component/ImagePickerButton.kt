@@ -22,7 +22,7 @@ fun ImagePickerButton(
     }
 
     Box(
-        modifier = Modifier.clickable {
+        modifier = modifier.clickable {
             picker.launch(
                 PickVisualMediaRequest(
                     ActivityResultContracts.PickVisualMedia.ImageOnly

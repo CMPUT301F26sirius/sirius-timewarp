@@ -1,8 +1,8 @@
 package com.example.timewarp.feature.profile.update
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +50,8 @@ import com.example.timewarp.ui.component.BaseButton
 import com.example.timewarp.ui.component.BaseButtonType
 import com.example.timewarp.ui.component.BaseInput
 import com.example.timewarp.ui.component.BaseInputType
+import com.example.timewarp.ui.component.ImagePickerButton
+import com.example.timewarp.ui.component.RemoteImage
 import com.example.timewarp.ui.theme.TimewarpTheme
 /**
  * Screen where we connect UpdateProfileViewModel to the UI. It collects
@@ -104,6 +106,7 @@ fun UpdateProfileScreen(
                     onLastNameChange = viewModel::onLastNameChange,
                     onEmailChange = viewModel::onEmailChange,
                     onPhoneNumberChange = viewModel::onPhoneNumberChange,
+                    onProfileImageSelected = viewModel::onProfileImageSelected,
                     onSave = viewModel::save,
                     onCancel = { navController.popBackStack() }
                 )
@@ -121,6 +124,7 @@ fun UpdateProfileScreen(
  * @param onLastNameChange Called when new text
  * @param onEmailChange Called when new text
  * @param onPhoneNumberChange Called when new text
+ * @param onProfileImageSelected Called when a profile image is selected
  * @param onSave Called when update is pressed
  * @param onCancel Called when cancel is pressed
  */
@@ -132,7 +136,8 @@ internal fun UpdateProfileForm(
     onEmailChange: (String) -> Unit,
     onPhoneNumberChange: (String) -> Unit,
     onSave: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onProfileImageSelected: (Uri) -> Unit
 ){
 
     // Not part of Profile yet, so kept on screen only
@@ -198,35 +203,54 @@ internal fun UpdateProfileForm(
 
         // Photo
         Text("Update photo", style = MaterialTheme.typography.titleMedium)
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+        ImagePickerButton(
+            onImageSelected = onProfileImageSelected,
+            modifier = Modifier.testTag("profileImagePicker")
         ) {
-            Box(modifier = Modifier.size(120.dp)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                        .clickable { /* open image picker */ }
-                )
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .align(Alignment.BottomEnd)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Add photo",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(20.dp)
-                    )
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(modifier = Modifier.size(120.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                    ) {
+                        state.profileImage?.let { image ->
+                            RemoteImage(
+                                image = image,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .align(Alignment.BottomEnd)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Add photo",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
+        }
+        if (state.isUploadingImage) {
+            Text("Uploading image...", style = MaterialTheme.typography.bodySmall)
+        }
+        state.imageUploadError?.let {
+            Text(text = it, color = MaterialTheme.colorScheme.error)
         }
 
         // Interests
@@ -328,6 +352,7 @@ fun UpdateProfilePreview() {
             onLastNameChange = {},
             onEmailChange = {},
             onPhoneNumberChange = {},
+            onProfileImageSelected = {},
             onSave = {},
             onCancel = {}
         )
