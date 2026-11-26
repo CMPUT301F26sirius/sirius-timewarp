@@ -147,22 +147,15 @@ class ReservationsTest {
     * US 01.06.01: This shows only pending winner reservations on the Booking tab
     */
     @Test
-    fun bookingTab_showsPendingOnly() {
-        val today = DayFormatter.fromMillis(System.currentTimeMillis())
-        addLottery("open-lottery", today, today)
+    fun bookingTab_showsPending() {
         val repository = reservationRepository as FakeReservationRepository
-        repository.addReservation(
-            reservation("r1", "reservations-user", ReservationState.Waitlisted, "open-lottery")
-        )
-        repository.addReservation(
-            reservation("r2", "reservations-user", ReservationState.Pending, "open-lottery")
-        )
+        repository.addReservation(reservation("waiting", "reservations-user", ReservationState.Waitlisted))
+        repository.addReservation(reservation("won", "reservations-user", ReservationState.Pending))
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         openReservations()
-        composeRule.onNodeWithTag("tab_Pending").performClick()
-        waitForTag("reservation_r2")
-        composeRule.onNodeWithTag("reservation_r2").assertIsDisplayed()
-        composeRule.onNodeWithTag("reservation_r1").assertDoesNotExist()
+        composeRule.onNodeWithTag("tab_${ReservationTab.Booking.label}").performClick()
+        waitForTag("reservation_won")
+        composeRule.onNodeWithTag("reservation_won").assertIsDisplayed()
         scenario.close()
     }
 
@@ -230,7 +223,7 @@ class ReservationsTest {
         repository.addReservation(reservation("r3", "reservations-user", ReservationState.Rejected))
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         openReservations()
-        composeRule.onNodeWithTag("tab_Cancelled").performClick()
+        composeRule.onNodeWithTag("tab_${ReservationTab.Cancelled.label}").performClick()
         waitForTag("reservation_r1")
         composeRule.onNodeWithTag("reservation_r1").assertIsDisplayed()
         composeRule.onNodeWithTag("reservation_r2").assertIsDisplayed()

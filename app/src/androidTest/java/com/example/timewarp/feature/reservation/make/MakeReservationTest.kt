@@ -1,6 +1,7 @@
 package com.example.timewarp.feature.reservation.make
 
 import androidx.compose.ui.test.assertIsNotEnabled
+
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
@@ -18,6 +19,8 @@ import com.example.timewarp.data.repository.FakeCampsiteRepository
 import com.example.timewarp.data.repository.FakeNotificationRepository
 import com.example.timewarp.data.repository.FakeReservationRepository
 import com.example.timewarp.data.repository.FakeUserRepository
+import com.example.timewarp.data.repository.FakeLotteryRepository
+import com.example.timewarp.domain.model.Lottery
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Location
 import com.example.timewarp.domain.model.Reservation
@@ -29,6 +32,7 @@ import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.NotificationRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.repository.UserRepository
+import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.core.util.DayFormatter
 import com.example.timewarp.domain.model.Availability
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -42,14 +46,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import javax.inject.Inject
 import androidx.compose.ui.test.assertIsEnabled
-import com.example.timewarp.data.repository.FakeLotteryRepository
-import com.example.timewarp.domain.model.Lottery
+
 import com.example.timewarp.domain.model.Period
-import com.example.timewarp.domain.repository.LotteryRepository
 
 /**
  * Instrumented tests for confirming a won reservation (US 01.05.01),
- * the confirmation notification and CSV (US 01.05.02), and picking dates (US 01.04.01).
+ * the confirmation notification and CSV (US 01.05.02), and choosing a campsite and dates (US 01.04.01).
  */
 
 @HiltAndroidTest
@@ -83,6 +85,10 @@ class MakeReservationTest {
     private val reservationId = "0"
     private val campsiteId = "camp-1"
 
+    private val otherCampsiteId = "camp-2"
+
+    private val lotteryId = "lottery-1"
+
     @Before
     fun setUp() {
         hiltRule.inject()
@@ -94,6 +100,7 @@ class MakeReservationTest {
         (campsiteRepository as FakeCampsiteRepository).clear()
         (reservationRepository as FakeReservationRepository).clear()
         (notificationRepository as FakeNotificationRepository).clear()
+        (lotteryRepository as FakeLotteryRepository).clear()
 
         // The campsite the entrant won
         val campsite = Campsite(campsiteId = campsiteId, name = "Pocahontas", location = Location(address = "Jasper"))
@@ -156,7 +163,6 @@ class MakeReservationTest {
         val scenario = openMakeReservation()
 
         val confirmButton = composeRule.onNodeWithTag("confirm_reservation_button")
-
         confirmButton.assertIsNotEnabled()
 
         composeRule.onNodeWithTag("campsite_rules_acknowledgment").performClick()
@@ -263,6 +269,66 @@ class MakeReservationTest {
         // Closing without picking keeps Confirm off
         composeRule.onNodeWithText("Cancel").performClick()
         composeRule.onNodeWithText("No dates chosen yet").assertIsDisplayed()
+
+        scenario.close()
+    }
+
+    // Replaces the won reservation with one from a lottery with two campsites, the way join saves it now
+    private fun openTwoCampsiteLottery() {
+        val otherCampsite = Campsite(campsiteId = otherCampsiteId, name = "Wapiti", location = Location(address = "Jasper"))
+        (campsiteRepository as FakeCampsiteRepository).addCampsite(otherCampsite)
+
+        val today = DayFormatter.fromMillis(System.currentTimeMillis())
+        val lottery = Lottery(
+            lotteryId = lotteryId,
+            bookingPeriod = Period(start = today - 1, end = today + 1),
+            campsiteIds = listOf(campsiteId, otherCampsiteId)
+        )
+        (lotteryRepository as FakeLotteryRepository).addLottery(lottery)
+
+        // Join saves only the lotteryId; the campsite is chosen when booking
+        val reservation = Reservation(
+            reservationId = reservationId,
+            reservationState = ReservationState.Pending,
+            userId = userId,
+            lotteryId = lotteryId
+        )
+        // Same ID, so this replaces the reservation added in setUp
+        (reservationRepository as FakeReservationRepository).addReservation(reservation)
+    }
+
+    @Test
+    fun twoCampsiteLottery_showsBothCampsites() {
+        openTwoCampsiteLottery()
+        val scenario = openMakeReservation()
+
+        composeRule.onNodeWithTag("campsite_dropdown").performClick()
+
+        composeRule.onNodeWithTag("campsite_option_$campsiteId").assertIsDisplayed()
+        composeRule.onNodeWithTag("campsite_option_$otherCampsiteId").assertIsDisplayed()
+
+        scenario.close()
+    }
+
+    @Test
+    fun choosingOtherCampsite_confirmSavesIt() {
+        openTwoCampsiteLottery()
+        val scenario = openMakeReservation()
+
+        // Pick the second campsite, then confirm
+        // Open the menu, pick the second campsite, then confirm
+        composeRule.onNodeWithTag("campsite_dropdown").performClick()
+        composeRule.onNodeWithTag("campsite_option_$otherCampsiteId").performClick()
+        composeRule.onNodeWithTag("campsite_rules_acknowledgment").performClick()
+        composeRule.onNodeWithTag("confirm_reservation_button").performClick()
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithTag("confirmation_screen").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Reserved at the campsite the winner chose
+        val saved = runBlocking { reservationRepository.getReservation(reservationId) }
+        assertEquals(ReservationState.Reserved, saved?.reservationState)
+        assertEquals(otherCampsiteId, saved?.campsiteId)
 
         scenario.close()
     }

@@ -95,4 +95,17 @@ class FirebaseReservationRepository @Inject constructor(
             .set(campsite.copy(reservationId = reservationId))
             .await()
     }
+
+    /**
+     * Deletes a reservation from firestore
+     *
+     * @param reservationId identifier of the reservation
+     */
+
+    override suspend fun deleteReservation(reservationId: String) {
+        firestore.collection("reservation")
+            .document(reservationId)
+            .delete()
+            .await()
+    }
 }
