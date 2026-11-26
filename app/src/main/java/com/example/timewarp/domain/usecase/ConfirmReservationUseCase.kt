@@ -12,8 +12,8 @@ import jakarta.inject.Inject
 import java.util.UUID
 
 /*
-* Confirms a lottery winner's reservation (US 01.05.01) and notifies them (US 01.05.02).
-* Outstanding: no dates picked yet (US 01.04.01) so it doesn't check notification opt-out.
+ * Confirms a lottery winner's reservation (US 01.05.01) and notifies them (US 01.05.02).
+ * Outstanding: doesn't check the entrant's notification opt-out.
  */
 
 /**
@@ -36,11 +36,13 @@ class ConfirmReservationUseCase @Inject constructor(
     /**
      * Confirms the reservation with [reservationId] and notifies its entrant.
      *
-     * @param campsite the reserved campsite, used in the notification text; null if unknown.
+     * @param campsite the chosen campsite; its id is saved on the reservation
+     * and its name goes in the notification. Null if unknown.
      * @param checkIn first night of the stay as a day number, or null if no dates were picked.
      * @param checkOut check-out day as a day number, or null if no dates were picked.
      * @return true if it was confirmed, false if it doesn't exist or isn't Pending.
      */
+
     suspend operator fun invoke(
         reservationId: String,
         campsite: Campsite?,
@@ -61,21 +63,25 @@ class ConfirmReservationUseCase @Inject constructor(
 
         var confirmed = reservation.copy(reservationState = ReservationState.Reserved)
 
+        // Save which of the lottery's campsites the winner chose
+        if (campsite != null && campsite.campsiteId.isNotEmpty()) {
+            confirmed = confirmed.copy(campsiteId = campsite.campsiteId)
+        }
+
         if (checkIn != null && checkOut != null) {
-            // Save the picked dates together with the new state (US 01.04.01)
             val dates = Availability(
                 startDate = DayFormatter.toDateString(checkIn),
                 endDate = DayFormatter.toDateString(checkOut)
             )
             confirmed = confirmed.copy(datesBooked = dates)
-            reservationRepository.editReservation(reservationId, confirmed)
-        } else {
-            // No dates picked, so only the state changes
-            reservationRepository.updateReservationState(reservationId, ReservationState.Reserved)
         }
+
+        // Save the new state, campsite and dates in one write
+        reservationRepository.editReservation(reservationId, confirmed)
 
         // Tell the entrant their booking went through (US 01.05.02)
         notificationRepository.sendNotification(buildConfirmationNotification(confirmed, campsite))
+
         return true
     }
 

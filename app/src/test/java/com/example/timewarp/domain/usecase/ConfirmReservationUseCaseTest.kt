@@ -123,4 +123,15 @@ class ConfirmReservationUseCaseTest {
         val received = notificationRepository.getIncomingNotifications(userId)
         assertTrue(received!![0].notification.contains("2027-12-24"))
     }
+
+    @Test
+    fun confirmingWithCampsite_savesCampsiteId() = runBlocking {
+        addReservation("r1", ReservationState.Pending)
+
+        // The winner chose this campsite from the lottery's campsites
+        val chosen = Campsite(campsiteId = "camp-2", name = "Wapiti", location = Location(address = "Jasper"))
+        confirmReservation("r1", chosen)
+
+        assertEquals("camp-2", reservationRepository.getReservation("r1")?.campsiteId)
+    }
 }
