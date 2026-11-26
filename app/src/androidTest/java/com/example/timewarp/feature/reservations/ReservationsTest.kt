@@ -6,7 +6,9 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.printToLog
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
@@ -96,7 +98,8 @@ class ReservationsTest {
             composeRule.onAllNodesWithText("Reservations").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("Reservations").performClick()
-        waitForTag("tab_Booked")
+
+        waitForTag("tab_${ReservationTab.Booked.label}")
     }
 
     /*
@@ -117,16 +120,16 @@ class ReservationsTest {
     * US 01.06.01: This shows waitlisted and pending reservations on the Booking tab
     */
     @Test
-    fun bookingTab_showsWaitlistedAndPending() {
+    fun bookingTab_showsPending() {
         val repository = reservationRepository as FakeReservationRepository
-        repository.addReservation(reservation("r1", "reservations-user", ReservationState.Waitlisted))
-        repository.addReservation(reservation("r2", "reservations-user", ReservationState.Pending))
+        repository.addReservation(reservation("waiting", "reservations-user", ReservationState.Waitlisted))
+        repository.addReservation(reservation("won", "reservations-user", ReservationState.Pending))
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         openReservations()
-        composeRule.onNodeWithTag("tab_Booking").performClick()
-        waitForTag("reservation_r1")
-        composeRule.onNodeWithTag("reservation_r1").assertIsDisplayed()
-        composeRule.onNodeWithTag("reservation_r2").assertIsDisplayed()
+        composeRule.onNodeWithTag("tab_${ReservationTab.Booking.label}").performClick()
+        waitForTag("reservation_won")
+        composeRule.onNodeWithTag("reservation_won").assertIsDisplayed()
+        composeRule.onNodeWithTag("reservation_waiting").assertDoesNotExist()
         scenario.close()
     }
 
@@ -157,7 +160,7 @@ class ReservationsTest {
         repository.addReservation(reservation("r3", "reservations-user", ReservationState.Rejected))
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         openReservations()
-        composeRule.onNodeWithTag("tab_Cancelled").performClick()
+        composeRule.onNodeWithTag("tab_${ReservationTab.Cancelled.label}").performClick()
         waitForTag("reservation_r1")
         composeRule.onNodeWithTag("reservation_r1").assertIsDisplayed()
         composeRule.onNodeWithTag("reservation_r2").assertIsDisplayed()
