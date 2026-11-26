@@ -103,6 +103,7 @@ class FirebaseReservationRepository @Inject constructor(
         updateReservationState(reservationId, ReservationState.Canceled)
     }
 
+    /**
      * Deletes a reservation from firestore
      *
      * @param reservationId identifier of the reservation
