@@ -58,7 +58,7 @@ fun AdminSelectTab(
 
         // Active tabs under the admin alert section
         when (tabs[index]) {
-            AdminTab.Profiles -> AdminPlaceholder("Profiles")
+            AdminTab.Profiles -> AdminProfileList()
             AdminTab.Images -> AdminPlaceholder("Images")
             AdminTab.Messages -> AdminMessagesSection()
             AdminTab.Notifications -> AdminNotificationSection()

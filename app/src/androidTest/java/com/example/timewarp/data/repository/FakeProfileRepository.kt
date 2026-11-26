@@ -63,4 +63,12 @@ class FakeProfileRepository @Inject constructor() : ProfileRepository {
     fun clear() {
         profiles.value = emptyMap()
     }
+
+    /**
+     * Removes a profile from the fake collection
+     * @param userId ID of profile owner
+     */
+    override suspend fun deleteProfile(userId: String) {
+        profiles.value = profiles.value - userId
+    }
 }
