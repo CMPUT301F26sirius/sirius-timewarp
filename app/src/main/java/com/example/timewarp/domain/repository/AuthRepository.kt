@@ -21,4 +21,9 @@ interface AuthRepository {
      * @return the signed-in user identifier.
      */
     suspend fun signIn(): String
+
+    /**
+     * Deletes the signed-in users account.
+     */
+    suspend fun deleteAccount()
 }
