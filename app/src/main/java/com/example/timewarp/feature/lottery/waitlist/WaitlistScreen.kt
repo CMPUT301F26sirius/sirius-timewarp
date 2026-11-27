@@ -30,8 +30,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
-import com.example.timewarp.domain.repository.ReservationRepository
-import com.example.timewarp.domain.usecase.ObserveUserProfileUseCase
+import androidx.compose.ui.platform.testTag
 
 /**
  * [WaitlistScreen]
@@ -66,6 +65,9 @@ fun WaitlistScreen(
                 lotteryId = s.lotteryId,
                 reservations = s.reservations,
                 userNames = s.userNames,
+                onReservationClick = { reservation ->
+                    navController.navigate(Screen.ReservationDetails.createRoute(reservation.reservationId))
+                }
             )
         }
     }
@@ -83,6 +85,7 @@ fun WaitListContent(
     reservations: List<Reservation>,
     userNames: Map<String, String>,
     modifier: Modifier = Modifier,
+    onReservationClick: (Reservation) -> Unit,
 ) {
     Column(modifier = modifier) {
         Text(
@@ -94,6 +97,7 @@ fun WaitListContent(
             reservations = reservations,
             modifier = Modifier,
             userNames = userNames,
+            onReservationClick = onReservationClick,
         )
     }
 }
@@ -108,6 +112,7 @@ private fun WaitlistList(
     reservations: List<Reservation>,
     modifier: Modifier = Modifier,
     userNames: Map<String, String>,
+    onReservationClick: (Reservation) -> Unit,
 ) {
     if (reservations.isEmpty()) {
         Box(
@@ -131,6 +136,7 @@ private fun WaitlistList(
                 WaitlistEntry(
                     reservation = reservation,
                     userName = userNames[reservation.userId] ?: reservation.userId,
+                    onClick = {onReservationClick(reservation) }
                 )
             }
         }
@@ -147,9 +153,13 @@ private fun WaitlistEntry(
     reservation: Reservation,
     userName: String,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("waitlist_entry_${reservation.reservationId}")
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
