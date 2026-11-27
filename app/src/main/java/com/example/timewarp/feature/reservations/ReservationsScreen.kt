@@ -15,16 +15,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Landscape
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +54,11 @@ private val previewTabs = listOf(
     ReservationTab.Past,
     ReservationTab.Cancelled,
 )
+
+private val previewOwner = listOf(
+    ReservationToDisplay.Mine,
+    ReservationToDisplay.AtMyCamps,
+)
 /**
  * Responsible for connecting to the UI: Grabs the state, triggers loading,
  * shows loading/error/content, and handles navigation
@@ -65,6 +77,7 @@ fun ReservationsScreen(
     // State
     val state by viewModel.state.collectAsStateWithLifecycle()
     val tabs by viewModel.tabs.collectAsStateWithLifecycle()
+    val scopes by viewModel.scopes.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
 
     // State Interpretation & Navigation
@@ -79,7 +92,8 @@ fun ReservationsScreen(
         navController = navController,
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
             when (val s = state) {
@@ -88,10 +102,13 @@ fun ReservationsScreen(
                 is ReservationsState.Content -> ReservationsContent(
                     state = s,
                     tabs = tabs,
+                    scopes = scopes,
                     tabSelected = viewModel::selectTab,
+                    scopeSelected = viewModel::selectScope,
+                    campsiteSelected = viewModel::selectCampsite,
                     reservationClick = {item ->
                         // Winners who haven't reserved yet go to make-reservation; everything else to manage.
-                        val route = if (item.canMakeReservation) {
+                        val route = if (s.selectedScope == ReservationToDisplay.Mine && item.canMakeReservation) {
                             Screen.MakeReservation.createRoute(item.reservationId)
                         } else {
                             Screen.ReservationDetails.createRoute(item.reservationId)
@@ -113,7 +130,10 @@ fun ReservationsScreen(
  *
  * @param state Loaded reservations and selected tab
  * @param tabs tabs for current user
+ * @param scopes Scope chips for the user (Entrants don't have them)
  * @param tabSelected the tab user clicked
+ * @param scopeSelected The scope the user clicked
+ * @param campsiteSelected The campsite picked in dropdown
  * @param reservationClick reservation card when the user click
  * @param skipToBrowse go to browse when there is an empty view
  * @param modifier applied to the outer column
@@ -122,7 +142,10 @@ fun ReservationsScreen(
 internal fun ReservationsContent(
     state: ReservationsState.Content,
     tabs: List<ReservationTab>,
+    scopes: List<ReservationToDisplay>,
     tabSelected: (ReservationTab) -> Unit,
+    scopeSelected: (ReservationToDisplay) -> Unit,
+    campsiteSelected: (String?) -> Unit,
     reservationClick: (ReservationItem) -> Unit,
     skipToBrowse: () -> Unit,
     modifier: Modifier = Modifier
@@ -131,6 +154,21 @@ internal fun ReservationsContent(
        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Scope chips (owners and admins only)
+        if (scopes.isNotEmpty()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                scopes.forEach { scope ->
+                    TabChip(
+                        label = scope.label,
+                        selected = scope == state.selectedScope,
+                        onClick = { scopeSelected(scope) },
+                        modifier = Modifier.testTag("scope_${scope.label}")
+                    )
+                }
+            }
+        }
         // Tab chips
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -147,20 +185,42 @@ internal fun ReservationsContent(
 
         // Only the reservations for the current tab
         val items = state.visibleItems
-        Text(
-            text = if (items.isEmpty()) state.selectedTab.emptyHeading else
-            state.selectedTab.heading,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
+        val isAtMyCamps = state.selectedScope == ReservationToDisplay.AtMyCamps
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (items.isEmpty()) {
+                    state.selectedTab.emptyHeading
+                } else {
+                    state.selectedScope.heading ?: state.selectedTab.heading
+                },
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f),
+            )
+
+            if (isAtMyCamps && state.myCampsites.isNotEmpty()) {
+                CampsiteDropdown(
+                    campsites = state.myCampsites,
+                    selectedCampsiteId = state.selectedCampsiteId,
+                    onSelect = campsiteSelected,
+                )
+            }
+
+        }
 
         if (items.isEmpty()) {
-            EmptyReservations(onGoToBrowse = skipToBrowse)
+            if (!isAtMyCamps) {
+                EmptyReservations(onGoToBrowse = skipToBrowse)
+            }
         } else {
             items.forEach { item ->
                 ReservationCard(
                     item = item,
                     tab = state.selectedTab,
+                    isAtMyCamps = isAtMyCamps,
                     onClick = { reservationClick(item) },
                     modifier = Modifier.testTag("reservation_${item.reservationId}")
                 )
@@ -204,9 +264,75 @@ private fun TabChip(
 }
 
 /**
+ * Responsible for letting an owner filter their camps' reservations by campsite.
+ *
+ * @param campsites Campsites the user owns
+ * @param selectedCampsiteId The campsite currently picked, or null
+ * @param onSelect Called with the picked campsite's ID, or null
+ */
+@Composable
+private fun CampsiteDropdown(
+    campsites: List<CampsiteOption>,
+    selectedCampsiteId: String?,
+    onSelect: (String?) -> Unit,
+) {
+    // Whether the list of campsites is open
+    var expanded by remember { mutableStateOf(false) }
+
+    val selectedName = campsites.firstOrNull { it.campsiteId == selectedCampsiteId }?.name ?: "All campsites"
+
+    Box {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .clickable { expanded = true }
+                .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
+                .testTag("campsite_filter"),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = selectedName,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Icon(
+                imageVector = Icons.Outlined.ArrowDropDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("All campsites") },
+                onClick = {
+                    onSelect(null)
+                    expanded = false
+                },
+            )
+            campsites.forEach { campsite ->
+                DropdownMenuItem(
+                    text = { Text(campsite.name) },
+                    onClick = {
+                        onSelect(campsite.campsiteId)
+                        expanded = false
+                    },
+                )
+            }
+        }
+    }
+}
+
+/**
  * Responsible for showing one reservation
  *
  * @param item reservation to display
+ * @param tab Selected tab
+ * @param isAtMyCamps True when owner is looking at their owned campsites
  * @param onClick Called when the card is clicked
  * @param modifier applied to the card
  */
@@ -215,6 +341,7 @@ private fun ReservationCard(
     item: ReservationItem,
     onClick: () -> Unit,
     tab: ReservationTab,
+    isAtMyCamps: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -230,7 +357,6 @@ private fun ReservationCard(
                 .height(180.dp)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            // TODO: replace with the campsite photo once the team decides how images are handled.
             Icon(
                 imageVector = Icons.Outlined.Landscape,
                 contentDescription = null,
@@ -239,19 +365,18 @@ private fun ReservationCard(
                     .size(48.dp)
                     .align(Alignment.Center),
             )
-            Box(
+
+            // Badges: the tab, plus "Upcoming" / "In progress" for active stays
+            Row(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(12.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = tab.label.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+                Badge(text = tab.label.uppercase())
+                if (item.stayLabel.isNotBlank() && tab == ReservationTab.Booked) {
+                    Badge(text = item.stayLabel.uppercase())
+                }
             }
         }
 
@@ -260,7 +385,7 @@ private fun ReservationCard(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                text = item.title,
+                text = if (isAtMyCamps) "${item.guestName} · ${item.title}" else item.title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -269,7 +394,7 @@ private fun ReservationCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = tab.cardSubtitle,
+                    text = if (isAtMyCamps) item.stayText.ifBlank { "No dates yet" } else tab.cardSubtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -282,6 +407,28 @@ private fun ReservationCard(
         }
     }
 }
+
+/**
+ * Responsible for one small label on top of a card's image
+ *
+ * @param text Label text
+ */
+@Composable
+private fun Badge(text: String) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
 /**
  *
  * Responsible for telling the user this tab has nothing, suggest to browse
@@ -320,7 +467,10 @@ private fun ReservationsEmptyPreview() {
         ReservationsContent(
             state = ReservationsState.Content(selectedTab = ReservationTab.Booking),
             tabs = previewTabs,
+            scopes = emptyList(),
             tabSelected = {},
+            scopeSelected = {},
+            campsiteSelected = {},
             reservationClick = {},
             skipToBrowse = {},
         )
@@ -336,24 +486,49 @@ private fun ReservationsScreenPreview() {
             state = ReservationsState.Content(
                 selectedTab = ReservationTab.Booking,
                 items = listOf(
+                    ReservationItem("1", ReservationState.Pending, "You Won Super Cool Lottery!", "Drawn 3 days ago"),
+                    ReservationItem("2", ReservationState.Pending, "You Won Super Cool Lottery!", "Drawn 3 days ago"),
+                ),
+            ),
+            tabs = previewTabs,
+            scopes = emptyList(),
+            tabSelected = {},
+            scopeSelected = {},
+            campsiteSelected = {},
+            reservationClick = {},
+            skipToBrowse = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ReservationsAtMyCampsPreview() {
+    TimewarpTheme {
+        ReservationsContent(
+            state = ReservationsState.Content(
+                selectedTab = ReservationTab.Booked,
+                selectedScope = ReservationToDisplay.AtMyCamps,
+                myCampsites = listOf(CampsiteOption("c1", "Wapiti Camp")),
+                items = listOf(
                     ReservationItem(
-                        "1",
-                        ReservationState.Pending,
-                        "You Won Super Cool Lottery!",
-                        "Drawn 3 days ago",
-                        isInBookingPeriod = true,
-                    ),
-                    ReservationItem(
-                        "2",
-                        ReservationState.Pending,
-                        "You Won Super Cool Lottery!",
-                        "Drawn 3 days ago",
-                        isInBookingPeriod = true,
+                        reservationId = "1",
+                        state = ReservationState.Reserved,
+                        title = "Wapiti Camp",
+                        dateText = "3 days ago",
+                        guestName = "John Doe",
+                        stayText = "Dec 1 - Dec 5, 2026",
+                        stayLabel = "Upcoming",
+                        isMine = false,
+                        isAtMyCamp = true,
                     ),
                 ),
             ),
             tabs = previewTabs,
+            scopes = previewOwner,
             tabSelected = {},
+            scopeSelected = {},
+            campsiteSelected = {},
             reservationClick = {},
             skipToBrowse = {},
         )

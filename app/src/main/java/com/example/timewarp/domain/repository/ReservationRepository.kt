@@ -2,6 +2,8 @@ package com.example.timewarp.domain.repository
 
 import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.model.ReservationState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 /**
  * Repository for storing and retrieving [Reservation] objects.
@@ -36,15 +38,24 @@ interface ReservationRepository {
     suspend fun updateReservationState(reservationId: String, state: ReservationState)
 
     /**
-     * @param reservationId identifier of the reservation to update.
-     */
-    suspend fun cancelReservation(reservationId: String) 
-
-
-    /**
      * deletes a reservation
      *
      * @param reservationId Identifier of the reservation to retrieve
      */
-    suspend fun deleteReservation(reservationId: String) 
+    suspend fun deleteReservation(reservationId: String)
+
+    /**
+     * Cancels a reservation by setting its state to Canceled. The reservation stays in
+     * the database.
+     *
+     * @param reservationId identifier of the reservation to cancel.
+     */
+    suspend fun cancelReservation(reservationId: String)
+    
+    /**
+     * Responsible for live updates
+     */
+    fun observeReservations(): Flow<List<Reservation>> = flow {
+        emit(getReservations().orEmpty())
+    }
 }
