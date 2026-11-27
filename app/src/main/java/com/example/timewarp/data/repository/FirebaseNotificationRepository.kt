@@ -45,7 +45,7 @@ class FirebaseNotificationRepository @Inject constructor(
      **/
     override suspend fun getIncomingNotifications(userId: String): MutableList<Notification> {
         val snapshot = firestore.collection("notification")
-            .whereEqualTo("toUserId",userId ).get().await()
+            .whereEqualTo("fromUserId",userId ).get().await()
         return snapshot.documents
             .mapNotNull { it.toObject(Notification::class.java)?.copy(notificationId = it.id) }
             .toMutableList()
