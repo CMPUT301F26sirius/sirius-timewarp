@@ -70,6 +70,13 @@ class FirebaseMessageRepository @Inject constructor(
     }
 
     /**
+     * Observes all messages in the Firestore `message` collection.
+     */
+    override suspend fun observeAllMessages(): Flow<List<Message>?> {
+        return observeMessages(messages)
+    }
+
+    /**
      * @param fromUserId identifier of the sender.
      * @return messages sent by the user, or `null` when no collection result is available.
      * from the `message` Firestore collection

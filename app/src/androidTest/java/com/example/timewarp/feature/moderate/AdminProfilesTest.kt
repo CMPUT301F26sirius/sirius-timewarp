@@ -121,8 +121,8 @@ class AdminProfilesTest {
     * This function opens the alerts then admin and then waits for the list of profiles to load
     */
     private fun openProfilesTab() {
-        waitFor_Text("Moderate")
-        composeRule.onNodeWithText("Moderate").performClick()
+        waitFor_Text("Log")
+        composeRule.onNodeWithText("Log").performClick()
         waitFor_Tag("admin_profile_item_entrant-1")
     }
 
