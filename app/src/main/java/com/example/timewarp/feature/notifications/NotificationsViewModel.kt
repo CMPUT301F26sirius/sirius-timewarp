@@ -25,6 +25,7 @@ sealed interface NotificationsState {
         val outgoingNotifications: MutableList<Notification>?,
         val allNotifications: MutableList<Notification>?,
         val userType: UserType,
+        val tabs: List<NotificationsTab> = listOf(NotificationsTab.Incoming)
     ): NotificationsState
 
     data class Error(val message: String): NotificationsState
@@ -76,6 +77,7 @@ class NotificationsViewModel @Inject constructor(
                 outgoingNotifications = null,
                 allNotifications = null,
                 userType = type,
+                tabs = NotificationsTab.tabsFor(type)
             )
         } else if (type == UserType.CampsiteOwner) {
             return NotificationsState.Content(
@@ -83,6 +85,7 @@ class NotificationsViewModel @Inject constructor(
                 outgoingNotifications = getUsersSentNotifications(userId),
                 allNotifications = null,
                 userType = type,
+                tabs = NotificationsTab.tabsFor(type)
             )
         } else if (type == UserType.Admin) {
             return NotificationsState.Content(
@@ -90,6 +93,7 @@ class NotificationsViewModel @Inject constructor(
                 outgoingNotifications = getUsersSentNotifications(userId),
                 allNotifications = getAllNotifications(),
                 userType = type,
+                tabs = NotificationsTab.tabsFor(type)
             )
         } else {
             return NotificationsState.Error("Unable to load Notifications")
