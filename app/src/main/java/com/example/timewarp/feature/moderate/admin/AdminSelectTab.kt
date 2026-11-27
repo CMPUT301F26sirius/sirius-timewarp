@@ -82,7 +82,7 @@ fun AdminSelectTab(
         when (tabs[index]) {
             AdminTab.Profiles -> AdminProfileList()
             AdminTab.Images -> AdminPlaceholder("Images")
-            AdminTab.Messages -> AdminMessagesSection()
+            AdminTab.Messages -> AdminMessages()
             AdminTab.Notifications -> AdminNotificationSection()
         }
     }

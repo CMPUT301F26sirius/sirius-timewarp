@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.testTag
 * This function is for Admin browse all the message logs section.
 */
 @Composable
-fun AdminMessagesSection() {
+fun AdminMessages() {
     Box(
         Modifier.fillMaxSize().testTag("admin_messages_placeholder"),
     ) {
