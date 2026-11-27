@@ -51,4 +51,9 @@ interface UserRepository {
      * @return a flow emitting the user, or `null` when it is unavailable.
      */
     fun observeUser(userId: String): Flow<User?>
+
+    /**
+     * @param userId identifier of the user to delete.
+     */
+    suspend fun deleteUser(userId: String)
 }

@@ -5,10 +5,8 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
@@ -30,6 +28,7 @@ import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -207,11 +206,16 @@ class AccountTest {
         val scenario = openAccount()
 
         deleteAccount()
+        runBlocking {
+            assertNull(profileRepository.getProfile("account-user"))
+            assertNull(userRepository.getUser("account-user"))
+        }
+        /*
         val profile = runBlocking { profileRepository.getProfile("account-user") }
         assertEquals("No user found", profile?.firstName)
         assertEquals("", profile?.email)
         assertEquals("", profile?.phoneNumber)
-
+        */
         scenario.close()
     }
 

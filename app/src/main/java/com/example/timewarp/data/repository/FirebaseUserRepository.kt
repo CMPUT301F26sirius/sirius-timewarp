@@ -46,10 +46,15 @@ class FirebaseUserRepository @Inject constructor(
     }
 
     /**
-     * NEEDS_DOCUMENTATION
+     * Gets user documents from the Firestore
      */
     override suspend fun getUsers(): MutableList<User>? {
-        TODO("Not yet implemented")
+        val snapshot = firestore.collection("users")
+            .get().await()
+
+        return snapshot.documents.mapNotNull {
+            it.toObject(User::class.java)?.copy(userId = it.id)}
+            .toMutableList()
     }
 
     /**
@@ -113,5 +118,11 @@ class FirebaseUserRepository @Inject constructor(
         awaitClose {
             listener.remove()
         }
+    }
+
+    override suspend fun deleteUser(userId: String) {
+        firestore.collection("users").document(userId)
+            .delete()
+            .await()
     }
 }

@@ -40,7 +40,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.traceEventEnd
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,7 +67,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
 
 /*
@@ -164,7 +162,6 @@ fun BrowseContent(
 
         if (state.tabs.size > 1) {
             Row(
-                modifier = Modifier.padding(horizontal = 15.dp),
                 horizontalArrangement = Arrangement.spacedBy(9.dp)
             ) {
                 state.tabs.forEach {
@@ -190,7 +187,7 @@ fun BrowseContent(
                 onClick = onRegisterCampsite,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 15.dp, vertical = 8.dp)
+                    .padding(vertical = 8.dp)
                     .testTag("register_campsite_button")
             )
         }
@@ -255,7 +252,7 @@ fun BrowseContent(
 
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize().testTag("browse_list"),
-                    contentPadding = PaddingValues(15.dp),
+                    contentPadding = PaddingValues(vertical = 15.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(
@@ -306,7 +303,7 @@ private fun SearchRow(
     }
     val guestText = filter.guests?.let{"$it guests"} ?: "Any Guests"
 
-    Surface(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 8.dp),
+    Surface(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         shape = RoundedCornerShape(15.dp),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 2.dp,

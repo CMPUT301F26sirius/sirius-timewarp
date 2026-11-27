@@ -1,3 +1,4 @@
+
 package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Reservation
@@ -50,6 +51,13 @@ class MockReservationRepository @Inject constructor() : ReservationRepository {
                 reservations[i] = reservations[i].copy(reservationState = state)
             }
         }
+    }
+
+    /**
+     * @param reservationId the reservation to overwrite.
+     */
+    override suspend fun cancelReservation(reservationId: String) {
+        updateReservationState(reservationId, ReservationState.Canceled)
     }
 
     /**
