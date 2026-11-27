@@ -113,6 +113,9 @@ fun LotteryDetailsScreen(
                     editClick = {
                         navController.navigate(Screen.EditLottery.createRoute(lotteryId))
                     },
+                    waitlistClick = {
+                        navController.navigate(Screen.ViewWaitlist.createRoute(lotteryId))
+                    },
                 )
             }
         }
@@ -127,6 +130,7 @@ fun LotteryDetailsScreen(
  * @param leaveClick Leave the waitlist, given the user's reservation ID
  * @param viewReservationClick Open the user's reservation, given its ID
  * @param editClick Owner tapped Edit lottery
+ * @param waitlistClick Owner tapped View Waitlist
  * @param modifier applied to the outer column
  */
 @Composable
@@ -136,6 +140,7 @@ internal fun LotteryDetailsContent(
     leaveClick: (String) -> Unit,
     viewReservationClick: (String) -> Unit,
     editClick: () -> Unit,
+    waitlistClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -255,6 +260,12 @@ internal fun LotteryDetailsContent(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Edit lottery")
+            }
+            OutlinedButton(
+                onClick = waitlistClick,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("View Waitlist")
             }
         }
     }
@@ -384,6 +395,7 @@ private fun LotteryDetailsPreview() {
             leaveClick = {},
             viewReservationClick = {},
             editClick = {},
+            waitlistClick = {},
         )
     }
 }

@@ -16,6 +16,7 @@ import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.lottery.create.CreateLotteryScreen
 import com.example.timewarp.feature.lottery.details.LotteryDetailsScreen
 import com.example.timewarp.feature.lottery.edit.EditLotteryScreen
+import com.example.timewarp.feature.lottery.waitlist.WaitlistScreen
 import com.example.timewarp.feature.messages.MessagesScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
 import com.example.timewarp.feature.notifications.NotificationsScreen
@@ -143,6 +144,13 @@ fun AppNavHost() {
                 screen = Screen.EditLottery,
                 lotteryId = lotteryId,
                 navController = navController
+            )
+        }
+        deepComposable(Screen.ViewWaitlist.route) { lotteryId ->
+            WaitlistScreen(
+                screen = Screen.ViewWaitlist,
+                lotteryId = lotteryId,
+                navController = navController,
             )
         }
         deepComposable(Screen.CreateLottery.route) { campsiteId ->
