@@ -112,6 +112,11 @@ class WaitlistViewModel @Inject constructor(
     }
 
     // This function is written largely by Anthropic's Claude:
+    /**
+     * Gets User's Name given a reservation
+     *
+     * @param reservation the reservation to get a name from
+     */
     private suspend fun getUserNameFromReservation(reservation: Reservation): String {
         val profile = observeUserProfile(reservation.userId)
             .catch { emit(null) }

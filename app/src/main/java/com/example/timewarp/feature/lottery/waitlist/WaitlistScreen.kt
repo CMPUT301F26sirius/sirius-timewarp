@@ -78,14 +78,17 @@ fun WaitlistScreen(
  *
  * @param lotteryId ID of the lottery to show waitlist for
  * @param reservations filtered list of reservations to display
+ * @param userNames List of usernames tied to userIds
+ * @param onReservationClick on click behaviour for cards
  */
 @Composable
 fun WaitListContent(
     lotteryId: String,
     reservations: List<Reservation>,
     userNames: Map<String, String>,
-    modifier: Modifier = Modifier,
     onReservationClick: (Reservation) -> Unit,
+    modifier: Modifier = Modifier,
+
 ) {
     Column(modifier = modifier) {
         Text(
@@ -106,13 +109,15 @@ fun WaitListContent(
  * Shows list of all waitlisted reservations
  *
  * @param reservations the list of filtered reservations
+ * @param userNames List of usernames tied to userIDs
  */
 @Composable
 private fun WaitlistList(
     reservations: List<Reservation>,
-    modifier: Modifier = Modifier,
     userNames: Map<String, String>,
     onReservationClick: (Reservation) -> Unit,
+    modifier: Modifier = Modifier,
+
 ) {
     if (reservations.isEmpty()) {
         Box(
@@ -147,13 +152,15 @@ private fun WaitlistList(
  * Card for a single entry of a waitlist reservation
  *
  * @param reservation the reservation to display
+ * @param userName First and Last Name of User
+ * @param onClick Links to reservation details
  */
 @Composable
 private fun WaitlistEntry(
     reservation: Reservation,
     userName: String,
-    modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Card(
         onClick = onClick,
