@@ -44,7 +44,8 @@ class NavigationViewModel @Inject constructor(
                         Screen.Browse,
                         Screen.Lotteries,
                         Screen.Reservations,
-                        Screen.Alerts,
+                        Screen.Messages,
+                        Screen.Notifications,
                         Screen.Account,
                     )
 
@@ -52,7 +53,8 @@ class NavigationViewModel @Inject constructor(
                         Screen.Browse,
                         Screen.Lotteries,
                         Screen.Reservations,
-                        Screen.Alerts,
+                        Screen.Messages,
+                        Screen.Notifications,
                         Screen.Account,
                     )
 
@@ -60,9 +62,10 @@ class NavigationViewModel @Inject constructor(
                         Screen.Browse,
                         Screen.Lotteries,
                         Screen.Reservations,
-                        Screen.Alerts,
-                        Screen.Account,
+                        Screen.Messages,
+                        Screen.Notifications,
                         Screen.Moderate,
+                        Screen.Account,
                     )
                 }
             }
