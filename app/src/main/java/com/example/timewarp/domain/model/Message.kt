@@ -10,6 +10,7 @@ package com.example.timewarp.domain.model
  * @property toUserId - UUID of the receiving user.
  */
 data class Message (
+    val timestamp: Int = 0,
     val message: String = "",
     val fromUserId: String = "",
     val toUserId: String = ""

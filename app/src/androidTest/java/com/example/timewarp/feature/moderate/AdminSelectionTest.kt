@@ -75,8 +75,8 @@ class AdminSelectionTest {
     * This function will open the alerts screen
     */
     private fun openModerate() {
-        waitFor_Text("Moderate")
-        composeRule.onNodeWithText("Moderate").performClick()
+        waitFor_Text("Log")
+        composeRule.onNodeWithText("Log").performClick()
         waitFor_Tag("admin_tab_Profiles")
     }
 
@@ -108,7 +108,7 @@ class AdminSelectionTest {
     }
 
     /*
-    * Will check the Messages tab and what is inside
+    * Will check the Messages tab and its empty state
     */
     @Test
     fun admin_messagesTab() {
@@ -116,7 +116,7 @@ class AdminSelectionTest {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         openModerate()
         composeRule.onNodeWithTag("admin_tab_Messages").performClick()
-        composeRule.onNodeWithText("Messages: Coming Soon", ignoreCase = true).assertIsDisplayed()
+        composeRule.onNodeWithText("No Messages").assertIsDisplayed()
         scenario.close()
     }
 
@@ -127,9 +127,9 @@ class AdminSelectionTest {
     fun entrant_CannotSee_AdminTab() {
         singIn_as("entrant-user", UserType.Entrant)
         val scenario = ActivityScenario.launch(MainActivity::class.java)
-        waitFor_Text("Alerts")
+        waitFor_Text("Browse")
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Moderate").assertDoesNotExist()
+        composeRule.onNodeWithText("Log").assertDoesNotExist()
         scenario.close()
     }
 
@@ -140,9 +140,9 @@ class AdminSelectionTest {
     fun owner_CannotSee_AdminTab() {
         singIn_as("owner-user", UserType.CampsiteOwner)
         val scenario = ActivityScenario.launch(MainActivity::class.java)
-        waitFor_Text("Alerts")
+        waitFor_Text("Browse")
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Moderate").assertDoesNotExist()
+        composeRule.onNodeWithText("Log").assertDoesNotExist()
         scenario.close()
     }
 

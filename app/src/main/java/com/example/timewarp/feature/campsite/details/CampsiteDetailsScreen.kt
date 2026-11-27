@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.campsite.details
 
+import android.R.attr.text
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -57,6 +58,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.timewarp.domain.model.Rating
 import java.util.concurrent.TimeUnit
+import com.example.timewarp.core.util.formatPrice
 
 
 /**
@@ -345,13 +347,15 @@ fun CampsiteDetailsScreen(
                             fontWeight = FontWeight.Bold
                         )
 
+                        val pricing = campsite.pricing
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text("Price per night")
                             Text(
-                                text = "${campsite.pricing.costPerNight} ${campsite.pricing.currencyCode}",
+                                text = formatPrice(pricing.costPerNight, pricing.currencyCode),
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
@@ -373,7 +377,7 @@ fun CampsiteDetailsScreen(
                         ) {
                             Text("Security deposit")
                             Text(
-                                text = "${campsite.pricing.securityDeposit} ${campsite.pricing.currencyCode}",
+                                text =  formatPrice(pricing.securityDeposit, pricing.currencyCode),
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
@@ -384,7 +388,7 @@ fun CampsiteDetailsScreen(
                         ) {
                             Text("Preparation fee")
                             Text(
-                                text = "${campsite.pricing.preparationFee} ${campsite.pricing.currencyCode}",
+                                text =  formatPrice(pricing.preparationFee, pricing.currencyCode),
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
