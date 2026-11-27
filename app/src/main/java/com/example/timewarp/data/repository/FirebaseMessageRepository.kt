@@ -1,8 +1,10 @@
 package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Message
+import com.example.timewarp.domain.model.Profile
 import com.example.timewarp.domain.repository.MessageRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,31 +22,28 @@ class FirebaseMessageRepository @Inject constructor(
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun getCorrespondance(
-        fromUserId: String,
-        toUserId: String
-    ): MutableList<Message>? {
+    override suspend fun observeCorrespondence(fromUserId: String, toUserId: String): Flow<List<Message>?> {
         TODO("Not yet implemented")
     }
 
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun getOutgoingMessages(userId: String): MutableList<Message>? {
+    override suspend fun observeSummaries(fromUserId: String): Flow<List<Pair<Profile, Message>>?> {
         TODO("Not yet implemented")
     }
 
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun getIncomingMessages(userId: String): MutableList<Message>? {
+    override suspend fun observeOutgoingMessages(fromUserId: String): Flow<List<Message>?> {
         TODO("Not yet implemented")
     }
 
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun getMessages(): MutableList<Message>? {
+    override suspend fun observeIncomingMessages(toUserId: String): Flow<List<Message>?> {
         TODO("Not yet implemented")
     }
 
@@ -58,7 +57,7 @@ class FirebaseMessageRepository @Inject constructor(
     /**
      * NEEDS_DOCUMENTATION
      */
-    override suspend fun getMessage(messageId: String): Message? {
+    override suspend fun getMessage(messageId: String): Message {
         TODO("Not yet implemented")
     }
 }
