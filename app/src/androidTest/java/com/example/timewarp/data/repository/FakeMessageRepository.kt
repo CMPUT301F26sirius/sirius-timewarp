@@ -48,6 +48,14 @@ class FakeMessageRepository @Inject constructor() : MessageRepository {
         }
 
     /**
+     * Observes every stored message, ordered by timestamp.
+     */
+    override suspend fun observeAllMessages(): Flow<List<Message>?> =
+        messages.map { stored ->
+            stored.values.sortedBy(Message::timestamp)
+        }
+
+    /**
      * NEEDS_DOCUMENTATION
      */
     override suspend fun observeOutgoingMessages(fromUserId: String): Flow<List<Message>?> =

@@ -23,6 +23,11 @@ interface MessageRepository {
     suspend fun observeLatestMessages(userId: String): Flow<List<Message>?>
 
     /**
+     * @return a flow emitting all messages, possibly `null` when no collection result is available.
+     */
+    suspend fun observeAllMessages(): Flow<List<Message>?>
+
+    /**
      * @param fromUserId identifier of the sender.
      * @return messages sent by the user, or `null` when no collection result is available.
      */

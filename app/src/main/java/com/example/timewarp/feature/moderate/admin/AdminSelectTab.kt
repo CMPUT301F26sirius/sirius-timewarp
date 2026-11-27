@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.timewarp.feature.moderate.admin.messages.AdminMessagesSection
+import com.example.timewarp.feature.moderate.admin.messages.AdminMessagesScreen
 import com.example.timewarp.feature.moderate.admin.notifications.AdminNotificationSection
 import com.example.timewarp.ui.theme.PitchForest
 
@@ -82,7 +82,7 @@ fun AdminSelectTab(
         when (tabs[index]) {
             AdminTab.Profiles -> AdminProfileList()
             AdminTab.Images -> AdminPlaceholder("Images")
-            AdminTab.Messages -> AdminMessages()
+            AdminTab.Messages -> AdminMessagesScreen()
             AdminTab.Notifications -> AdminNotificationSection()
         }
     }
