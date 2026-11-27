@@ -12,11 +12,15 @@ import com.example.timewarp.feature.campsite.booked.BookedDatesScreen
 import com.example.timewarp.feature.campsite.create.CreateCampsiteScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
 import com.example.timewarp.feature.campsite.edit.EditCampsiteScreen
+import com.example.timewarp.feature.directmessage.DirectMessageScreen
 import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.lottery.create.CreateLotteryScreen
 import com.example.timewarp.feature.lottery.details.LotteryDetailsScreen
 import com.example.timewarp.feature.lottery.edit.EditLotteryScreen
+import com.example.timewarp.feature.lottery.waitlist.WaitlistScreen
+import com.example.timewarp.feature.messages.MessagesScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
+import com.example.timewarp.feature.notifications.NotificationsScreen
 import com.example.timewarp.feature.policy.PolicyScreen
 import com.example.timewarp.feature.profile.update.UpdateProfileScreen
 import com.example.timewarp.feature.qr.generate.GenerateQRScreen
@@ -75,6 +79,18 @@ fun AppNavHost() {
                 navController = navController
             )
         }
+        composable(Screen.Messages.route) {
+            MessagesScreen(
+                screen = Screen.Messages,
+                navController = navController
+            )
+        }
+        composable(Screen.Notifications.route) {
+            NotificationsScreen(
+                screen = Screen.Notifications,
+                navController = navController
+            )
+        }
         composable(Screen.Account.route) {
             AccountScreen(
                 screen = Screen.Account,
@@ -110,6 +126,13 @@ fun AppNavHost() {
 
 
         // Dynamic routes.
+        deepComposable(Screen.DirectMessage.route) { targetUserId ->
+            DirectMessageScreen(
+                screen = Screen.DirectMessage,
+                targetUserId = targetUserId,
+                navController = navController
+            )
+        }
         deepComposable(Screen.LotteryDetails.route) { lotteryId ->
             LotteryDetailsScreen(
                 screen = Screen.LotteryDetails,
@@ -122,6 +145,13 @@ fun AppNavHost() {
                 screen = Screen.EditLottery,
                 lotteryId = lotteryId,
                 navController = navController
+            )
+        }
+        deepComposable(Screen.ViewWaitlist.route) { lotteryId ->
+            WaitlistScreen(
+                screen = Screen.ViewWaitlist,
+                lotteryId = lotteryId,
+                navController = navController,
             )
         }
         deepComposable(Screen.CreateLottery.route) { campsiteId ->

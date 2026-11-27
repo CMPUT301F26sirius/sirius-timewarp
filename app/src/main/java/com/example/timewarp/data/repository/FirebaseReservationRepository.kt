@@ -97,6 +97,13 @@ class FirebaseReservationRepository @Inject constructor(
     }
 
     /**
+     * @param reservationId the reservation to overwrite.
+     */
+    override suspend fun cancelReservation(reservationId: String) {
+        updateReservationState(reservationId, ReservationState.Canceled)
+    }
+
+    /**
      * Deletes a reservation from firestore
      *
      * @param reservationId identifier of the reservation
@@ -109,3 +116,4 @@ class FirebaseReservationRepository @Inject constructor(
             .await()
     }
 }
+

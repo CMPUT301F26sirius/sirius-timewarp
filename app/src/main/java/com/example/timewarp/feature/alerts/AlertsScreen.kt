@@ -1,11 +1,18 @@
 package com.example.timewarp.feature.alerts
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -14,6 +21,13 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.theme.TimewarpTheme
 
+/**
+ * This function displays an "Admin" tab for the user whose role is admin under the alerts button
+ *
+ * @param modifier Modifier applied to the Navigation Screen
+ * @param screen navigation destination for selection state
+ * @param navController used for screen level navigation actions
+ */
 @Composable
 fun AlertsScreen(
     modifier: Modifier = Modifier,
@@ -36,7 +50,17 @@ fun AlertsScreen(
         modifier = modifier,
         navController = navController,
     ) {
-
+        Column(
+            Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No Alerts So Far")
+            }
+        }
     }
 }
 

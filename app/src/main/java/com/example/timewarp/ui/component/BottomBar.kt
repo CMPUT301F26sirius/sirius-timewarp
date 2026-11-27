@@ -12,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -38,6 +40,7 @@ fun BottomBar(
     ) {
         items.forEach { screen ->
             NavigationBarItem(
+                modifier = Modifier.scale(0.9f),
                 selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                 onClick = {
                     if (navBackStackEntry?.destination?.route != screen.route) {
@@ -58,7 +61,11 @@ fun BottomBar(
                     )
                 },
                 label = {
-                    Text(screen.label)
+                    Text(
+                        text = screen.label,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             )
         }
