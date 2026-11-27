@@ -242,6 +242,16 @@ fun CampsiteDetailsScreen(
                                     text = "Create lottery",
                                     modifier = Modifier.fillMaxWidth()
                                 )
+
+                                BaseButton(
+                                    onClick = {
+                                        navController.navigate(Screen.BookedDates.createRoute(campsiteId))
+                                    },
+                                    text = "View booked dates",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .testTag("view_booked_dates_button")
+                                )
                             }
                         }
                     }

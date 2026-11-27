@@ -59,6 +59,9 @@ sealed class Screen(
     data object EditCampsite : Screen("campsite/edit", "Edit", "Edit campsite", Icons.Outlined.Home) {
         fun createRoute(campsiteId: String) = "$route/$campsiteId"
     }
+    data object BookedDates : Screen("campsite/booked", "Booked dates", "Booked dates", Icons.Outlined.CalendarMonth) {
+        fun createRoute(campsiteId: String) = "$route/$campsiteId"
+    }
     data object ReservationDetails : Screen("reservation/details", "Details", "Manage reservation", Icons.Outlined.CalendarMonth) {
         fun createRoute(reservationId: String) = "$route/$reservationId"
     }

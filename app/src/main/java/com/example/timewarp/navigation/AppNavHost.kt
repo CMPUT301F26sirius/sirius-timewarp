@@ -8,6 +8,7 @@ import com.example.timewarp.core.util.deepComposable
 import com.example.timewarp.feature.account.AccountScreen
 import com.example.timewarp.feature.alerts.AlertsScreen
 import com.example.timewarp.feature.browse.BrowseScreen
+import com.example.timewarp.feature.campsite.booked.BookedDatesScreen
 import com.example.timewarp.feature.campsite.create.CreateCampsiteScreen
 import com.example.timewarp.feature.campsite.details.CampsiteDetailsScreen
 import com.example.timewarp.feature.campsite.edit.EditCampsiteScreen
@@ -140,6 +141,13 @@ fun AppNavHost() {
         deepComposable(Screen.EditCampsite.route) { campsiteId ->
             EditCampsiteScreen(
                 screen = Screen.EditCampsite,
+                campsiteId = campsiteId,
+                navController = navController
+            )
+        }
+        deepComposable(Screen.BookedDates.route) { campsiteId ->
+            BookedDatesScreen(
+                screen = Screen.BookedDates,
                 campsiteId = campsiteId,
                 navController = navController
             )
