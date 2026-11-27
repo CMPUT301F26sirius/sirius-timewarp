@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.alerts.admin
+package com.example.timewarp.feature.moderate.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,11 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.timewarp.feature.alerts.admin.messages.AdminMessagesSection
-import com.example.timewarp.feature.alerts.admin.notifications.AdminNotificationSection
+import com.example.timewarp.feature.moderate.admin.messages.AdminMessagesSection
+import com.example.timewarp.feature.moderate.admin.notifications.AdminNotificationSection
 import com.example.timewarp.ui.theme.PitchForest
 
 /**

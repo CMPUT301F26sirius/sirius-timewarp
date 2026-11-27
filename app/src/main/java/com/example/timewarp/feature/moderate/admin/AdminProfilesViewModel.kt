@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.alerts.admin
+package com.example.timewarp.feature.moderate.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.alerts.admin
+package com.example.timewarp.feature.moderate.admin
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

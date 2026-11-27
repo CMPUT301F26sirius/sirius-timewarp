@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.alerts.admin
+package com.example.timewarp.feature.moderate.admin
 
 /*
  * This Sealed interface shows the available tabs in the alerts section for admin

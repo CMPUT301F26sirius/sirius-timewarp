@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.alerts
+package com.example.timewarp.feature.moderate
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
@@ -18,6 +18,7 @@ import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import okhttp3.internal.wait
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -73,9 +74,10 @@ class AdminSelectionTest {
     /*
     * This function will open the alerts screen
     */
-    private fun openAlerts() {
-        waitFor_Text("Alerts")
-        composeRule.onNodeWithText("Alerts").performClick()
+    private fun openModerate() {
+        waitFor_Text("Moderate")
+        composeRule.onNodeWithText("Moderate").performClick()
+        waitFor_Tag("admin_tab_Profiles")
     }
 
     /*
@@ -85,9 +87,7 @@ class AdminSelectionTest {
     fun adminTab_showAll_SelectionTabs(){
         singIn_as("admin_user", UserType.Admin)
         val scenario = ActivityScenario.launch(MainActivity::class.java)
-        openAlerts()
-        waitFor_Tag("alerts_tab_admin")
-        composeRule.onNodeWithTag("alerts_tab_admin").performClick()
+        openModerate()
         listOf("Profiles", "Images", "Notifications", "Messages").forEach {
             composeRule.onNodeWithTag("admin_tab_$it").assertIsDisplayed()
         }
@@ -101,9 +101,7 @@ class AdminSelectionTest {
     fun admin_notificationsTab() {
         singIn_as("admin_user", UserType.Admin)
         val scenario = ActivityScenario.launch(MainActivity::class.java)
-        openAlerts()
-        waitFor_Tag("alerts_tab_admin")
-        composeRule.onNodeWithTag("alerts_tab_admin").performClick()
+        openModerate()
         composeRule.onNodeWithTag("admin_tab_Notifications").performClick()
         composeRule.onNodeWithText("Notifications: Coming Soon", ignoreCase = true).assertIsDisplayed()
         scenario.close()
@@ -116,9 +114,7 @@ class AdminSelectionTest {
     fun admin_messagesTab() {
         singIn_as("admin_user", UserType.Admin)
         val scenario = ActivityScenario.launch(MainActivity::class.java)
-        openAlerts()
-        waitFor_Tag("alerts_tab_admin")
-        composeRule.onNodeWithTag("alerts_tab_admin").performClick()
+        openModerate()
         composeRule.onNodeWithTag("admin_tab_Messages").performClick()
         composeRule.onNodeWithText("Messages: Coming Soon", ignoreCase = true).assertIsDisplayed()
         scenario.close()
@@ -131,9 +127,9 @@ class AdminSelectionTest {
     fun entrant_CannotSee_AdminTab() {
         singIn_as("entrant-user", UserType.Entrant)
         val scenario = ActivityScenario.launch(MainActivity::class.java)
-        openAlerts()
-        waitFor_Text("No Alerts So Far")
-        composeRule.onNodeWithTag("alerts_tab_admin").assertDoesNotExist()
+        waitFor_Text("Alerts")
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Moderate").assertDoesNotExist()
         scenario.close()
     }
 
@@ -144,9 +140,9 @@ class AdminSelectionTest {
     fun owner_CannotSee_AdminTab() {
         singIn_as("owner-user", UserType.CampsiteOwner)
         val scenario = ActivityScenario.launch(MainActivity::class.java)
-        openAlerts()
-        waitFor_Text("No Alerts So Far")
-        composeRule.onNodeWithTag("alerts_tab_admin").assertDoesNotExist()
+        waitFor_Text("Alerts")
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Moderate").assertDoesNotExist()
         scenario.close()
     }
 

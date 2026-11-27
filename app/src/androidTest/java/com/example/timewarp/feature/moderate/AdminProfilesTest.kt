@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.alerts
+package com.example.timewarp.feature.moderate
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
@@ -7,7 +7,6 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
@@ -28,9 +27,7 @@ import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.assertNull
+import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -124,10 +121,8 @@ class AdminProfilesTest {
     * This function opens the alerts then admin and then waits for the list of profiles to load
     */
     private fun openProfilesTab() {
-        waitFor_Text("Alerts")
-        composeRule.onNodeWithText("Alerts").performClick()
-        waitFor_Tag("alerts_tab_admin")
-        composeRule.onNodeWithTag("alerts_tab_admin").performClick()
+        waitFor_Text("Moderate")
+        composeRule.onNodeWithText("Moderate").performClick()
         waitFor_Tag("admin_profile_item_entrant-1")
     }
 
@@ -188,8 +183,8 @@ class AdminProfilesTest {
         delete_Account()
         waitFor_TabGone("admin_profile_item_entrant-1")
         runBlocking {
-            assertNull(userRepository.getUser("entrant-1"))
-            assertNull(profileRepository.getProfile("entrant-1"))
+            TestCase.assertNull(userRepository.getUser("entrant-1"))
+            TestCase.assertNull(profileRepository.getProfile("entrant-1"))
         }
         composeRule.onNodeWithTag("admin_profile_item_owner-1").assertIsDisplayed()
         scenario.close()
@@ -234,14 +229,14 @@ class AdminProfilesTest {
             val active = reservationRepository.getReservation("res-active")
             val past = reservationRepository.getReservation("res-past")
             val rating = ratingRepository.getRatings()?.find { it.ratingId == "rating-1" }
-            assertNotNull(active)
-            assertNotNull(past)
-            assertNotNull(rating)
-            assertEquals(ReservationState.Canceled, active!!.reservationState)
-            assertEquals(ReservationState.Declined, past!!.reservationState)
-            assertEquals("deleted-user", active.userId)
-            assertEquals("deleted-user", past.userId)
-            assertEquals("deleted-user", rating!!.userId)
+            TestCase.assertNotNull(active)
+            TestCase.assertNotNull(past)
+            TestCase.assertNotNull(rating)
+            TestCase.assertEquals(ReservationState.Canceled, active!!.reservationState)
+            TestCase.assertEquals(ReservationState.Declined, past!!.reservationState)
+            TestCase.assertEquals("deleted-user", active.userId)
+            TestCase.assertEquals("deleted-user", past.userId)
+            TestCase.assertEquals("deleted-user", rating!!.userId)
         }
         scenario.close()
     }

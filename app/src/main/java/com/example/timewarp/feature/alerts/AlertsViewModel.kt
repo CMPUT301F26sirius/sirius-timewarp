@@ -36,32 +36,13 @@ sealed interface AlertsState {
  *
  * @property notificationRepository for notification data
  * @property messageRepository for message data
- * @property authRepository currently signed-in user ID
- * @property userRepository used to observe the role change for user profile
  */
 @HiltViewModel
 class AlertsViewModel @Inject constructor(
     private val notificationRepository: NotificationRepository,
     private val messageRepository: MessageRepository,
-    private val authRepository: AuthRepository,
-    private val userRepository: UserRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow<AlertsState>(AlertsState.Idle)
     val state: StateFlow<AlertsState> = _state.asStateFlow()
 
-    /*
-    * This will only show the admin tab when the user is signed in as Admin.
-    * Otherwise it will keep the admin tab hidden
-    */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val isAdmin: StateFlow<Boolean> = authRepository.currentUserId.flatMapLatest {
-        userId ->
-        if (userId == null) {
-            flowOf(false)
-        } else {
-            userRepository.observeUser(userId).map { it?.userType == UserType.Admin }
-        }
-    }
-        .stateIn(viewModelScope,
-            SharingStarted.WhileSubscribed(5_000), false)
 }

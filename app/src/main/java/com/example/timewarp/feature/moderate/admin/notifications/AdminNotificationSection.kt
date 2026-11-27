@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.alerts.admin.notifications
+package com.example.timewarp.feature.moderate.admin.notifications
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
