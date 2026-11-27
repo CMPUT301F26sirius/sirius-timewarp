@@ -18,7 +18,6 @@ import javax.inject.Inject
 
 /*
 * Loads one reservation for the Manage reservation screen and cancels it (US 01.07.01).
-* Outstanding: check-in/check-out dates aren't stored on Reservation yet.
 */
 
 sealed interface ReservationDetailsState {

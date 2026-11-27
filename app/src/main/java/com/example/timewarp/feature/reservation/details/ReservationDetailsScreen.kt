@@ -29,6 +29,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.timewarp.core.util.DayFormatter
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Location
 import com.example.timewarp.domain.model.Reservation
@@ -42,7 +43,7 @@ import com.example.timewarp.ui.theme.TimewarpTheme
 
 /*
 * Manage reservation screen with the Cancel Booking button (US 01.07.01).
-* Outstanding: dates not shown yet; editing a reservation isn't supported.
+* Outstanding: editing a reservation isn't supported.
 */
 
 @Composable
@@ -125,7 +126,13 @@ fun ReservationDetailsContent(
 
                 DetailRow(label = "Reservation #", value = state.reservation.reservationId)
                 DetailRow(label = "Status", value = state.reservation.reservationState.name)
-                DetailRow(label = "Check-in / Check-out", value = "Not available yet")
+                var datesText = "Not booked yet"
+                val checkIn = DayFormatter.fromDateString(state.reservation.datesBooked.startDate)
+                val checkOut = DayFormatter.fromDateString(state.reservation.datesBooked.endDate)
+                if (checkIn != null && checkOut != null) {
+                    datesText = "${DayFormatter.shortDate(checkIn)} – ${DayFormatter.shortDate(checkOut)}"
+                }
+                DetailRow(label = "Check-in / Check-out", value = datesText)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
