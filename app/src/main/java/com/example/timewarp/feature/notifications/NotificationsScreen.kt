@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.notifications
 
+import android.crypto.hpke.Recipient
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,7 +45,7 @@ fun NotificationsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableStateOf<NotificationsTab>(NotificationsTab.Incoming) }
 
-    LaunchedEffect(state) {
+    LaunchedEffect(viewModel) {
         viewModel.observe()
     }
 
@@ -61,6 +62,7 @@ fun NotificationsScreen(
                 outgoingNotifications = s.outgoingNotifications,
                 allNotifications = s.allNotifications,
                 tabs = s.tabs,
+                usersNames = s.usersNames,
                 selectedTab = if (selectedTab in s.tabs) selectedTab else s.tabs.first(),
                 onTabSelected = { selectedTab = it }
             )
@@ -73,6 +75,7 @@ fun NotificationsContent(
     incomingNotifications: MutableList<Notification>?,
     outgoingNotifications: MutableList<Notification>?,
     allNotifications: MutableList<Notification>?,
+    usersNames: Map<String, String>,
     tabs: List<NotificationsTab>,
     selectedTab: NotificationsTab,
     onTabSelected: (NotificationsTab) -> Unit,
@@ -97,9 +100,9 @@ fun NotificationsContent(
         }
 
         when (selectedTab) {
-            is NotificationsTab.Incoming -> NotificationsList(incomingNotifications)
-            is NotificationsTab.Outgoing -> NotificationsList(outgoingNotifications)
-            is NotificationsTab.AllNotifications -> NotificationsList(allNotifications)
+            is NotificationsTab.Incoming -> NotificationsList(incomingNotifications, usersNames)
+            is NotificationsTab.Outgoing -> NotificationsList(outgoingNotifications, usersNames)
+            is NotificationsTab.AllNotifications -> NotificationsList(allNotifications, usersNames)
         }
 
     }
@@ -108,6 +111,7 @@ fun NotificationsContent(
 @Composable
 private fun NotificationsList(
     notifications: MutableList<Notification>?,
+    usersNames: Map<String, String>,
     modifier: Modifier = Modifier
 ) {
     if (notifications.isNullOrEmpty()) {
@@ -131,6 +135,8 @@ private fun NotificationsList(
             ) { notification ->
                 NotificationEntry(
                     notification = notification,
+                    senderName = usersNames[notification.fromUserId] ?: "(no name)",
+                    recipientName = usersNames[notification.toUserId] ?: "(no name)"
                 )
             }
         }
@@ -140,6 +146,8 @@ private fun NotificationsList(
 @Composable
 private fun NotificationEntry(
     notification: Notification,
+    senderName: String,
+    recipientName: String,
     modifier: Modifier= Modifier
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -157,6 +165,27 @@ private fun NotificationEntry(
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "Sender: $senderName",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "Recipient: $recipientName",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
         }
     }
 }

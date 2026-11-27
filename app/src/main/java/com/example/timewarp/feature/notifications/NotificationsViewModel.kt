@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 sealed interface NotificationsState {
@@ -25,7 +26,8 @@ sealed interface NotificationsState {
         val outgoingNotifications: MutableList<Notification>?,
         val allNotifications: MutableList<Notification>?,
         val userType: UserType,
-        val tabs: List<NotificationsTab> = listOf(NotificationsTab.Incoming)
+        val tabs: List<NotificationsTab> = listOf(NotificationsTab.Incoming),
+        val usersNames: Map<String, String> = emptyMap()
     ): NotificationsState
 
     data class Error(val message: String): NotificationsState
@@ -59,7 +61,7 @@ class NotificationsViewModel @Inject constructor(
                         _state.value = NotificationsState.Error("Unable to load user")
                     } else {
                         try {
-                            _state.value = loadContent(user)
+                            _state.value = linkNames(loadContent(user))
                         } catch (e: Exception) {
                             _state.value = NotificationsState.Error("Unable to load Notifications")
                         }
@@ -110,5 +112,22 @@ class NotificationsViewModel @Inject constructor(
 
     private suspend fun getAllNotifications(): MutableList<Notification>? {
         return notificationRepository.getNotifications()
+    }
+
+    private suspend fun getNameForUser(userId: String): String {
+        val profile = observeUserProfile(userId)
+            .catch { emit(null) }
+            .first()
+            ?.profile
+        val name = profile?.let { "${it.firstName} ${it.lastName}".trim() }
+        return name?.takeIf { it.isNotBlank() } ?: "(no name)"
+    }
+
+    private suspend fun linkNames(state: NotificationsState): NotificationsState {
+        if (state !is NotificationsState.Content) return state
+
+        val notification = state.incomingNotifications.orEmpty() + state.incomingNotifications.orEmpty() + state.allNotifications.orEmpty()
+        val userIds = notification.flatMap { listOf(it.fromUserId, it.toUserId) }.distinct()
+        return state.copy(usersNames = userIds.associateWith { getNameForUser(it) })
     }
 }
