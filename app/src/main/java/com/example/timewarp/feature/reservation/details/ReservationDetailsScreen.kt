@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.reservation.details
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,10 +44,17 @@ import com.example.timewarp.ui.theme.PitchMutedText
 import com.example.timewarp.ui.theme.TimewarpTheme
 
 /*
-* Manage reservation screen with the Cancel Booking button (US 01.07.01).
+* Manage reservation screen. The buttons depend on who is viewing:
+* the entrant can cancel a booking (US 01.07.01), or book or decline a win (US 01.04.03);
+* the campsite owner or an admin can reject it (US 02.08.01).
 * Outstanding: editing a reservation isn't supported.
 */
 
+/**
+ * Screen showing one reservation with the actions the current user can take on it.
+ *
+ * @param reservationId the reservation to show.
+ */
 @Composable
 fun ReservationDetailsScreen(
     reservationId: String,
@@ -61,9 +70,11 @@ fun ReservationDetailsScreen(
         viewModel.load(reservationId)
     }
 
-    // After cancelling, open the cancellation screen
+    // React to finished actions
     LaunchedEffect(state) {
         val current = state
+
+        // After cancelling, open the cancellation screen
         if (current is ReservationDetailsState.Cancelled) {
             navController.navigate(Screen.ReservationCancellation.createRoute(current.reservationId)) {
                 // Remove this screen so Back doesn't return to a cancelled booking
@@ -71,6 +82,11 @@ fun ReservationDetailsScreen(
                     inclusive = true
                 }
             }
+        }
+
+        // After declining or rejecting, go back to the previous screen (US 01.04.03)
+        if (current is ReservationDetailsState.Declined || current is ReservationDetailsState.Rejected) {
+            navController.popBackStack()
         }
     }
 
@@ -81,7 +97,10 @@ fun ReservationDetailsScreen(
     ) {
         ReservationDetailsContent(
             state = state,
-            onCancelConfirmed = { viewModel.cancel(reservationId) }
+            onCancelConfirmed = { viewModel.cancel(reservationId) },
+            onMakeReservation = { navController.navigate(Screen.MakeReservation.createRoute(reservationId)) },
+            onDeclineConfirmed = { viewModel.decline(reservationId) },
+            onRejectConfirmed = { viewModel.reject(reservationId) }
         )
     }
 }
@@ -91,15 +110,23 @@ fun ReservationDetailsScreen(
  * Kept separate from the ViewModel so UI tests can use it without Firebase.
  *
  * @param state what to show.
- * @param onCancelConfirmed called after the user confirms the cancel dialog.
+ * @param onCancelConfirmed called after the entrant confirms the cancel dialog.
+ * @param onMakeReservation called when the entrant taps Make reservation.
+ * @param onDeclineConfirmed called after the entrant confirms the decline dialog.
+ * @param onRejectConfirmed called after the owner or admin confirms the reject dialog.
  */
 @Composable
 fun ReservationDetailsContent(
     state: ReservationDetailsState,
-    onCancelConfirmed: () -> Unit
+    onCancelConfirmed: () -> Unit,
+    onMakeReservation: () -> Unit,
+    onDeclineConfirmed: () -> Unit,
+    onRejectConfirmed: () -> Unit
 ) {
-    // Whether the "Cancel booking?" dialog is open
-    var showDialog by remember { mutableStateOf(false) }
+    // Which confirmation dialog is open
+    var showCancelDialog by remember { mutableStateOf(false) }
+    var showDeclineDialog by remember { mutableStateOf(false) }
+    var showRejectDialog by remember { mutableStateOf(false) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -111,6 +138,8 @@ fun ReservationDetailsContent(
             ReservationDetailsState.Loading -> Text("Loading reservation...")
             is ReservationDetailsState.Error -> Text("Error: ${state.message}", color = PitchError)
             is ReservationDetailsState.Cancelled -> Text("Reservation cancelled.")
+            ReservationDetailsState.Declined -> Text("Reservation declined.")
+            ReservationDetailsState.Rejected -> Text("Reservation rejected.")
 
             is ReservationDetailsState.Content -> {
                 // Campsite info, or placeholders if it couldn't be loaded
@@ -126,6 +155,8 @@ fun ReservationDetailsContent(
 
                 DetailRow(label = "Reservation #", value = state.reservation.reservationId)
                 DetailRow(label = "Status", value = state.reservation.reservationState.name)
+
+                // Booked dates, if this reservation has them (US 02.06.01)
                 var datesText = "Not booked yet"
                 val checkIn = DayFormatter.fromDateString(state.reservation.datesBooked.startDate)
                 val checkOut = DayFormatter.fromDateString(state.reservation.datesBooked.endDate)
@@ -136,10 +167,40 @@ fun ReservationDetailsContent(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Only booked reservations show the cancel button
+                // Entrant's won reservation: book it on the Make reservation screen
+                if (state.canMakeReservation) {
+                    Button(
+                        onClick = onMakeReservation,
+                        shape = ComponentStyles.ButtonShape,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(ComponentStyles.ButtonHeight)
+                            .testTag("make_reservation_button")
+                    ) {
+                        Text("Make reservation")
+                    }
+                }
+
+                // Entrant's won reservation: turn it down (US 01.04.03)
+                if (state.canDecline) {
+                    OutlinedButton(
+                        onClick = { showDeclineDialog = true },
+                        shape = ComponentStyles.ButtonShape,
+                        border = BorderStroke(1.dp, PitchError),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PitchError),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(ComponentStyles.ButtonHeight)
+                            .testTag("decline_reservation_button")
+                    ) {
+                        Text("Decline reservation")
+                    }
+                }
+
+                // Entrant's booked stay: cancel it (US 01.07.01)
                 if (state.canCancel) {
                     Button(
-                        onClick = { showDialog = true },
+                        onClick = { showCancelDialog = true },
                         shape = ComponentStyles.ButtonShape,
                         colors = ButtonDefaults.buttonColors(containerColor = PitchError),
                         modifier = Modifier
@@ -149,23 +210,41 @@ fun ReservationDetailsContent(
                     ) {
                         Text("Cancel Booking")
                     }
-                } else {
-                    Text("This reservation can't be cancelled.", color = PitchMutedText)
+                }
+
+                // Campsite owner or admin: reject it (US 02.08.01)
+                if (state.canReject) {
+                    Button(
+                        onClick = { showRejectDialog = true },
+                        shape = ComponentStyles.ButtonShape,
+                        colors = ButtonDefaults.buttonColors(containerColor = PitchError),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(ComponentStyles.ButtonHeight)
+                            .testTag("reject_reservation_button")
+                    ) {
+                        Text("Reject reservation")
+                    }
+                }
+
+                // Nothing this user can do here
+                if (!state.canMakeReservation && !state.canDecline && !state.canCancel && !state.canReject) {
+                    Text("This reservation can't be changed.", color = PitchMutedText)
                 }
             }
         }
     }
 
-    // Confirmation dialog before cancelling
-    if (showDialog) {
+    // Confirmation before cancelling a booked stay
+    if (showCancelDialog) {
         AlertDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { showCancelDialog = false },
             title = { Text("Cancel booking?") },
             text = { Text("Your spot will be released. This can't be undone.") },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showDialog = false
+                        showCancelDialog = false
                         onCancelConfirmed()
                     },
                     modifier = Modifier.testTag("confirm_cancel_button")
@@ -174,8 +253,58 @@ fun ReservationDetailsContent(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = { showCancelDialog = false }) {
                     Text("Keep booking")
+                }
+            }
+        )
+    }
+
+    // Confirmation before declining a win
+    if (showDeclineDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeclineDialog = false },
+            title = { Text("Decline reservation?") },
+            text = { Text("Your spot will go to someone else from the lottery. This can't be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeclineDialog = false
+                        onDeclineConfirmed()
+                    },
+                    modifier = Modifier.testTag("confirm_decline_button")
+                ) {
+                    Text("Yes, decline", color = PitchError)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeclineDialog = false }) {
+                    Text("Keep it")
+                }
+            }
+        )
+    }
+
+    // Confirmation before rejecting someone's reservation
+    if (showRejectDialog) {
+        AlertDialog(
+            onDismissRequest = { showRejectDialog = false },
+            title = { Text("Reject reservation?") },
+            text = { Text("The entrant will be notified and their spot goes back to the lottery. This can't be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showRejectDialog = false
+                        onRejectConfirmed()
+                    },
+                    modifier = Modifier.testTag("confirm_reject_button")
+                ) {
+                    Text("Yes, reject", color = PitchError)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRejectDialog = false }) {
+                    Text("Go back")
                 }
             }
         )
@@ -194,13 +323,23 @@ private fun DetailRow(label: String, value: String) {
 @Preview(showBackground = true)
 @Composable
 private fun ReservationDetailsContentPreview() {
-    val reservation = Reservation(reservationId = "PT-271204", reservationState = ReservationState.Reserved)
+    // A won reservation seen by its entrant: Make reservation and Decline
+    val reservation = Reservation(reservationId = "PT-271204", reservationState = ReservationState.Pending)
     val campsite = Campsite(name = "Wapiti Camp", location = Location(address = "Jasper, Alberta"))
 
     TimewarpTheme {
         ReservationDetailsContent(
-            state = ReservationDetailsState.Content(reservation, campsite, canCancel = true),
-            onCancelConfirmed = {}
+            state = ReservationDetailsState.Content(
+                reservation = reservation,
+                campsite = campsite,
+                canCancel = false,
+                canMakeReservation = true,
+                canDecline = true
+            ),
+            onCancelConfirmed = {},
+            onMakeReservation = {},
+            onDeclineConfirmed = {},
+            onRejectConfirmed = {}
         )
     }
 }
