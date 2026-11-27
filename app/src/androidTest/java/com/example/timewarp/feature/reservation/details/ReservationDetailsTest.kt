@@ -159,7 +159,7 @@ class ReservationDetailsTest {
         val scenario = openReservationDetails("Cancelled")
 
         composeRule.waitUntil(5_000) {
-            composeRule.onAllNodesWithText("This reservation can't be cancelled.").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("This reservation can't be changed.").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithTag("cancel_booking_button").assertDoesNotExist()
 
