@@ -1,6 +1,8 @@
 package com.example.timewarp.domain.repository
 
 import com.example.timewarp.domain.model.Message
+import com.example.timewarp.domain.model.Profile
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Repository for storing and retrieving [Message] objects.
@@ -11,24 +13,26 @@ interface MessageRepository {
      * @param toUserId identifier of the recipient.
      * @return messages exchanged by the users, or `null` when no collection result is available.
      */
-    suspend fun getCorrespondance(fromUserId: String, toUserId: String): MutableList<Message>?
+    suspend fun observeCorrespondence(fromUserId: String, toUserId: String): Flow<List<Message>?>
 
     /**
      * @param userId identifier of the sender.
+     * @return A list of the latest messages where userId is the recipient or sender.
+     * with another unique user. i.e. all other users should only show up once.
+     */
+    suspend fun observeLatestMessages(userId: String): Flow<List<Message>?>
+
+    /**
+     * @param fromUserId identifier of the sender.
      * @return messages sent by the user, or `null` when no collection result is available.
      */
-    suspend fun getOutgoingMessages(userId: String): MutableList<Message>?
+    suspend fun observeOutgoingMessages(fromUserId: String): Flow<List<Message>?>
 
     /**
-     * @param userId identifier of the recipient.
+     * @param toUserId identifier of the recipient.
      * @return messages received by the user, or `null` when no collection result is available.
      */
-    suspend fun getIncomingMessages(userId: String): MutableList<Message>?
-
-    /**
-     * @return all messages, or `null` when no collection result is available.
-     */
-    suspend fun getMessages(): MutableList<Message>?
+    suspend fun observeIncomingMessages(toUserId: String): Flow<List<Message>?>
 
     /**
      * @param message message to send.
