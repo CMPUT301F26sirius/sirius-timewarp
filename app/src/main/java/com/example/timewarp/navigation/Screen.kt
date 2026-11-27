@@ -6,7 +6,9 @@ import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.AddModerator
 import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Search
@@ -37,13 +39,18 @@ sealed class Screen(
     data object Lotteries : Screen("lotteries", "Lotteries", "Cross your fingers!", Icons.Outlined.Token)
     data object Reservations : Screen("reservations", "Reservations", "You are on your way!", Icons.Outlined.CalendarMonth)
     data object Alerts : Screen("alerts", "Alerts", "Alerts", Icons.Outlined.Alarm)
+    data object Messages : Screen("messages", "Messages", "Messages", Icons.Outlined.Chat)
+    data object Notifications : Screen("notifications", "Notifications", "Notifications", Icons.Outlined.Notifications)
     data object Account : Screen("account", "Account", "Manage Account", Icons.Outlined.AccountBox)
-    data object Moderate : Screen("moderate", "Moderate", "Moderate", Icons.Outlined.AddModerator)
+    data object Moderate : Screen("log", "Log", "Log", Icons.Outlined.AddModerator)
     data object UpdateProfile : Screen("profile/update", "Update Profile", "Update Profile",  Icons.Outlined.AccountBox)
     data object Policy : Screen("policy", "Policy", "App Policy & Guidelines",  Icons.Outlined.Policy)
     data object CreateCampsite : Screen("campsite/create", "Create Campsite", "Create Campsite",  Icons.Outlined.AccountBox)
 
     // Dynamic routes.
+    data object DirectMessage : Screen("messages/dm", "Direct Message", "Direct Message", Icons.Outlined.Chat) {
+        fun createRoute(targetUserId: String) = "$route/${Uri.encode(targetUserId)}"
+    }
     data object LotteryDetails : Screen("lottery/details", "Details", "Lottery details", Icons.Outlined.Token) {
         fun createRoute(lotteryId: String) = "$route/$lotteryId"
     }
