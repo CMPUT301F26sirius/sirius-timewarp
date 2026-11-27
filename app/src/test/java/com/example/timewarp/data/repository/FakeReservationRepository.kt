@@ -81,6 +81,16 @@ class FakeReservationRepository @Inject constructor() : ReservationRepository {
         reservationsState.value = reservationsState.value - reservationId
     }
 
+
+    /**
+     * Sets the reservation with [reservationId] to Canceled.
+     *
+     * @param reservationId ID of the reservation to cancel.
+     **/
+    override suspend fun cancelReservation(reservationId: String) {
+        updateReservationState(reservationId, ReservationState.Canceled)
+    }
+
     /**
      * Removes all reservations from the fake collection.
      **/
