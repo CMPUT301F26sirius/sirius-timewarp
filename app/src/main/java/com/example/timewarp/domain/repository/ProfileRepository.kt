@@ -34,4 +34,9 @@ interface ProfileRepository {
      * @return a flow emitting the profile, or `null` when it is unavailable.
      */
     fun observeProfile(userId: String): Flow<Profile?>
+
+    /**
+     * @param userId identifier of the profile owner.
+     */
+    suspend fun deleteProfile(userId: String)
 }

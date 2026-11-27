@@ -118,4 +118,13 @@ class FakeUserRepository @Inject constructor() : UserRepository {
     fun addUser(user: User) {
         usersState.value = usersState.value + (user.userId to user)
     }
+
+    /**
+     * Removes a user from the fake collection
+     *
+     * @param userId ID of the user being removed
+     */
+    override suspend fun deleteUser(userId: String) {
+        usersState.value = usersState.value - userId
+    }
 }

@@ -8,9 +8,10 @@ import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.ProfileRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.repository.UserRepository
+import com.example.timewarp.domain.usecase.DeleteUserProfileUseCase
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
-import com.example.timewarp.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.NonCancellable
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 sealed interface AccountState {
     data object Idle : AccountState
@@ -29,8 +31,8 @@ sealed interface AccountState {
 class AccountViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authRepository: AuthRepository,
-    private val profileRepository: ProfileRepository,
-    private val reservationRepository: ReservationRepository,
+    private val deleteUserProfile: DeleteUserProfileUseCase,
+    observeCurrentUserUseCase: ObserveCurrentUserUseCase,
     observeCurrentUser: ObserveCurrentUserUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow<AccountState>(AccountState.Idle)
@@ -83,6 +85,19 @@ class AccountViewModel @Inject constructor(
             _isDeleting.value = true
 
             try {
+                withContext(NonCancellable) {
+                    deleteUserProfile(user.userId)
+                    authRepository.deleteAccount()
+                }
+                _state.value = AccountState.Deleted
+            } catch (e: Exception) {
+                _state.value = AccountState.Error("Unable to delete you account. Please try again")
+            } finally {
+                _isDeleting.value = false
+            }
+
+            /*
+            try {
                 val reservations = reservationRepository.getReservations().orEmpty()
                 for (reservation in reservations){
                     val isActive = reservation.reservationState == ReservationState.Waitlisted ||
@@ -119,6 +134,7 @@ class AccountViewModel @Inject constructor(
             } finally {
                 _isDeleting.value = false
             }
+            */
 
         }
 

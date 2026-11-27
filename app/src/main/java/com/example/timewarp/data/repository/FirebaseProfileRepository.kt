@@ -25,10 +25,13 @@ class FirebaseProfileRepository @Inject constructor(
     private val profiles = firestore.collection("profile")
 
     /**
-     * NEEDS_DOCUMENTATION
+     * Gets profile documents from the Firestore collection
      */
     override suspend fun getProfiles(): MutableList<Profile>? {
-        TODO("Not yet implemented")
+        val snapshot = profiles.get().await()
+        return snapshot.documents.mapNotNull {
+            it.toObject(Profile::class.java)?.copy(userId = it.id) }
+            .toMutableList()
     }
 
     /**
@@ -82,5 +85,9 @@ class FirebaseProfileRepository @Inject constructor(
         awaitClose {
             listener.remove()
         }
+    }
+
+    override suspend fun deleteProfile(userId: String) {
+        profiles.document(userId).delete().await()
     }
 }

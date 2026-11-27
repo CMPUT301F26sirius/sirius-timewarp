@@ -44,7 +44,12 @@ class FirebaseRatingRepository @Inject constructor(
      * NEEDS_DOCUMENTATION
      */
     override suspend fun getUserRatings(userId: String): MutableList<Rating>? {
-        TODO("Not yet implemented")
+        val snapshot = firestore.collection("rating")
+            .whereEqualTo("userId", userId).get().await()
+
+        return snapshot.documents.mapNotNull {
+            it.toObject(Rating::class.java)?.copy(ratingId = it.id)
+        }.toMutableList()
     }
 
     /**
