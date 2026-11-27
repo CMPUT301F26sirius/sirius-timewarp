@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import com.example.timewarp.domain.repository.ReservationRepository
+import com.example.timewarp.domain.usecase.ObserveUserProfileUseCase
 
 /**
  * [WaitlistScreen]
@@ -63,6 +65,7 @@ fun WaitlistScreen(
             is WaitlistState.Content -> WaitListContent(
                 lotteryId = s.lotteryId,
                 reservations = s.reservations,
+                userNames = s.userNames,
             )
         }
     }
@@ -78,17 +81,19 @@ fun WaitlistScreen(
 fun WaitListContent(
     lotteryId: String,
     reservations: List<Reservation>,
+    userNames: Map<String, String>,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         Text(
-            text = "Lottery #$lotteryId Waitlist",
+            text = "Lottery  [$lotteryId] Waitlist",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
         )
         WaitlistList(
             reservations = reservations,
             modifier = Modifier,
+            userNames = userNames,
         )
     }
 }
@@ -102,6 +107,7 @@ fun WaitListContent(
 private fun WaitlistList(
     reservations: List<Reservation>,
     modifier: Modifier = Modifier,
+    userNames: Map<String, String>,
 ) {
     if (reservations.isEmpty()) {
         Box(
@@ -122,7 +128,10 @@ private fun WaitlistList(
             items(
                 items = reservations,
             ) { reservation ->
-                WaitlistEntry(reservation)
+                WaitlistEntry(
+                    reservation = reservation,
+                    userName = userNames[reservation.userId] ?: reservation.userId,
+                )
             }
         }
     }
@@ -136,6 +145,7 @@ private fun WaitlistList(
 @Composable
 private fun WaitlistEntry(
     reservation: Reservation,
+    userName: String,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -153,8 +163,19 @@ private fun WaitlistEntry(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
+                    text = "Reservee: $userName",
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
                     text = "User ID: ${reservation.userId}",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                 )
             }
 
@@ -165,7 +186,7 @@ private fun WaitlistEntry(
             ) {
                 Text(
                     text = "Reservation ID: ${reservation.reservationId}",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                 )
             }
         }

@@ -222,7 +222,6 @@ class LotteryDetailsViewModel @Inject constructor(
                 reservationId = UUID.randomUUID().toString(),
                 lotteryId = lottery.lotteryId,
                 reservationState = ReservationState.Waitlisted,
-                lotteryId = lottery.lotteryId,
                 timestamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toInt(),
                 userId = userId,
             )

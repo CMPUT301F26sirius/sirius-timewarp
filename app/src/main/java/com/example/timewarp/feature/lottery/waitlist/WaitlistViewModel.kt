@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,7 +36,8 @@ sealed interface WaitlistState {
 
     data class Content(
         val lotteryId: String,
-        val reservations: List<Reservation>
+        val reservations: List<Reservation>,
+        val userNames: Map<String, String>,
     ): WaitlistState
 
     data class Error(val message: String): WaitlistState
@@ -54,7 +56,8 @@ sealed interface WaitlistState {
 @HiltViewModel
 class WaitlistViewModel @Inject constructor(
     private val reservationRepository: ReservationRepository,
-    private val observeCurrentUser: ObserveCurrentUserUseCase
+    private val observeCurrentUser: ObserveCurrentUserUseCase,
+    private val observeUserProfile: ObserveUserProfileUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow<WaitlistState>(WaitlistState.Loading)
     val state: StateFlow<WaitlistState> = _state.asStateFlow()
@@ -93,7 +96,8 @@ class WaitlistViewModel @Inject constructor(
 
         return WaitlistState.Content(
             lotteryId = lotteryId,
-            reservations = reservations
+            reservations = reservations,
+            userNames = reservations.associate { it.userId to getUserNameFromReservation(it) }
         )
     }
 
@@ -105,5 +109,16 @@ class WaitlistViewModel @Inject constructor(
     private suspend fun getWaitlistForLottery(lotteryId: String): List<Reservation> {
         val reservations = reservationRepository.getReservations()
         return reservations?.filter {it.lotteryId == lotteryId && it.reservationState == ReservationState.Waitlisted } ?: emptyList()
+    }
+
+    // This function is written largely by Anthropic's Claude:
+    private suspend fun getUserNameFromReservation(reservation: Reservation): String {
+        val profile = observeUserProfile(reservation.userId)
+            .catch { emit(null) }
+            .first()
+            ?.profile
+        val name = profile?.let { "${it.firstName} ${it.lastName}".trim() }
+        return name?.takeIf { it.isNotBlank() } ?: reservation.userId
+
     }
 }
