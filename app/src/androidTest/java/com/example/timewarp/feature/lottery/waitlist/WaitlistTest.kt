@@ -142,6 +142,15 @@ class WaitlistTest {
         waitForText("User ID: userId")
     }
 
+    @Test
+    fun clickCard_openReservationDetails() {
+        openWaitlist()
+        waitForTag("waitlist_entry_resId")
+        composeRule.onNodeWithTag("waitlist_entry_resId").performClick()
+        waitForText("PITCH/RESERVATION/DETAILS")
+        waitForText("resId")
+    }
+
     private fun openWaitlist() {
         scenario = ActivityScenario.launch(MainActivity::class.java)
         waitForText("Crimson Lake")

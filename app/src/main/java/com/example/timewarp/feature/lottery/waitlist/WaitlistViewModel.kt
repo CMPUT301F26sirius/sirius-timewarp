@@ -118,7 +118,7 @@ class WaitlistViewModel @Inject constructor(
             .first()
             ?.profile
         val name = profile?.let { "${it.firstName} ${it.lastName}".trim() }
-        return name?.takeIf { it.isNotBlank() } ?: reservation.userId
+        return name?.takeIf { it.isNotBlank() } ?: "(no name)"
 
     }
 }
