@@ -1,5 +1,6 @@
 package com.example.timewarp.data.repository
 
+import com.example.timewarp.domain.model.Profile
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.repository.UserRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -9,6 +10,8 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.collections.mapNotNull
+import kotlin.collections.orEmpty
 
 /**
  * Firebase-backed implementation of [UserRepository].
@@ -124,5 +127,27 @@ class FirebaseUserRepository @Inject constructor(
         firestore.collection("users").document(userId)
             .delete()
             .await()
+    }
+
+    /**
+     * This function streams every user document and reemits them when the collection changes
+     */
+    override fun observeUsers(): Flow<List<User>> = callbackFlow {
+        val listener = firestore.collection("users")
+            .addSnapshotListener {
+                snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            trySend(
+                snapshot?.documents.orEmpty().mapNotNull {
+                    it.toObject(User::class.java)?.copy(userId = it.id)
+                }
+            )
+        }
+        awaitClose {
+            listener.remove()
+        }
     }
 }

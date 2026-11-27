@@ -9,9 +9,13 @@ import com.example.timewarp.domain.repository.UserRepository
 import com.example.timewarp.domain.usecase.DeleteUserProfileUseCase
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -66,6 +70,7 @@ class AdminProfilesViewModel @Inject constructor(
     // State
     private val _state = MutableStateFlow(AdminProfilesState())
     val state: StateFlow<AdminProfilesState> = _state.asStateFlow()
+    private var loadJob: Job? = null
 
     init {
         loadProfiles()
@@ -75,16 +80,19 @@ class AdminProfilesViewModel @Inject constructor(
      * This function will load all the users and their profiles
      */
     fun loadProfiles() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             try {
                 val currentUser = observeCurrentUserUseCase().first()
-                val profileById = profileRepository.getProfiles()
-                    .orEmpty()
-                    .associateBy { it.userId }
-                val items = userRepository.getUsers().orEmpty()
-                    .map {
-                        user -> val profile = profileById[user.userId]
+                combine(
+                    userRepository.observeUsers(),
+                    profileRepository.observeProfiles()
+
+                ) { users, profiles ->
+                    val profileById = profiles.associateBy { it.userId }
+                    users.map { user ->
+                        val profile = profileById[user.userId]
                         AdminProfile(
                             userId = user.userId,
                             name = profile?.let {
@@ -95,18 +103,28 @@ class AdminProfilesViewModel @Inject constructor(
                             profile = profile
                         )
                     }
-
-                _state.update {
-                    it.copy(
-                        items = items,
-                        isLoading = false,
-                        currentUserId = currentUser?.userId,
-                        isAdmin = currentUser?.userType == UserType.Admin
-                    )
                 }
-            } catch (
-                e: Exception
-            ) {
+                    .catch {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                error = "Could Not Load Any Profiles"
+                            )
+                        }
+                    }
+                    .collect { items ->
+                        _state.update {
+                            it.copy(
+                                items = items,
+                                isLoading = false,
+                                currentUserId = currentUser?.userId,
+                                isAdmin = currentUser?.userType == UserType.Admin
+                            )
+                        }
+                    }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -128,7 +146,6 @@ class AdminProfilesViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 deleteUserProfileUseCase(userId)
-                loadProfiles()
             } catch (e: Exception) {
                 _state.update { it.copy(error = "Could Not Remove Profile") }
             }

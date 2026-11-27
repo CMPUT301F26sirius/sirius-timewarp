@@ -250,4 +250,28 @@ class AdminProfilesTest {
         composeRule.onNodeWithText("Delete Account", ignoreCase = true).assertDoesNotExist()
         scenario.close()
     }
+
+    @Test
+    fun admin_profileTab_UpdateLive() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openProfilesTab()
+        composeRule.onNodeWithText("Khan Entrant").assertIsDisplayed()
+
+        runBlocking {
+            profileRepository.editProfile(
+                "entrant-1",
+                Profile(
+                    userId = "entrant-1",
+                    firstName = "Khan",
+                    lastName = "Entrant-UPDATED",
+                    email = "khan@gmail.com",
+                    phoneNumber = "587-599-2459"
+                )
+            )
+        }
+        waitFor_Text("Khan Entrant-UPDATED")
+        composeRule.onNodeWithText("Khan Entrant-UPDATED").assertIsDisplayed()
+        composeRule.onNodeWithText("Khan Entrant").assertDoesNotExist()
+        scenario.close()
+    }
 }

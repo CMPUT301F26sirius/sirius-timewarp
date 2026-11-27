@@ -39,4 +39,9 @@ interface ProfileRepository {
      * @param userId identifier of the profile owner.
      */
     suspend fun deleteProfile(userId: String)
+
+    /**
+     * @return a flow emitting the profile and updated when the collection changes
+     */
+    fun observeProfiles(): Flow<List<Profile>>
 }
