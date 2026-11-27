@@ -1,10 +1,13 @@
 package com.example.timewarp.feature.alerts.admin
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -16,10 +19,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.timewarp.feature.alerts.admin.messages.AdminMessagesSection
 import com.example.timewarp.feature.alerts.admin.notifications.AdminNotificationSection
+import com.example.timewarp.ui.theme.PitchForest
 
 /**
  * This function will display a tab bar for switching between the admin alert section.
@@ -42,16 +49,32 @@ fun AdminSelectTab(
     ) {
         ScrollableTabRow(
             selectedTabIndex = index,
-            edgePadding = 0.dp,
+            edgePadding = 4.dp,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            indicator = {},
+            divider = {},
             modifier = Modifier.clip(RoundedCornerShape(15.dp))
         ) {
             tabs.forEachIndexed {
                 t, tab ->
+                val selected = t == index
                 Tab(
                     selected = t == index,
                     onClick = {selectedIndex = t},
-                    text = { Text(tab.label) },
+                    text = { Text(
+                        tab.label,
+                        fontWeight = if (selected) FontWeight.Bold
+                        else FontWeight.Normal,
+                        color = if (selected) PitchForest
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    ) },
                     modifier = Modifier.testTag("admin_tab_${tab.key}")
+                        .padding(vertical = 4.dp, horizontal = 3.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            if (selected) MaterialTheme.colorScheme.surface
+                            else Color.Transparent
+                        )
                 )
             }
         }

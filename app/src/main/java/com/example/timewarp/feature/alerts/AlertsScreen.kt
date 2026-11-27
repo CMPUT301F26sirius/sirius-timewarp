@@ -48,7 +48,7 @@ fun AlertsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
     val isAdmin by viewModel.isAdmin.collectAsStateWithLifecycle()
-    var tab by rememberSaveable { mutableIntStateOf(0) }
+   // var tab by rememberSaveable { mutableIntStateOf(0) }
 
     // State Interpretation & Navigation
     LaunchedEffect(state) {
@@ -65,6 +65,17 @@ fun AlertsScreen(
             Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            if (isAdmin){
+                AdminSelectTab()
+            } else {
+                Box(
+                    modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No Alerts So Far")
+                }
+            }
+            /*
             if (isAdmin) {
                 TabRow(
                     selectedTabIndex = tab,
@@ -95,6 +106,7 @@ fun AlertsScreen(
                     Text("No Alerts So Far")
                 }
             }
+            */
         }
     }
 }
