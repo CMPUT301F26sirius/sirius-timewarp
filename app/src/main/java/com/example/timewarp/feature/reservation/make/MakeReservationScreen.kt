@@ -72,6 +72,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Checkbox
 
 import androidx.compose.ui.semantics.Role
+import com.example.timewarp.core.util.formatPrice
 
 
 /*
@@ -499,10 +500,7 @@ private fun DetailRow(label: String, value: String) {
     }
 }
 
-// Formats an amount with its currency, e.g. "45.00 CAD"
-private fun formatPrice(amount: Double, currencyCode: String): String {
-    return "%.2f %s".format(amount, currencyCode)
-}
+
 
 @Preview(showBackground = true, showSystemUi = true, device = "id:pixel_7")
 @Composable
