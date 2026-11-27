@@ -15,17 +15,21 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
 import com.example.timewarp.data.repository.FakeAuthRepository
 import com.example.timewarp.data.repository.FakeCampsiteRepository
+import com.example.timewarp.data.repository.FakeRatingRepository
 import com.example.timewarp.data.repository.FakeUserRepository
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Location
 import com.example.timewarp.domain.model.Occupancy
+import com.example.timewarp.domain.model.Rating
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
+import com.example.timewarp.domain.repository.RatingRepository
 import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -57,6 +61,9 @@ class BrowseTest {
     @Inject
     lateinit var campsiteRepository: CampsiteRepository
 
+    @Inject
+    lateinit var ratingRepository: RatingRepository
+
     /*
     * This function builds a test campsite with the given id, name, address, and max guests
     */
@@ -81,6 +88,7 @@ class BrowseTest {
     @Before
     fun setUp() {
         hiltRule.inject()
+        (ratingRepository as FakeRatingRepository).clear()
         (authRepository as FakeAuthRepository).setCurrentUserId("browse-user")
         (userRepository as FakeUserRepository).addUser(
             User(userId = "browse-user", userType = UserType.Entrant)
@@ -308,6 +316,24 @@ class BrowseTest {
         composeRule.onNodeWithText("Bear Creek").assertIsDisplayed()
         scenario.close()
 
+    }
+
+    @Test
+    fun showAverage_of_ratings_011301(){
+        runBlocking {
+            ratingRepository.createRating(
+                Rating(ratingId = "2_a", campsiteId = "2", userId = "a", rating = 4, review = "")
+            )
+            ratingRepository.createRating(
+                Rating(ratingId = "2_b", campsiteId = "2", userId = "b", rating = 1, review = "")
+            )
+        }
+
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        waitForText("Rating: 2.5")
+        composeRule.onAllNodesWithText("Rating: 2.5").onFirst().assertIsDisplayed()
+        composeRule.onAllNodesWithText("Rating: 4.5").onFirst().assertIsDisplayed()
+        scenario.close()
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.profile.update
 
+import android.net.Uri
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
@@ -13,12 +14,14 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
 import com.example.timewarp.data.repository.FakeAuthRepository
+import com.example.timewarp.data.repository.FakeImageRepository
 import com.example.timewarp.data.repository.FakeProfileRepository
 import com.example.timewarp.data.repository.FakeUserRepository
 import com.example.timewarp.domain.model.Profile
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
+import com.example.timewarp.domain.repository.ImageRepository
 import com.example.timewarp.domain.repository.ProfileRepository
 import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -49,6 +52,9 @@ class UpdateProfileTest {
     @Inject
     lateinit var profileRepository: ProfileRepository
 
+    @Inject
+    lateinit var imageRepository: ImageRepository
+
     @Before
     fun setUp() {
         hiltRule.inject()
@@ -61,6 +67,7 @@ class UpdateProfileTest {
 
         // Auth
         (authRepository as FakeAuthRepository).setCurrentUserId("profile-user")
+        (imageRepository as FakeImageRepository).clear()
 
         // Profile
         (profileRepository as FakeProfileRepository).clear()
@@ -115,6 +122,7 @@ class UpdateProfileTest {
 
     @Test
     fun updateProfile_savesEditedValuesAndReturnsToAccount() {
+        val imageId = createProfileImageId()
         val scenario = openUpdateProfile()
 
         composeRule.onNodeWithText("Ada").performTextReplacement("Grace")
@@ -135,6 +143,51 @@ class UpdateProfileTest {
         assertEquals("Hopper", saved?.lastName)
         assertEquals("grace@example.com", saved?.email)
         assertEquals("0987654321", saved?.phoneNumber)
+        assertEquals(imageId, saved?.imageId)
+
+        scenario.close()
+    }
+
+    @Test
+    fun updateProfile_removesImageIdWhenPhotoIsRemoved() {
+        val imageId = createProfileImageId()
+        val scenario = openUpdateProfile()
+
+        composeRule.onNodeWithText("Remove photo")
+            .performScrollTo()
+            .performClick()
+        composeRule.onNodeWithTag("updateButton").performScrollTo().performClick()
+
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Update profile").fetchSemanticsNodes(
+                atLeastOneRootRequired = false
+            ).isNotEmpty()
+        }
+
+        val saved = runBlocking { profileRepository.getProfile("profile-user") }
+        assertEquals("", saved?.imageId)
+        assertEquals(imageId, runBlocking { imageRepository.getImage(imageId) }?.imageId)
+
+        scenario.close()
+    }
+
+    @Test
+    fun updateProfile_savesSelectedInterests() {
+        val scenario = openUpdateProfile()
+
+        composeRule.onNodeWithText("Camping")
+            .performScrollTo()
+            .performClick()
+        composeRule.onNodeWithTag("updateButton").performScrollTo().performClick()
+
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("Update profile").fetchSemanticsNodes(
+                atLeastOneRootRequired = false
+            ).isNotEmpty()
+        }
+
+        val saved = runBlocking { profileRepository.getProfile("profile-user") }
+        assertEquals(listOf("Camping"), saved?.interests)
 
         scenario.close()
     }
@@ -155,5 +208,21 @@ class UpdateProfileTest {
         assertEquals("Ada", unchanged?.firstName)
 
         scenario.close()
+    }
+
+    private fun createProfileImageId(): String {
+        val image = checkNotNull(runBlocking {
+            imageRepository.uploadImage(Uri.parse("content://test.images/profile"))
+        }) { "Fake image upload should return an image." }
+        val profile = checkNotNull(runBlocking {
+            profileRepository.getProfile("profile-user")
+        })
+        runBlocking {
+            profileRepository.editProfile(
+                userId = profile.userId,
+                profile = profile.copy(imageId = image.imageId)
+            )
+        }
+        return image.imageId
     }
 }

@@ -76,6 +76,15 @@ class FakeReservationRepository @Inject constructor() : ReservationRepository {
     }
 
     /**
+     * Removes a reservation
+     *
+     * @param reservationId ID of the reservation
+     */
+    override suspend fun deleteReservation(reservationId: String) {
+        reservationsState.value -= reservationId
+    }
+
+    /**
      * Removes all reservations from the fake collection.
      **/
     fun clear() {

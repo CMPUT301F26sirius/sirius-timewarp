@@ -69,6 +69,7 @@ class CreateCampsiteTest {
     fun owner_canOpenCampsiteCreationFromMyCampsites() {
         openRegistrationScreen()
         composeRule.onNodeWithText("PITCH/CAMPSITE/CREATE").assertIsDisplayed()
+        composeRule.onNodeWithTag("campsiteImagePicker").assertIsDisplayed()
     }
 
     /** Submitting an empty form shows a required-field error without saving. */
