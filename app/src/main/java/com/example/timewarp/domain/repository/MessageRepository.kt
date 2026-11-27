@@ -16,12 +16,11 @@ interface MessageRepository {
     suspend fun observeCorrespondence(fromUserId: String, toUserId: String): Flow<List<Message>?>
 
     /**
-     * @param fromUserId identifier of the sender.
-     * @return A pair with the profile of the toUserId, and latest message between you and them
-     * This is so we can display a list of people you are messaging, along with the last message
-     * e.g. their_pfp | you: message or their_pfp | them: message
+     * @param userId identifier of the sender.
+     * @return A list of the latest messages where userId is the recipient or sender.
+     * with another unique user. i.e. all other users should only show up once.
      */
-    suspend fun observeSummaries(fromUserId: String): Flow<List<Pair<Profile, Message>>?>
+    suspend fun observeLatestMessages(userId: String): Flow<List<Message>?>
 
     /**
      * @param fromUserId identifier of the sender.
