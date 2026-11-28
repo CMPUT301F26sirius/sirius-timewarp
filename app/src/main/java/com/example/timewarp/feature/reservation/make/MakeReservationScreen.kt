@@ -19,6 +19,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -76,7 +77,7 @@ import com.example.timewarp.core.util.formatPrice
 
 
 /*
-* Make reservation screen for lottery winners: choose a campsite and dates, then Confirm (US 01.05.01, US 01.04.01).
+* Make reservation screen for lottery winners: choose a campsite and dates, then Confirm or Decline (US 01.05.01, US 01.04.01, US 01.04.03).
 * Days that can't be booked are greyed out in the calendar and can't be picked.
 */
 
@@ -112,6 +113,10 @@ fun MakeReservationScreen(
                 }
             }
         }
+        // After declining, go back to the previous screen
+        if (current is MakeReservationState.Declined) {
+            navController.popBackStack()
+        }
     }
 
     NavigationScreen(
@@ -122,6 +127,7 @@ fun MakeReservationScreen(
         MakeReservationContent(
             state = state,
             onConfirm = { viewModel.confirm(reservationId) },
+            onDeclineConfirmed = { viewModel.decline(reservationId) },
 
             onDatesPicked = { checkIn, checkOut ->
                 viewModel.selectDates(checkIn, checkOut)},
@@ -141,12 +147,14 @@ fun MakeReservationScreen(
  * @param state what to show.
  * @param onConfirm called when the user taps Confirm.
  * @param onDatesPicked called with the check-in and check-out days picked in the calendar.
+ * @param onDeclineConfirmed called after the user confirms the decline dialog.
  * @param onCampsiteChosen called with the id of the campsite picked from the menu.
  */
 @Composable
 fun MakeReservationContent(
     state: MakeReservationState,
     onConfirm: () -> Unit,
+    onDeclineConfirmed: () -> Unit,
     onDatesPicked: (Int, Int) -> Unit,
 
     onRulesAcknowledgedChange: (Boolean) -> Unit,
@@ -156,12 +164,15 @@ fun MakeReservationContent(
 ) {
     // Whether the calendar dialog is open
     var showPicker by remember { mutableStateOf(false) }
+    // Whether the "Decline reservation?" dialog is open
+    var showDeclineDialog by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         when (state) {
             MakeReservationState.Loading -> Text("Loading reservation...")
             is MakeReservationState.Error -> Text("Error: ${state.message}", color = PitchError)
             is MakeReservationState.Confirmed -> Text("Reservation confirmed.")
+            MakeReservationState.Declined -> Text("Reservation declined.")
 
             is MakeReservationState.Content -> {
                 // Top: what was won; takes the free space and scrolls on small screens
@@ -270,6 +281,16 @@ fun MakeReservationContent(
                         ) {
                             Text("Confirm Reservation")
                         }
+
+                        // Changed their mind or no dates work: give the spot back
+                        TextButton(
+                            onClick = { showDeclineDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("decline_reservation_button")
+                        ) {
+                            Text("Decline reservation", color = PitchError)
+                        }
                     } else {
                         Text("This reservation can't be confirmed.", color = PitchMutedText)
                     }
@@ -287,6 +308,31 @@ fun MakeReservationContent(
             onDatesPicked = { checkIn, checkOut ->
                 showPicker = false
                 onDatesPicked(checkIn, checkOut)
+            }
+        )
+    }
+
+    // Confirmation before declining the win
+    if (showDeclineDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeclineDialog = false },
+            title = { Text("Decline reservation?") },
+            text = { Text("Your spot will go to someone else from the lottery. This can't be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeclineDialog = false
+                        onDeclineConfirmed()
+                    },
+                    modifier = Modifier.testTag("confirm_decline_button")
+                ) {
+                    Text("Yes, decline", color = PitchError)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeclineDialog = false }) {
+                    Text("Keep it")
+                }
             }
         )
     }
@@ -552,7 +598,7 @@ private fun MakeReservationContentPreview() {
                 onRulesAcknowledgedChange = {},
 
                 onCampsiteChosen = { campsiteId -> },
-
+                onDeclineConfirmed = {}
             )
         }
     }

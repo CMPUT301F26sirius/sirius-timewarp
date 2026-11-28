@@ -6,6 +6,9 @@ import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.timewarp.domain.model.ReservationState
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -115,5 +118,32 @@ class FirebaseReservationRepository @Inject constructor(
             .delete()
             .await()
     }
+
+    /**
+     * Listens to the firestore spot for reservation and emits the full list so that we
+     * can have real time updates
+     */
+
+    override fun observeReservations(): Flow<List<Reservation>> = callbackFlow {
+        val listener = firestore.collection("reservation")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val reservations = mutableListOf<Reservation>()
+                for (document in snapshot?.documents.orEmpty()) {
+                    val reservation = document.toObject(Reservation::class.java) ?: continue
+                    reservations.add(reservation.copy(reservationId = document.id))
+                }
+                trySend(reservations)
+            }
+
+        awaitClose {
+            listener.remove()
+        }
+    }
+
 }
 

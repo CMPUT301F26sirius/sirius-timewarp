@@ -11,6 +11,7 @@ import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.usecase.ConfirmReservationUseCase
+import com.example.timewarp.domain.usecase.DeclineReservationUseCase
 import com.example.timewarp.domain.usecase.FindBookableDaysUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,7 @@ import javax.inject.Inject
 
 /*
  * State and logic for the Make reservation screen: loads the won reservation, lets the winner choose
- * one of the lottery's campsites and its dates, and confirms them (US 01.05.01, US 01.04.01).
+ * one of the lottery's campsites and its dates, and confirms or declines it (US 01.05.01, US 01.04.01, US 01.04.03).
  * Available dates come from the chosen campsite's owner availability minus nights other people reserved.
  * Outstanding: dates aren't re-checked on Confirm, so two winners on the screen at the same time could pick the same nights;
  * Confirm isn't limited to the lottery's booking period yet.
@@ -30,6 +31,7 @@ import javax.inject.Inject
 /** What the Make reservation screen shows: loading, the reservation, confirmed, or an error. */
 sealed interface MakeReservationState {
     data object Loading : MakeReservationState
+    data object Declined : MakeReservationState
 
     /**
      * Everything the Make reservation screen shows.
@@ -108,6 +110,7 @@ class MakeReservationViewModel @Inject constructor(
     private val campsiteRepository: CampsiteRepository,
     private val lotteryRepository: LotteryRepository,
     private val confirmReservation: ConfirmReservationUseCase,
+    private val declineReservation: DeclineReservationUseCase,
     private val findBookableDays: FindBookableDaysUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow<MakeReservationState>(MakeReservationState.Loading)
@@ -201,6 +204,24 @@ class MakeReservationViewModel @Inject constructor(
             } catch (error: Exception) {
                 _state.value = MakeReservationState.Error(
                     error.message ?: "Unable to confirm reservation."
+                )
+            }
+        }
+    }
+
+    /** Declines the won reservation with [reservationId] so its spot can be redrawn (US 01.04.03). */
+    fun decline(reservationId: String) {
+        viewModelScope.launch {
+            try {
+                val declined = declineReservation(reservationId)
+                if (declined) {
+                    _state.value = MakeReservationState.Declined
+                } else {
+                    _state.value = MakeReservationState.Error("This reservation can't be declined.")
+                }
+            } catch (error: Exception) {
+                _state.value = MakeReservationState.Error(
+                    error.message ?: "Unable to decline reservation."
                 )
             }
         }

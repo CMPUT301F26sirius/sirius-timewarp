@@ -332,4 +332,40 @@ class MakeReservationTest {
 
         scenario.close()
     }
+
+    @Test
+    fun declining_setsDeclined_andReturnsToReservations() {
+        val scenario = openMakeReservation()
+
+        composeRule.onNodeWithTag("decline_reservation_button").performClick()
+        composeRule.onNodeWithTag("confirm_decline_button").performClick()
+
+        // The state changes through the repository, where the auto-draw hooks in
+        composeRule.waitUntil(5_000) {
+            runBlocking { reservationRepository.getReservation(reservationId)?.reservationState } ==
+                    ReservationState.Declined
+        }
+
+        // Back on the Reservations screen it came from (US 01.04.03)
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithText("PITCH/RESERVATIONS").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        scenario.close()
+    }
+
+    @Test
+    fun keepIt_doesNotDecline() {
+        val scenario = openMakeReservation()
+
+        composeRule.onNodeWithTag("decline_reservation_button").performClick()
+        composeRule.onNodeWithText("Keep it").performClick()
+
+        // Still a won reservation, still on the screen
+        val state = runBlocking { reservationRepository.getReservation(reservationId)?.reservationState }
+        assertEquals(ReservationState.Pending, state)
+        composeRule.onNodeWithTag("confirm_reservation_button").assertIsDisplayed()
+
+        scenario.close()
+    }
 }
