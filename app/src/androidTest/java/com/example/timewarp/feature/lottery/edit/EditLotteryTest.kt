@@ -5,6 +5,8 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasSetTextAction
@@ -19,29 +21,36 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performCustomAccessibilityActionWithLabel
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.timewarp.MainActivity
+import com.example.timewarp.core.util.DayFormatter
 import com.example.timewarp.data.repository.FakeAuthRepository
 import com.example.timewarp.data.repository.FakeCampsiteRepository
 import com.example.timewarp.data.repository.FakeLotteryRepository
+import com.example.timewarp.data.repository.FakeReservationRepository
 import com.example.timewarp.data.repository.FakeUserRepository
 import com.example.timewarp.domain.model.Campsite
 import com.example.timewarp.domain.model.Lottery
 import com.example.timewarp.domain.model.Period
+import com.example.timewarp.domain.model.Reservation
+import com.example.timewarp.domain.model.ReservationState
 import com.example.timewarp.domain.model.User
 import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.LotteryRepository
+import com.example.timewarp.domain.repository.ReservationRepository
 import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -78,6 +87,9 @@ class EditLotteryTest {
     @Inject
     lateinit var lotteryRepository: LotteryRepository
 
+    @Inject
+    lateinit var reservationRepository: ReservationRepository
+
     private val ownerId = "lottery-owner"
     private val lotteryId = "lottery-1"
 
@@ -93,6 +105,7 @@ class EditLotteryTest {
             User(userId = ownerId, userType = UserType.CampsiteOwner)
         )
         (lotteryRepository as FakeLotteryRepository).clear()
+        (reservationRepository as FakeReservationRepository).clear()
         val campRepository = campsiteRepository as FakeCampsiteRepository
         val lottRepository = lotteryRepository as FakeLotteryRepository
         campRepository.clear()
@@ -174,6 +187,49 @@ class EditLotteryTest {
         composeRule.onNodeWithText("Complete Lottery Creation").assertDoesNotExist()
     }
 
+    @Test
+    fun editLottery_pastRegistrationPeriodDrawsConfiguredWinnerCount() {
+        val reservations = reservationRepository as FakeReservationRepository
+        val originalLottery = runBlocking { lotteryRepository.getLottery(lotteryId) }!!
+        assertTrue(originalLottery.registrationPeriod.end >= today)
+        repeat(5) { index ->
+            reservations.addReservation(
+                Reservation(
+                    reservationId = "reservation-$index",
+                    reservationState = ReservationState.Waitlisted,
+                    lotteryId = lotteryId,
+                    userId = "entrant-$index",
+                )
+            )
+        }
+
+        openEditLottery()
+        fillCampsitesGoToDetails("Emerald Lake")
+        pickPastRegistrationDates()
+        waitForButton("lottery_create_button", enabled = true)
+        composeRule.onNodeWithTag("lottery_create_button").performScrollTo().performClick()
+
+        composeRule.waitUntil(5_000) {
+            runBlocking {
+                lotteryRepository.getLottery(lotteryId)?.registrationPeriod?.end
+                    ?.let { it < today } == true
+            }
+        }
+        val editedLottery = runBlocking { lotteryRepository.getLottery(lotteryId) }!!
+        assertTrue(editedLottery.registrationPeriod.end < today)
+
+        composeRule.waitUntil(5_000) {
+            runBlocking {
+                reservations.getReservations().orEmpty().count {
+                    it.reservationState == ReservationState.Pending
+                } == 3
+            }
+        }
+        val drawnReservations = runBlocking { reservations.getReservations().orEmpty() }
+        assertEquals(3, drawnReservations.count { it.reservationState == ReservationState.Pending })
+        assertEquals(2, drawnReservations.count { it.reservationState == ReservationState.Waitlisted })
+    }
+
     /*
     ##############################################################################
      */
@@ -240,10 +296,24 @@ class EditLotteryTest {
         waitForText("Ok")
         clickDay(startDay)
         clickDay(endDay)
-        composeRule.onNodeWithText("Ok").performClick()
-        composeRule.waitUntil(5_000) {
-            composeRule.onAllNodesWithText("Ok").fetchSemanticsNodes().isEmpty()
-        }
+        composeRule.onNode(hasText("Ok") and isEnabled()).performClick()
+        composeRule.waitForIdle()
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    private fun pickPastRegistrationDates() {
+        dateButton("registration_picker").performClick()
+        waitForText("Ok")
+        composeRule.onNodeWithText(DayFormatter.monthYear(today))
+            .performCustomAccessibilityActionWithLabel("Scroll to show the previous month")
+        composeRule.waitForIdle()
+        clickDay(10)
+        clickDay(12)
+        composeRule.onNode(hasText("Ok") and isEnabled()).performClick()
+        composeRule.waitForIdle()
+        dateButton("registration_picker")
+            .assertTextContains("10,", substring = true)
+            .assertTextContains("12,", substring = true)
     }
 
     /*

@@ -34,27 +34,61 @@ class LotteryDrawPollerUseCase @Inject constructor(
 ) {
     /**
      * Polls lotteries using [nowMillis], allowing tests to supply a fixed timestamp for testing.
+     *
+     * @param nowMillis
+     * @return [LotteryDrawPollResult]
      */
     suspend fun pollOnce(nowMillis: Long = System.currentTimeMillis()): LotteryDrawPollResult {
         // Get all lotteries
-        val lotteries = lotteryRepository.getLotteries()
-            ?: throw IllegalStateException("Lottery repository returned no lottery list")
-        val today = DayFormatter.fromMillis(nowMillis)
-        var checked = 0
+        val lotteries = lotteryRepository.getLotteries() ?: throw IllegalStateException("Lottery repository returned no lottery list")
+        var lotteriesChecked = 0
         var winnersSelected = 0
         var notSelectedNotified = 0
 
         // Iterate through lotteries
         for (lottery in lotteries) {
-            // Do not draw if it is not past the registration period
-            if (today <= lottery.registrationPeriod.end || lottery.winnerCount <= 0) continue
-            check(lottery.lotteryId.isNotBlank()) { "A due lottery has no ID" }
-            checked++
+            val result = processLottery(lottery, nowMillis)
+            lotteriesChecked += result.lotteriesChecked
+            winnersSelected += result.winnersSelected
+            notSelectedNotified += result.notSelectedNotified
+        }
+        return LotteryDrawPollResult(lotteriesChecked, winnersSelected, notSelectedNotified)
+    }
 
-            // Check winner count
-            var activeWinnerCount = reservationRepository.getOrInitializeActiveWinnerCount(lottery.lotteryId)
-            if (activeWinnerCount >= lottery.winnerCount) continue
+    /**
+     * Checks and draws winners for only the specified lottery.
+     *
+     * @param lotteryId
+     * @param nowMillis
+     * @return [LotteryDrawPollResult]
+     */
+    suspend fun pollLottery(
+        lotteryId: String,
+        nowMillis: Long = System.currentTimeMillis(),
+    ): LotteryDrawPollResult {
+        val lottery = lotteryRepository.getLottery(lotteryId)
+            ?: throw IllegalStateException("Lottery $lotteryId was not found")
+        return processLottery(lottery, nowMillis)
+    }
 
+    /**
+     * Checks and draws winners for only the specified lottery.
+     *
+     * @param lottery
+     * @param nowMillis
+     * @return [LotteryDrawPollResult]
+     */
+    private suspend fun processLottery(lottery: Lottery, nowMillis: Long): LotteryDrawPollResult {
+        // Do not draw if it is not past the registration period
+        val today = DayFormatter.fromMillis(nowMillis)
+        if (today <= lottery.registrationPeriod.end || lottery.winnerCount <= 0) { return LotteryDrawPollResult(0, 0, 0) }
+        check(lottery.lotteryId.isNotBlank()) { "A due lottery has no ID" }
+
+        // Check winner count
+        var winnersSelected = 0
+        var notSelectedNotified = 0
+        var activeWinnerCount = reservationRepository.getOrInitializeActiveWinnerCount(lottery.lotteryId)
+        if (activeWinnerCount < lottery.winnerCount) {
             // Active winner count is less than winner count, get candidates (waitlisted)
             val candidates = reservationRepository.getWaitlistedReservations(lottery.lotteryId).shuffled()
 
@@ -77,25 +111,25 @@ class LotteryDrawPollerUseCase @Inject constructor(
                     notificationRepository.sendNotification(notification)
                 }
             }
+        }
 
-            // If all winners are selected, send lost notification to remaining list of entrants
-            if (activeWinnerCount >= lottery.winnerCount) {
-                val remainingWaitlist = reservationRepository.getWaitlistedReservations(lottery.lotteryId)
-                for (reservation in remainingWaitlist) {
-                    notificationRepository.sendNotification(
-                        notSelectedNotification(
-                            lotteryId = lottery.lotteryId,
-                            userId = reservation.userId,
-                            reservationId = reservation.reservationId,
-                            nowMillis = nowMillis,
-                        )
+        // If all winners are selected, send lost notification to remaining list of entrants
+        if (activeWinnerCount >= lottery.winnerCount) {
+            val remainingWaitlist = reservationRepository.getWaitlistedReservations(lottery.lotteryId)
+            for (reservation in remainingWaitlist) {
+                notificationRepository.sendNotification(
+                    notSelectedNotification(
+                        lotteryId = lottery.lotteryId,
+                        userId = reservation.userId,
+                        reservationId = reservation.reservationId,
+                        nowMillis = nowMillis,
                     )
-                    notSelectedNotified++
-                }
+                )
+                notSelectedNotified++
             }
         }
 
-        return LotteryDrawPollResult(checked, winnersSelected, notSelectedNotified)
+        return LotteryDrawPollResult(1, winnersSelected, notSelectedNotified)
     }
 
     // Helper to make a winner notification

@@ -14,8 +14,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-const val REGISTRATION_END = 20_000
-
 class LotteryDrawPollerUseCaseTest {
     private lateinit var lotteryRepository: FakeLotteryRepository
     private lateinit var reservationRepository: FakeReservationRepository
@@ -158,6 +156,34 @@ class LotteryDrawPollerUseCaseTest {
         )
     }
 
+    @Test
+    fun pollLotteryOnlyDrawsTheRequestedLottery() = runBlocking {
+        val requestedLottery = lottery(winnerCount = 1)
+        val otherLottery = lottery(winnerCount = 1).copy(lotteryId = "lottery-2")
+        lotteryRepository.addLottery(requestedLottery)
+        lotteryRepository.addLottery(otherLottery)
+        reservationRepository.addReservation(waitlisted("entrant-1"))
+        reservationRepository.addReservation(
+            waitlisted("entrant-2").copy(lotteryId = otherLottery.lotteryId)
+        )
+
+        val result = poller.pollLottery(
+            requestedLottery.lotteryId,
+            DayFormatter.toMillis(REGISTRATION_END + 1),
+        )
+
+        assertEquals(1, result.lotteriesChecked)
+        assertEquals(1, result.winnersSelected)
+        assertEquals(
+            ReservationState.Pending,
+            reservationRepository.getReservation("entrant-1")?.reservationState,
+        )
+        assertEquals(
+            ReservationState.Waitlisted,
+            reservationRepository.getReservation("entrant-2")?.reservationState,
+        )
+    }
+
     private fun lottery(winnerCount: Int) = Lottery(
         lotteryId = "lottery-1",
         registrationPeriod = Period(start = REGISTRATION_END - 2, end = REGISTRATION_END),
@@ -171,4 +197,8 @@ class LotteryDrawPollerUseCaseTest {
         lotteryId = "lottery-1",
         userId = "user-$id",
     )
+
+    companion object {
+        const val REGISTRATION_END = 20_000
+    }
 }
