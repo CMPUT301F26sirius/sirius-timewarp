@@ -1,5 +1,6 @@
 package com.example.timewarp.data.repository
 
+import android.system.Os.close
 import com.example.timewarp.domain.model.Profile
 import com.example.timewarp.domain.repository.ProfileRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -89,5 +90,26 @@ class FirebaseProfileRepository @Inject constructor(
 
     override suspend fun deleteProfile(userId: String) {
         profiles.document(userId).delete().await()
+    }
+
+    /**
+     * This function streams every profile document and reemits them when the collection changes
+     */
+    override fun observeProfiles(): Flow<List<Profile>> = callbackFlow {
+        val listener = profiles.addSnapshotListener {
+            snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            trySend(
+                snapshot?.documents.orEmpty().mapNotNull {
+                    it.toObject(Profile::class.java)?.copy(userId = it.id)
+                }
+            )
+        }
+        awaitClose {
+            listener.remove()
+        }
     }
 }

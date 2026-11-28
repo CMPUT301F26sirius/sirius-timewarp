@@ -1,6 +1,5 @@
 package com.example.timewarp.feature.campsite.details
 
-import android.R.attr.text
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -50,6 +49,7 @@ import com.example.timewarp.ui.theme.TimewarpTheme
 import android.net.Uri
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -522,6 +522,9 @@ fun CampsiteDetailsScreen(
 
                         //Ratings
                         var editing by remember {mutableStateOf(false)}
+                        var removeRatingTarget by remember { mutableStateOf<Rating?>(null) }
+                        var removeReviewTarget by remember { mutableStateOf<Rating?>(null) }
+
                         if (currentState.canRate && (currentState.myRating == null || editing)) {
                             RatingInput(
                                 myRating = currentState.myRating,
@@ -572,6 +575,27 @@ fun CampsiteDetailsScreen(
                                                 modifier = Modifier.testTag("review_item"))
                                         }
 
+                                        if (currentState.isAdmin) {
+                                            Row {
+                                                if (rating.review.isNotBlank()) {
+                                                    TextButton(
+                                                        onClick = {removeReviewTarget = rating},
+                                                        modifier = Modifier.testTag("remove_review_${rating.ratingId}")
+                                                    ) {
+                                                        Text("Remove review")
+                                                    }
+                                                }
+                                                TextButton(
+                                                    onClick = {removeRatingTarget = rating},
+                                                    modifier = Modifier.testTag("remove_rating_${rating.ratingId}")
+                                                ) {
+                                                    Text("Remove rating")
+                                                }
+                                            }
+
+
+                                        }
+
                                         if (isMine && currentState.canRate && !editing) {
                                             TextButton(
                                                 onClick = {editing = true},
@@ -584,8 +608,62 @@ fun CampsiteDetailsScreen(
                                 }
                             }
                         }
-                    }
+                        // dialog for permanently deleting both rating and the review
+                        removeRatingTarget?.let {
+                                target ->
+                            AlertDialog(
+                                onDismissRequest = {removeRatingTarget = null},
+                                title = {Text("Are you sure?")},
+                                text = {Text("This will delete the rating and review permanently")},
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.onRemoveRating(target.ratingId)
+                                            removeRatingTarget = null
+                                        },
+                                        modifier = Modifier.testTag("confirm_remove_rating")
+                                    ) {
+                                        Text("Delete")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = {removeRatingTarget = null}
+                                    ) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            )
+                        }
 
+                        // dialog for deleting the review text only. It keeps the star rating
+                        removeReviewTarget?.let {
+                                target ->
+                            AlertDialog(
+                                onDismissRequest = {removeReviewTarget = null},
+                                title = {Text("Are you sure?")},
+                                text = {Text("This will delete the review permanently. The star rating will stay")},
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.onRemoveReview(target)
+                                            removeReviewTarget = null
+                                        },
+                                        modifier = Modifier.testTag("confirm_remove_review")
+                                    ) {
+                                        Text("Delete")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = {removeReviewTarget = null}
+                                    ) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            )
+                        }
+                    }
 
 
 

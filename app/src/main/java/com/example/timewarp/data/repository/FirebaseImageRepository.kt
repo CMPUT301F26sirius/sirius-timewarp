@@ -1,15 +1,20 @@
 package com.example.timewarp.data.repository
 
 import android.net.Uri
+import android.system.Os.close
 import com.example.timewarp.domain.model.Image
 import com.example.timewarp.domain.repository.ImageRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.text.mapNotNull
 
 /**
  * Firebase-backed implementation of [ImageRepository].
@@ -92,9 +97,32 @@ class FirebaseImageRepository @Inject constructor(
     override suspend fun deleteImage(imageId: String): Boolean {
         val image = getImage(imageId) ?: return false
 
-        storage.reference.child(image.storagePath).delete().await()
+        if (image.storagePath.isNotBlank()) {
+            runCatching {
+                storage.reference.child(image.storagePath).delete().await()
+            }
+        }
         imagesCollection.document(imageId).delete().await()
 
         return true
+    }
+
+    /**
+     * This function streams all the image documents and reemits them when the collection changes
+     */
+    override fun observeImages(): Flow<List<Image>> = callbackFlow {
+        val listener = imagesCollection.addSnapshotListener {
+            snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            trySend(
+              snapshot?.documents.orEmpty().mapNotNull {
+                  it.toObject(Image::class.java)?.copy(imageId = it.id)
+              }
+            )
+        }
+        awaitClose{listener.remove()}
     }
 }

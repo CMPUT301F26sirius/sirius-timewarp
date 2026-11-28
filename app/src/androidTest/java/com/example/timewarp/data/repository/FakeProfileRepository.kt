@@ -71,4 +71,11 @@ class FakeProfileRepository @Inject constructor() : ProfileRepository {
     override suspend fun deleteProfile(userId: String) {
         profiles.value = profiles.value - userId
     }
+
+    /**
+     * Emits every profile stored
+     */
+    override fun observeProfiles(): Flow<List<Profile>> = profiles.map{
+         it.values.toList()
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.timewarp.feature.campsite.details
 
+import android.R.attr.rating
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.Campsite
@@ -61,6 +62,9 @@ sealed interface CampsiteDetailsState {
         // The entrant can rate the campsite
         val canRate: Boolean
             get() = currentUser?.userType == UserType.Entrant
+
+        val isAdmin: Boolean
+            get() = currentUser?.userType == UserType.Admin
     }
 
     data class Error(val message: String) : CampsiteDetailsState
@@ -172,6 +176,33 @@ class CampsiteDetailsViewModel @Inject constructor(
                     review = review.trim()
                 )
             )
+        }
+    }
+
+    /**
+     * This function will let an Admin delete a rating that violates app policy
+     *
+     * @param ratingId the rating to remove
+     */
+    fun onRemoveRating(ratingId: String) {
+        val content = _state.value as? CampsiteDetailsState.Content?: return
+        if (!content.isAdmin) return
+        viewModelScope.launch {
+            ratingRepository.deleteRating(ratingId)
+        }
+    }
+
+    /**
+     * This function will let an Admin delete a review that violates app policy
+     * But it will keep the rating stars
+     *
+     * @param rating the rating whose review should be removed
+     */
+    fun onRemoveReview(rating: Rating) {
+        val content = _state.value as? CampsiteDetailsState.Content?: return
+        if (!content.isAdmin) return
+        viewModelScope.launch {
+            ratingRepository.createRating(rating.copy(review = ""))
         }
     }
 }

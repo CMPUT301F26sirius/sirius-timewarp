@@ -42,4 +42,9 @@ interface RatingRepository {
      * @return a flow emitting the campsite's ratings.
      */
     fun observeCampsiteRatings(campsiteId: String): Flow<List<Rating>>
+
+    /**
+     * @param ratingId identifier of the rating to retrieve.
+     */
+    suspend fun deleteRating(ratingId: String)
 }

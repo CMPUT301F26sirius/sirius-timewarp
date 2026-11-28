@@ -56,4 +56,9 @@ interface UserRepository {
      * @param userId identifier of the user to delete.
      */
     suspend fun deleteUser(userId: String)
+
+    /**
+     * @return a flow emitting every user account and updated when the collection changes
+     */
+    fun observeUsers(): Flow<List<User>>
 }

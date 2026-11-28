@@ -23,8 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.timewarp.feature.moderate.admin.images.AdminImagesList
 import com.example.timewarp.feature.moderate.admin.messages.AdminMessagesScreen
 import com.example.timewarp.feature.moderate.admin.notifications.AdminNotificationSection
+import com.example.timewarp.feature.moderate.admin.profiles.AdminProfileList
 import com.example.timewarp.ui.theme.PitchForest
 
 /**
@@ -81,7 +83,7 @@ fun AdminSelectTab(
         // Active tabs under the admin alert section
         when (tabs[index]) {
             AdminTab.Profiles -> AdminProfileList()
-            AdminTab.Images -> AdminPlaceholder("Images")
+            AdminTab.Images -> AdminImagesList()
             AdminTab.Messages -> AdminMessagesScreen()
             AdminTab.Notifications -> AdminNotificationSection()
         }
