@@ -133,6 +133,7 @@ class AdminImagesTest {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         openImagesTab()
         composeRule.onNodeWithTag("admin_image_item_image-1").performClick()
+        waitFor_Tag("confirm_admin_action")
         composeRule.onNodeWithTag("confirm_admin_action").performClick()
 
         waitFor_TabGone("admin_image_item_image-1")
@@ -143,4 +144,63 @@ class AdminImagesTest {
         scenario.close()
     }
 
+    @Test
+    fun admin_cancelDelete() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openImagesTab()
+        composeRule.onNodeWithTag("admin_image_delete_image-1").performClick()
+        waitFor_Tag("confirm_admin_action")
+        composeRule.onNodeWithText("cancel").performClick()
+        waitFor_TabGone("confirm_admin_action")
+        composeRule.onNodeWithTag("admin_image_item_image-1").assertIsDisplayed()
+        runBlocking {
+            TestCase.assertNotNull(imageRepository.getImage("image-1"))
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun admin_selectAll_images() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openImagesTab()
+        composeRule.onNodeWithTag("admin_images_select_all").performClick()
+        waitFor_Text("Delete selected (2)")
+        composeRule.onNodeWithText("Unselect all").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("admin_images_select_all").performClick()
+        waitFor_TabGone("admin_images_delete_selected")
+        composeRule.onNodeWithText("Select all").assertIsDisplayed()
+        scenario.close()
+    }
+
+    @Test
+    fun admin_deleteSelected_OnlyRemoveSelectedImages() {
+        (imageRepository as FakeImageRepository).addImage(
+            Image(
+                uploadingUserId = "owner-1",
+                imageId = "image-3",
+                url = "u3",
+                storagePath = "fake/image/image-3"
+            )
+        )
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        openImagesTab()
+
+        composeRule.onNodeWithTag("admin_image_select_image-1").performClick()
+        composeRule.onNodeWithTag("admin_image_select_image-2").performClick()
+        waitFor_Text("Delete selected (2)")
+        composeRule.onNodeWithTag("admin_images_delete_selected").performClick()
+        waitFor_Tag("confirm_delete_selected")
+        composeRule.onNodeWithTag("confirm_delete_selected").performClick()
+
+        waitFor_TabGone("admin_image_item_image-1")
+        waitFor_TabGone("admin_image_item_image-2")
+        composeRule.onNodeWithTag("admin_image_item_image-3").assertIsDisplayed()
+        runBlocking {
+            TestCase.assertNull(imageRepository.getImage("image-1"))
+            TestCase.assertNull(imageRepository.getImage("image-2"))
+            TestCase.assertNotNull(imageRepository.getImage("image-3"))
+        }
+        scenario.close()
+    }
 }

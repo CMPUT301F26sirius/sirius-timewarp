@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +30,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.timewarp.domain.model.Image
 import com.example.timewarp.feature.moderate.admin.AdminBrowseList
+import com.example.timewarp.ui.component.BaseButton
+import com.example.timewarp.ui.component.BaseButtonType
 import com.example.timewarp.ui.theme.PitchForest
+import java.nio.file.WatchEvent
 
 /**
  * This function will display the list of uploaded images for the admin moderation.
@@ -46,6 +50,8 @@ fun AdminImagesList(
 
     val images = (state as? AdminImages.Content)?.images.orEmpty()
     var pendingDelete by remember { mutableStateOf<Image?>(null) }
+    val selected by viewModel.selected.collectAsStateWithLifecycle()
+    var confirmDeleteSelected by remember { mutableStateOf(false) }
 
     AdminBrowseList(
         isLoading = state is AdminImages.Loading,
@@ -54,6 +60,36 @@ fun AdminImagesList(
         listTag = "admin_images_list",
         emptyText = "No Images Found"
     ) {
+        // This shows a select and unselect button only when at least one or all the images are selected
+        if (images.isNotEmpty()) {
+            item {
+                val allSelected = images.all { it.imageId in selected }
+                TextButton(
+                    onClick = {
+                        viewModel.toggleSelectAll(images.map { it.imageId })
+                    },
+                    modifier = Modifier.testTag("admin_images_select_all")
+                ) {
+                    Text(
+                        if (allSelected) "Unselect all"
+                        else
+                        "Select all"
+                    )
+                }
+            }
+        }
+
+        // This shows a delete action only when one or more items are selected
+        if (selected.isNotEmpty()) {
+            item {
+                BaseButton(
+                    type = BaseButtonType.Critical,
+                    text = "Delete selected (${selected.size})",
+                    modifier = Modifier.fillMaxWidth().testTag("admin_images_delete_selected"),
+                    onClick = {confirmDeleteSelected = true}
+                )
+            }
+        }
         items(
             images,
             key = {it.imageId}
@@ -68,6 +104,11 @@ fun AdminImagesList(
                     Modifier.padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Checkbox(
+                        checked = image.imageId in selected,
+                        onCheckedChange = {viewModel.toggleSelected(image.imageId)},
+                        modifier = Modifier.testTag("admin_image_select${image.imageId}")
+                    )
                     Column(
                         Modifier.padding(10.dp),
                         verticalArrangement = Arrangement.spacedBy(5.dp)
@@ -119,6 +160,33 @@ fun AdminImagesList(
             dismissButton = {
                 TextButton(
                     onClick = {pendingDelete = null}
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+    // This will let you select multiple images to delete.
+    // will show a confirmation screen when multiple images are selected to delete
+    if(confirmDeleteSelected) {
+        AlertDialog(
+            onDismissRequest = {confirmDeleteSelected = false},
+            title = {Text("Are your sure?")},
+            text = {Text("This will delete ${selected.size} images permanently")},
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteSelected()
+                        confirmDeleteSelected = false
+                    },
+                    modifier = Modifier.testTag("confirm_delete_selected")
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {confirmDeleteSelected = false}
                 ) {
                     Text("Cancel")
                 }

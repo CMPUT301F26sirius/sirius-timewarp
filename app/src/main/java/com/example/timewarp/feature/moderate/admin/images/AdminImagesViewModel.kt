@@ -36,6 +36,9 @@ class AdminImagesViewModel @Inject constructor(
     private val _state = MutableStateFlow<AdminImages>(AdminImages.Loading)
     val state: StateFlow<AdminImages> = _state.asStateFlow()
 
+    private val _selected = MutableStateFlow<Set<String>>(emptySet())
+    val selected: StateFlow<Set<String>> = _selected.asStateFlow()
+
     init {
         viewModelScope.launch {
             imageRepository.observeImages().catch {
@@ -61,4 +64,45 @@ class AdminImagesViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * This function lets you add or remove an image from the selection
+     */
+    fun toggleSelected(imageId: String) {
+        _selected.value = if (imageId in _selected.value) {
+            _selected.value - imageId
+        } else {
+            _selected.value + imageId
+        }
+    }
+
+    /**
+     * This function lets you select every image or clear the selection
+     */
+    fun toggleSelectAll(allIds: List<String>) {
+        _selected.value = if (
+            allIds.isNotEmpty() && _selected.value.containsAll(allIds)
+        ) {
+            emptySet()
+        } else {
+            allIds.toSet()
+        }
+
+    }
+
+    /**
+     * This function lets delete every selected image
+     */
+    fun deleteSelected() {
+        val ids = _selected.value
+        viewModelScope.launch {
+            try {
+                ids.forEach { imageRepository.deleteImage(it) }
+            } catch (e: Exception) {
+                _state.value = AdminImages.Error("Unable to delete the image")
+            }
+            _selected.value = emptySet()
+        }
+    }
+
 }
