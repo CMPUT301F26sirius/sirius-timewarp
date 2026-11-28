@@ -10,6 +10,7 @@ package com.example.timewarp.domain.model
  * @property registrationPeriod - Period during which entrants can register.
  * @property bookingPeriod - Period during which winners can book.
  * @property winnerCount - Number of winners selected by the lottery.
+ * @property activeWinnerCount - Number of entries currently Pending or Reserved.
  * @property waitlistCapacity - Maximum number of waitlisted entrants.
  * @property campsiteIds - Identifiers of campsites included in the lottery.
  */
@@ -21,6 +22,8 @@ data class Lottery (
 
     val winnerCount: Int = 1,
     val waitlistCapacity: Int = 100,
+
+    val activeWinnerCount: Int = 0,
 
     val campsiteIds: List<String> = emptyList<String>()
 )

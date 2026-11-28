@@ -2,8 +2,11 @@ package com.example.timewarp.data.repository
 
 import com.example.timewarp.domain.model.Reservation
 import com.example.timewarp.domain.model.ReservationState
+import com.example.timewarp.domain.model.Notification
 import com.example.timewarp.domain.repository.ReservationRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -56,20 +59,55 @@ class FakeReservationRepository @Inject constructor() : ReservationRepository {
     }
 
     /**
+     * NEEDS_DOCUMENTATION
+     */
+    override suspend fun getWaitlistedReservations(lotteryId: String): List<Reservation> =
+        reservationsState.value.values.filter {
+            it.lotteryId == lotteryId && it.reservationState == ReservationState.Waitlisted
+        }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    override suspend fun getOrInitializeActiveWinnerCount(lotteryId: String): Int =
+        reservationsState.value.values.count {
+            it.lotteryId == lotteryId &&
+                (it.reservationState == ReservationState.Pending ||
+                    it.reservationState == ReservationState.Reserved)
+        }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    override suspend fun tryPromoteWaitlistedReservation(reservationId: String, promoteNotification: Notification): Boolean {
+        while (true) {
+            val current = reservationsState.value
+            val reservation = current[reservationId] ?: return false
+            if (reservation.lotteryId.isBlank() ||
+                reservation.reservationState != ReservationState.Waitlisted ||
+                promoteNotification.notificationId.isBlank()
+            ) {
+                return false
+            }
+
+            val promoted = current +
+                (reservationId to reservation.copy(reservationState = ReservationState.Pending))
+            if (reservationsState.compareAndSet(current, promoted)) return true
+        }
+    }
+
+    /**
      * Changes the state of a stored reservation.
      * @param reservationId ID of the reservation.
      * @param state the new state.
      **/
     override suspend fun updateReservationState(reservationId: String, state: ReservationState) {
-        val reservation = reservationsState.value[reservationId]
-
-        // Nothing to update
-        if (reservation == null) {
-            return
+        while (true) {
+            val current = reservationsState.value
+            val reservation = current[reservationId] ?: return
+            val updated = current + (reservationId to reservation.copy(reservationState = state))
+            if (reservationsState.compareAndSet(current, updated)) return
         }
-
-        val updated = reservation.copy(reservationState = state)
-        reservationsState.value = reservationsState.value + (reservationId to updated)
     }
 
     /**
@@ -106,4 +144,10 @@ class FakeReservationRepository @Inject constructor() : ReservationRepository {
     fun addReservation(reservation: Reservation) {
         reservationsState.value = reservationsState.value + (reservation.reservationId to reservation)
     }
+
+    /**
+     * NEEDS_DOCUMENTATION
+     */
+    override fun observeReservations(): Flow<List<Reservation>> =
+        reservationsState.map { it.values.toList() }
 }

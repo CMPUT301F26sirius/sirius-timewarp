@@ -7,6 +7,7 @@ import com.example.timewarp.domain.repository.NotificationRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import jakarta.inject.Inject
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 /*
  * Cancels an entrant's reservation (US 01.07.01) and notifies them (US 01.07.02).
@@ -61,6 +62,7 @@ class CancelReservationUseCase @Inject constructor(
      */
     fun buildCancellationNotification(reservation: Reservation): Notification {
         return Notification(
+            timestamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toInt(),
             notificationId = UUID.randomUUID().toString(),
             notification = "Your reservation #${reservation.reservationId} has been cancelled.",
             fromUserId = SYSTEM_SENDER,

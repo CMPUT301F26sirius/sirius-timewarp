@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
@@ -74,6 +76,7 @@ dependencies {
 
     implementation("com.google.dagger:hilt-android:2.60.1")
     ksp("com.google.dagger:hilt-compiler:2.60.1")
+    ksp(libs.androidx.hilt.compiler)
     implementation("androidx.hilt:hilt-navigation-compose:1.4.0")
     testImplementation("com.google.dagger:hilt-android-testing:2.60.1")
     kspTest("com.google.dagger:hilt-android-compiler:2.57.1")

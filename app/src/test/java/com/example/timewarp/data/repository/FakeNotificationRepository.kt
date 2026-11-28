@@ -66,6 +66,15 @@ class FakeNotificationRepository @Inject constructor() : NotificationRepository 
      * @param notification notification to store.
      **/
     override suspend fun sendNotification(notification: Notification) {
+        if (notification.notificationId.isNotEmpty()) {
+            val existingIndex = notifications.indexOfFirst {
+                it.notificationId == notification.notificationId
+            }
+            if (existingIndex >= 0) {
+                notifications[existingIndex] = notification
+                return
+            }
+        }
         notifications.add(notification)
     }
 

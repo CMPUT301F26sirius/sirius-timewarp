@@ -10,6 +10,7 @@ import com.example.timewarp.domain.repository.NotificationRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import jakarta.inject.Inject
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 /*
  * Confirms a lottery winner's reservation (US 01.05.01) and notifies them (US 01.05.02).
@@ -104,6 +105,7 @@ class ConfirmReservationUseCase @Inject constructor(
         }
 
         return Notification(
+            timestamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toInt(),
             notificationId = UUID.randomUUID().toString(),
             notification = "Your reservation #${reservation.reservationId} at $campsiteText$datesText is confirmed.",
             fromUserId = CancelReservationUseCase.SYSTEM_SENDER,
