@@ -11,6 +11,7 @@ import com.example.timewarp.domain.repository.AuthRepository
 import com.example.timewarp.domain.repository.CampsiteRepository
 import com.example.timewarp.domain.repository.LotteryRepository
 import com.example.timewarp.domain.repository.RatingRepository
+import com.example.timewarp.domain.usecase.LotteryDrawPollerUseCase
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import com.example.timewarp.domain.usecase.ObserveUserProfileUseCase
 import com.example.timewarp.feature.lottery.create.CreateLotteryState
@@ -56,6 +57,7 @@ class EditLotteryViewModel @Inject constructor(
     private val campsiteRepository: CampsiteRepository,
     private val lotteryRepository: LotteryRepository,
     private val authRepository: AuthRepository,
+    private val lotteryDrawPoller: LotteryDrawPollerUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow<EditLotteryState>(EditLotteryState.Loading)
     val state: StateFlow<EditLotteryState> = _state.asStateFlow()
@@ -108,9 +110,8 @@ class EditLotteryViewModel @Inject constructor(
         val selectedIds = form.selectedCampsites.map { it.campsiteId }
         val campsiteIds = (original.campsiteIds + selectedIds).distinct().filter { it in selectedIds}
 
-
+        saveError = null
         viewModelScope.launch {
-
             try {
                 lotteryRepository.editLottery(
                     lotteryId,
@@ -127,8 +128,16 @@ class EditLotteryViewModel @Inject constructor(
                 saveError = error.message ?: "Failed to save lottery"
                 return@launch
             }
+
+            try {
+                lotteryDrawPoller.pollLottery(lotteryId)
+            } catch (error: Exception) {
+                saveError = "Lottery saved, but its draw could not be checked: ${error.message ?: "Unknown error"}"
+                return@launch
+            }
+
+            onSaved()
         }
-        onSaved()
     }
 }
 

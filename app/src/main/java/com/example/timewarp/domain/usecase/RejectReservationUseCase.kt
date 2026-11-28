@@ -8,6 +8,7 @@ import com.example.timewarp.domain.repository.NotificationRepository
 import com.example.timewarp.domain.repository.ReservationRepository
 import jakarta.inject.Inject
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 /*
  * Lets a campsite owner reject a reservation at their campsite (US 02.08.01) and notifies the entrant.
@@ -69,6 +70,7 @@ class RejectReservationUseCase @Inject constructor(
         }
 
         return Notification(
+            timestamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toInt(),
             notificationId = UUID.randomUUID().toString(),
             notification = "Your reservation #${reservation.reservationId} at $campsiteText was rejected by the campsite owner.",
             fromUserId = CancelReservationUseCase.SYSTEM_SENDER,
