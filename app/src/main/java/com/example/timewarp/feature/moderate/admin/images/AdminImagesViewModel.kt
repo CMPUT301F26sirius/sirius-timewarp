@@ -1,6 +1,5 @@
 package com.example.timewarp.feature.moderate.admin.images
 
-import android.adservices.adid.AdId
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.timewarp.domain.model.Image
@@ -26,11 +25,14 @@ sealed interface AdminImages {
 
 /**
  * This class streams every uploaded image for the admin images tab
+ *
+ * @property imageRepository used to observe and delete images
  */
 @HiltViewModel
 class AdminImagesViewModel @Inject constructor(
     private val imageRepository: ImageRepository,
 ) : ViewModel() {
+    // State
     private val _state = MutableStateFlow<AdminImages>(AdminImages.Loading)
     val state: StateFlow<AdminImages> = _state.asStateFlow()
 
@@ -47,6 +49,8 @@ class AdminImagesViewModel @Inject constructor(
 
     /**
      * This function will delete the selected image from the list.
+     *
+     * @param imageId
      */
     fun deleteImages(imageId: String) {
         viewModelScope.launch {

@@ -125,6 +125,9 @@ class AdminImagesTest {
         scenario.close()
     }
 
+    /*
+    * This test will delete image from the list
+    */
     @Test
     fun admin_deleteImages() {
         val scenario = ActivityScenario.launch(MainActivity::class.java)

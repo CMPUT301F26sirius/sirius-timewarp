@@ -31,6 +31,12 @@ import com.example.timewarp.domain.model.Image
 import com.example.timewarp.feature.moderate.admin.AdminBrowseList
 import com.example.timewarp.ui.theme.PitchForest
 
+/**
+ * This function will display the list of uploaded images for the admin moderation.
+ * The admin can delete images from moderate image tab
+ *
+ * @param viewModel
+ */
 @Composable
 fun AdminImagesList(
     viewModel: AdminImagesViewModel = hiltViewModel()
@@ -92,6 +98,7 @@ fun AdminImagesList(
             }
         }
     }
+    // This will show a confirmation screen when an image is selected to delete it
     pendingDelete?.let {
         image ->
         AlertDialog(
