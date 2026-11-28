@@ -97,4 +97,9 @@ class FirebaseRatingRepository @Inject constructor(
             listener.remove()
         }
     }
+
+    override suspend fun deleteRating(ratingId: String) {
+        firestore.collection("rating").document(ratingId)
+            .delete().await()
+    }
 }

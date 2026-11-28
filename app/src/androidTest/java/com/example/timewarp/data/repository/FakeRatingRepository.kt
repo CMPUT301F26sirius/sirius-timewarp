@@ -63,4 +63,12 @@ class FakeRatingRepository @Inject constructor() : RatingRepository {
      */
     override fun observeCampsiteRatings(campsiteId: String): Flow<List<Rating>> =
         ratings.map { items -> items.filter { it.campsiteId == campsiteId } }
+
+    /**
+     * This function deletes a rating and emits the updated list to observers
+     * @param ratingId identifier of the rating to delete
+     */
+    override suspend fun deleteRating(ratingId: String) {
+        ratings.value = ratings.value.filterNot { it.ratingId == ratingId }
+    }
 }
