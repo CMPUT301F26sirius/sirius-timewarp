@@ -1,8 +1,13 @@
 package com.example.timewarp.feature.notifications
 
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
@@ -20,6 +25,7 @@ import com.example.timewarp.domain.repository.UserRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import okhttp3.internal.wait
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -55,6 +61,9 @@ class NotificationsTest {
 
     private val notificationContent = "This is a test notification"
 
+    private val incomingTab = "notification_tab_Incoming"
+    private val outgoingTab = "notification_tab_Outgoing"
+    private val allTab = "notification_tab_AllNotifications"
 
     private lateinit var scenario: ActivityScenario<MainActivity>
 
@@ -90,7 +99,63 @@ class NotificationsTest {
         )
     }
 
+    @Test
+    fun checkEntrantTabs() {
+        (authRepository as FakeAuthRepository).setCurrentUserId(entrantId)
+        openNotificationsScreen()
+        composeRule.onNodeWithTag(incomingTab).assertIsNotDisplayed()
+        composeRule.onNodeWithTag(outgoingTab).assertIsNotDisplayed()
+        composeRule.onNodeWithTag(allTab).assertIsNotDisplayed()
+    }
 
+    @Test
+    fun checkOwnerTabs() {
+        (authRepository as FakeAuthRepository).setCurrentUserId(ownerId)
+        openNotificationsScreen()
+        waitForTag(incomingTab)
+        composeRule.onNodeWithTag(incomingTab).assertIsDisplayed()
+        composeRule.onNodeWithTag(outgoingTab).assertIsDisplayed()
+        composeRule.onNodeWithTag(allTab).assertIsNotDisplayed()
+    }
+
+    @Test
+    fun checkAdminTabs() {
+        (authRepository as FakeAuthRepository).setCurrentUserId(adminId)
+        openNotificationsScreen()
+        waitForTag("notification_tab_Incoming")
+        composeRule.onNodeWithTag(incomingTab).assertIsDisplayed()
+        composeRule.onNodeWithTag(outgoingTab).assertIsDisplayed()
+        composeRule.onNodeWithTag(allTab).assertIsDisplayed()
+    }
+
+    @Test fun checkEntrantNotifications() {
+        (authRepository as FakeAuthRepository).setCurrentUserId(entrantId)
+        openNotificationsScreen()
+        waitForText(notificationContent)
+        composeRule.onNodeWithText("other content").assertDoesNotExist()
+    }
+
+    @Test fun checkOwnerNotifications() {
+        (authRepository as FakeAuthRepository).setCurrentUserId(ownerId)
+        openNotificationsScreen()
+        waitForTag(incomingTab)
+        composeRule.onNodeWithText(notificationContent).assertDoesNotExist()
+        composeRule.onNodeWithTag(outgoingTab).performClick()
+        waitForText(notificationContent)
+        composeRule.onNodeWithText("other content").assertDoesNotExist()
+    }
+
+    @Test fun checkAdminNotifications() {
+        (authRepository as FakeAuthRepository).setCurrentUserId(adminId)
+        openNotificationsScreen()
+        waitForTag(incomingTab)
+        composeRule.onNodeWithText(notificationContent).assertDoesNotExist()
+        composeRule.onNodeWithTag(incomingTab).performClick()
+        composeRule.onNodeWithText(notificationContent).assertDoesNotExist()
+        composeRule.onNodeWithTag(allTab).performClick()
+        waitForText(notificationContent)
+        waitForText("other content")
+    }
     /*
     ====================================================================================
      */
@@ -108,5 +173,10 @@ class NotificationsTest {
 
     private fun waitForTag(tag: String) = composeRule.waitUntil(5_000) {
         composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()
+    }
+
+    @After
+    fun tearDown() {
+        if(::scenario.isInitialized) scenario.close()
     }
 }
