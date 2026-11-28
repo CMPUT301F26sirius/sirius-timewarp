@@ -107,7 +107,7 @@ fun AdminImagesList(
                     Checkbox(
                         checked = image.imageId in selected,
                         onCheckedChange = {viewModel.toggleSelected(image.imageId)},
-                        modifier = Modifier.testTag("admin_image_select${image.imageId}")
+                        modifier = Modifier.testTag("admin_image_select_${image.imageId}")
                     )
                     Column(
                         Modifier.padding(10.dp),

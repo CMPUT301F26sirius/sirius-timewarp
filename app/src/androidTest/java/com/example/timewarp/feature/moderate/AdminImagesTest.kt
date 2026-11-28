@@ -132,7 +132,7 @@ class AdminImagesTest {
     fun admin_deleteImages() {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         openImagesTab()
-        composeRule.onNodeWithTag("admin_image_item_image-1").performClick()
+        composeRule.onNodeWithTag("admin_image_delete_image-1").performClick()
         waitFor_Tag("confirm_admin_action")
         composeRule.onNodeWithTag("confirm_admin_action").performClick()
 
@@ -150,7 +150,7 @@ class AdminImagesTest {
         openImagesTab()
         composeRule.onNodeWithTag("admin_image_delete_image-1").performClick()
         waitFor_Tag("confirm_admin_action")
-        composeRule.onNodeWithText("cancel").performClick()
+        composeRule.onNodeWithText("Cancel").performClick()
         waitFor_TabGone("confirm_admin_action")
         composeRule.onNodeWithTag("admin_image_item_image-1").assertIsDisplayed()
         runBlocking {
