@@ -14,5 +14,6 @@ data class Notification (
     val notificationId: String = "",
     val notification: String = "",
     val fromUserId: String = "",
-    val toUserId: String = ""
+    val toUserId: String = "",
+    val timestamp: Int = 0,
 )

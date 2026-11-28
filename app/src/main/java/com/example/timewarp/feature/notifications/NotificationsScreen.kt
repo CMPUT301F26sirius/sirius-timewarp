@@ -151,7 +151,7 @@ private fun NotificationsList(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(
-                items = notifications,
+                items = notifications.sortedByDescending { it.timestamp },
             ) { notification ->
                 NotificationEntry(
                     notification = notification,
