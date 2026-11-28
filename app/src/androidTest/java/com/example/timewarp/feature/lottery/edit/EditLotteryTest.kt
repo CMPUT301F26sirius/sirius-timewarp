@@ -91,6 +91,7 @@ class EditLotteryTest {
     lateinit var reservationRepository: ReservationRepository
 
     private val ownerId = "lottery-owner"
+    private val editorId = "lottery-editor"
     private val lotteryId = "lottery-1"
 
     private val today = TimeUnit.MILLISECONDS.toDays((System.currentTimeMillis())).toInt()
@@ -104,6 +105,9 @@ class EditLotteryTest {
         (userRepository as FakeUserRepository).addUser(
             User(userId = ownerId, userType = UserType.CampsiteOwner)
         )
+        (userRepository as FakeUserRepository).addUser(
+            User(userId = editorId, userType = UserType.CampsiteOwner)
+        )
         (lotteryRepository as FakeLotteryRepository).clear()
         (reservationRepository as FakeReservationRepository).clear()
         val campRepository = campsiteRepository as FakeCampsiteRepository
@@ -112,9 +116,11 @@ class EditLotteryTest {
         campRepository.addCampsite(Campsite("1", ownerId,"Crimson Lake"))
         campRepository.addCampsite(Campsite("2", ownerId,"Emerald Lake"))
         campRepository.addCampsite(Campsite("3", "another-owner-id","Diamond Lake"))
+        campRepository.addCampsite(Campsite("4", editorId,"Pine Ridge"))
         lottRepository.addLottery(
             Lottery(
                 lotteryId = lotteryId,
+                editorIds = listOf(editorId),
                 registrationPeriod = Period(start = today, end = today + 2),
                 bookingPeriod = Period(start = today + 4, end = today + 6),
                 winnerCount = 3,
@@ -125,12 +131,23 @@ class EditLotteryTest {
     }
 
     @Test
-    fun campsiteList_showOnlyUsersOwnedCampsites() {
+    fun campsiteList_showsLotteryOwnersAndEditorsCampsites() {
         openEditLottery()
         waitForText("Crimson Lake")
         composeRule.onNodeWithText("Crimson Lake").assertIsDisplayed()
         composeRule.onNodeWithText("Emerald Lake").assertIsDisplayed()
+        composeRule.onNodeWithText("Pine Ridge").assertIsDisplayed()
         composeRule.onNodeWithText("Diamond Lake").assertDoesNotExist()
+    }
+
+    @Test
+    fun lotteryEditor_canOpenEditAndSeeTheirCampsites() {
+        (authRepository as FakeAuthRepository).setCurrentUserId(editorId)
+
+        openEditLottery()
+
+        composeRule.onNodeWithText("Pine Ridge").assertIsDisplayed()
+        composeRule.onNodeWithText("Crimson Lake").assertIsDisplayed()
     }
 
     @Test

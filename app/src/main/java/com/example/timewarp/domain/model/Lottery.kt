@@ -12,10 +12,12 @@ package com.example.timewarp.domain.model
  * @property winnerCount - Number of winners selected by the lottery.
  * @property activeWinnerCount - Number of entries currently Pending or Reserved.
  * @property waitlistCapacity - Maximum number of waitlisted entrants.
+ * @property editorIds - User identifiers allowed to edit the lottery.
  * @property campsiteIds - Identifiers of campsites included in the lottery.
  */
 data class Lottery (
     val lotteryId: String = "",
+    val editorIds: List<String> = emptyList(),
 
     val registrationPeriod: Period = Period(),
     val bookingPeriod: Period = Period(),

@@ -129,7 +129,7 @@ fun LotteryDetailsScreen(
  * @param joinClick Join the lottery or its waitlist
  * @param leaveClick Leave the waitlist, given the user's reservation ID
  * @param viewReservationClick Open the user's reservation, given its ID
- * @param editClick Owner tapped Edit lottery
+ * @param editClick Owner or editor tapped Edit lottery
  * @param waitlistClick Owner tapped View Waitlist
  * @param modifier applied to the outer column
  */
@@ -253,14 +253,17 @@ internal fun LotteryDetailsContent(
             )
         }
 
-        // Owners only
-        if (state.isOwner) {
+        // Owners and lottery editors can edit; only owners can manage the waitlist.
+        if (state.canEditLottery) {
             OutlinedButton(
                 onClick = editClick,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Edit lottery")
             }
+        }
+
+        if (state.isOwner) {
             OutlinedButton(
                 onClick = waitlistClick,
                 modifier = Modifier.fillMaxWidth(),
@@ -390,6 +393,7 @@ private fun LotteryDetailsPreview() {
                 ),
                 action = LotteryAction.LeaveWaitlist("r1"),
                 isOwner = true,
+                canEditLottery = true,
             ),
             joinClick = {},
             leaveClick = {},

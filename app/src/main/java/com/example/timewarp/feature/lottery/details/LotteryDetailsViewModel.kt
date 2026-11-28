@@ -76,6 +76,7 @@ sealed interface LotteryDetailsState {
         val campsites: List<LotteryCampsite>,
         val action: LotteryAction,
         val isOwner: Boolean,
+        val canEditLottery: Boolean,
         val isWorking: Boolean = false,
         val actionError: String? = null,
     ) : LotteryDetailsState
@@ -205,6 +206,7 @@ class LotteryDetailsViewModel @Inject constructor(
             campsites = campsites,
             action = actionFor(lottery, myReservation, waitlistSize),
             isOwner = isOwner,
+            canEditLottery = isOwner || user.userId in lottery.editorIds,
         )
     }
 

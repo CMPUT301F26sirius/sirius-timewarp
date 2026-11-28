@@ -89,15 +89,22 @@ class EditLotteryViewModel @Inject constructor(
         val lottery = lotteryRepository.getLottery(lotteryId)
             ?: return EditLotteryState.Error("Lottery not found")
 
-        val ownedCampsites = campsiteRepository.getCampsites().orEmpty()
-            .filter { it.ownerUserId == userId }
+        val allCampsites = campsiteRepository.getCampsites().orEmpty()
+        val lotteryOwnerIds = allCampsites
+            .filter { it.campsiteId in lottery.campsiteIds }
+            .map { it.ownerUserId }
+            .toSet()
 
-        if (ownedCampsites.none {it.campsiteId in lottery.campsiteIds }) {
+        if (userId !in lottery.editorIds && userId !in lotteryOwnerIds) {
             return EditLotteryState.Error("You cannot edit this lottery")
         }
 
-        form.fillExistingFields(lottery, ownedCampsites)
-        return EditLotteryState.Content(lottery = lottery, campsites = ownedCampsites)
+        val selectableOwnerIds = lotteryOwnerIds + lottery.editorIds
+        val selectableCampsites = allCampsites
+            .filter { it.ownerUserId in selectableOwnerIds }
+
+        form.fillExistingFields(lottery, selectableCampsites)
+        return EditLotteryState.Content(lottery = lottery, campsites = selectableCampsites)
     }
     fun updateLotteryInDB(onSaved: () -> Unit) {
         val content = _state.value as? EditLotteryState.Content ?: return
