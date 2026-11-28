@@ -8,6 +8,8 @@ import com.example.timewarp.domain.model.UserType
 import com.example.timewarp.domain.repository.NotificationRepository
 import com.example.timewarp.domain.usecase.ObserveCurrentUserUseCase
 import com.example.timewarp.domain.usecase.ObserveUserProfileUseCase
+import com.example.timewarp.feature.lottery.waitlist.WaitlistScreen
+import com.example.timewarp.feature.lottery.waitlist.WaitlistViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import javax.inject.Inject
@@ -32,7 +34,13 @@ sealed interface NotificationsState {
 
     data class Error(val message: String): NotificationsState
 }
-
+/**
+ * [NotificationsViewModel] for the [NotificationsScreen].
+ *
+ * @param notificationRepository notification Repo to pull notifications from
+ * @param observeCurrentUser Gets current user to get notifications they appear in
+ * @param observeUserProfile used to fetch users' names
+ */
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
     private val notificationRepository: NotificationRepository,
@@ -70,6 +78,11 @@ class NotificationsViewModel @Inject constructor(
         }
     }
 
+    /**
+     *  Content for Notifications
+     *
+     *  @param user user to fetch notifications for
+     */
     private suspend fun loadContent(user: User): NotificationsState  {
         val userId = user.userId
         val type = user.userType
@@ -114,6 +127,11 @@ class NotificationsViewModel @Inject constructor(
         return notificationRepository.getNotifications()
     }
 
+    /**
+     * Gets name for a given user
+     *
+     * @param userId ID of user to get name of
+     */
     private suspend fun getNameForUser(userId: String): String {
         val profile = observeUserProfile(userId)
             .catch { emit(null) }
@@ -123,6 +141,11 @@ class NotificationsViewModel @Inject constructor(
         return name?.takeIf { it.isNotBlank() } ?: "(no name)"
     }
 
+    /**
+     * Associates names with their given userID and adds it to the state
+     *
+     * @param state NotificationState to add/link names to
+     */
     private suspend fun linkNames(state: NotificationsState): NotificationsState {
         if (state !is NotificationsState.Content) return state
 

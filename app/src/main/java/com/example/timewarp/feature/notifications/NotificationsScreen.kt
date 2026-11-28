@@ -35,6 +35,9 @@ import com.example.timewarp.feature.navigation.NavigationScreen
 import com.example.timewarp.navigation.Screen
 import com.example.timewarp.ui.theme.TimewarpTheme
 
+/**
+ * [NotificationsScreen]
+ */
 @Composable
 fun NotificationsScreen(
     modifier: Modifier = Modifier,
@@ -70,6 +73,17 @@ fun NotificationsScreen(
     }
 }
 
+/**
+ * Display Content for Notification Screen
+ *
+ * @param incomingNotifications List of User's Incoming Notifications
+ * @param outgoingNotifications List of User's Outgoing Notifications
+ * @param allNotifications List of All Notifications (if user is admin, otherwise empty)
+ * @param usersNames Names of users in Notifications
+ * @param tabs List of Tabs user has access to
+ * @param selectedTab Currently selected Tab
+ * @param onTabSelected Switch to tab when clicked
+ */
 @Composable
 fun NotificationsContent(
     incomingNotifications: MutableList<Notification>?,
@@ -108,6 +122,12 @@ fun NotificationsContent(
     }
 }
 
+/**
+ * Display List of Notifications
+ *
+ * @param notifications list of notifications to display
+ * @param usersNames names of users tied to notification
+ */
 @Composable
 private fun NotificationsList(
     notifications: MutableList<Notification>?,
@@ -143,6 +163,12 @@ private fun NotificationsList(
     }
 }
 
+/**
+ * Display a single entry of a notification
+ * @param notification Notification to display
+ * @param senderName Name of Sender
+ * @param recipientName Name of Recipient
+ */
 @Composable
 private fun NotificationEntry(
     notification: Notification,
