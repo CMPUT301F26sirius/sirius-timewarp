@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.moderate.admin
+package com.example.timewarp.feature.moderate.admin.profiles
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

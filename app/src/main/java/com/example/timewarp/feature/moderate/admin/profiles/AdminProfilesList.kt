@@ -1,4 +1,4 @@
-package com.example.timewarp.feature.moderate.admin
+package com.example.timewarp.feature.moderate.admin.profiles
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.timewarp.feature.moderate.admin.AdminBrowseList
 import com.example.timewarp.ui.theme.PitchForest
 
 /**
@@ -50,14 +51,14 @@ fun AdminProfileList(
         listTag = "admin_profiles_list",
         emptyText = "No Profiles"
     ) {
-        items(state.items, key = {it.userId}) {
-            item ->
+        items(state.items, key = { it.userId }) { item ->
             Card(
-                Modifier.fillMaxWidth().clickable{selected = item}
+                Modifier.fillMaxWidth().clickable { selected = item }
                     .testTag("admin_profile_item_${item.userId}"),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
             ) {
                 Column(
                     Modifier.padding(10.dp),
@@ -93,8 +94,8 @@ fun AdminProfileList(
     selected?.let {
         item ->
         AlertDialog(
-            onDismissRequest = {selected = null},
-            title = { Text(item.name.ifBlank { "(no name)" })},
+            onDismissRequest = { selected = null },
+            title = { Text(item.name.ifBlank { "(no name)" }) },
             text = {
                 Column(
                     Modifier.testTag("admin_profile_detail"),
@@ -113,8 +114,9 @@ fun AdminProfileList(
                     )
 
                     Text(
-                        "Interests: ${item.profile?.interests?.
-                        joinToString().orEmpty().ifBlank{"None"}}"
+                        "Interests: ${
+                            item.profile?.interests?.joinToString().orEmpty().ifBlank { "None" }
+                        }"
                     )
 
                     Text(
@@ -125,7 +127,7 @@ fun AdminProfileList(
                         item.userId != state.currentUserId
                     ) {
                         TextButton(
-                            onClick = {toDelete = item},
+                            onClick = { toDelete = item },
                             modifier = Modifier.testTag("admin_delete_profile_${item.userId}")
                         ) {
                             Text("Delete Account")
@@ -135,7 +137,7 @@ fun AdminProfileList(
             },
             confirmButton = {
                 TextButton(
-                    onClick = {selected = null}
+                    onClick = { selected = null }
                 ) {
                     Text(
                         "Close"
@@ -149,8 +151,8 @@ fun AdminProfileList(
     toDelete?.let {
         item ->
         AlertDialog(
-            onDismissRequest = {toDelete = null},
-            title = {Text("Delete this account?")},
+            onDismissRequest = { toDelete = null },
+            title = { Text("Delete this account?") },
             text = {
                 Text("Active reservations will be cancelled")
             },
@@ -168,7 +170,7 @@ fun AdminProfileList(
             },
             dismissButton = {
                 TextButton(
-                    onClick = {toDelete = null}
+                    onClick = { toDelete = null }
                 ) {
                     Text("Cancel")
                 }
