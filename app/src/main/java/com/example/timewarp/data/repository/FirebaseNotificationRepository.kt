@@ -3,6 +3,7 @@ package com.example.timewarp.data.repository
 import com.example.timewarp.domain.model.Notification
 import com.example.timewarp.domain.repository.NotificationRepository
 import com.google.firebase.firestore.FirebaseFirestore
+
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,22 +32,33 @@ class FirebaseNotificationRepository @Inject constructor(
     /**
      * NEEDS_DOCUMENTATION
      **/
-    override suspend fun getOutgoingNotifications(userId: String): MutableList<Notification>? {
-        TODO("Not yet implemented")
+    override suspend fun getOutgoingNotifications(userId: String): MutableList<Notification> {
+        val snapshot = firestore.collection("notification")
+            .whereEqualTo("toUserId",userId ).get().await()
+        return snapshot.documents
+            .mapNotNull { it.toObject(Notification::class.java)?.copy(notificationId = it.id) }
+            .toMutableList()
     }
 
     /**
      * NEEDS_DOCUMENTATION
      **/
-    override suspend fun getIncomingNotifications(userId: String): MutableList<Notification>? {
-        TODO("Not yet implemented")
+    override suspend fun getIncomingNotifications(userId: String): MutableList<Notification> {
+        val snapshot = firestore.collection("notification")
+            .whereEqualTo("fromUserId",userId ).get().await()
+        return snapshot.documents
+            .mapNotNull { it.toObject(Notification::class.java)?.copy(notificationId = it.id) }
+            .toMutableList()
     }
 
     /**
      * NEEDS_DOCUMENTATION
      **/
-    override suspend fun getNotifications(): MutableList<Notification>? {
-        TODO("Not yet implemented")
+    override suspend fun getNotifications(): MutableList<Notification> {
+        val snapshot = firestore.collection("notification").get().await()
+        return snapshot.documents
+            .mapNotNull { it.toObject(Notification::class.java)?.copy(notificationId = it.id) }
+            .toMutableList()
     }
 
     /**

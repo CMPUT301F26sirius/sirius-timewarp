@@ -83,6 +83,15 @@ class FakeNotificationRepository @Inject constructor() : NotificationRepository 
     }
 
     /**
+     * Add notification
+     *
+     * @param notification Notification to add
+     */
+    fun addNotification(notification: Notification) {
+        notifications.add(notification)
+    }
+
+    /**
      * Removes all notifications from the fake collection.
      **/
     fun clear() {
