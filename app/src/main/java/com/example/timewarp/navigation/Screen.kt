@@ -48,6 +48,9 @@ sealed class Screen(
     data object CreateCampsite : Screen("campsite/create", "Create Campsite", "Create Campsite",  Icons.Outlined.AccountBox)
 
     // Dynamic routes.
+    data object InviteLottery : Screen("lottery/invite", "Lottery Invite", "Lottery Invite", Icons.Outlined.Chat) {
+        fun createRoute(lotteryId: String) = "$route/${Uri.encode(lotteryId)}"
+    }
     data object DirectMessage : Screen("messages/dm", "Direct Message", "Direct Message", Icons.Outlined.Chat) {
         fun createRoute(targetUserId: String) = "$route/${Uri.encode(targetUserId)}"
     }

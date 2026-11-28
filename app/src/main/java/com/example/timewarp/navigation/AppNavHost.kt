@@ -17,6 +17,7 @@ import com.example.timewarp.feature.lotteries.LotteriesScreen
 import com.example.timewarp.feature.lottery.create.CreateLotteryScreen
 import com.example.timewarp.feature.lottery.details.LotteryDetailsScreen
 import com.example.timewarp.feature.lottery.edit.EditLotteryScreen
+import com.example.timewarp.feature.lottery.invite.InviteLotteryScreen
 import com.example.timewarp.feature.lottery.waitlist.WaitlistScreen
 import com.example.timewarp.feature.messages.MessagesScreen
 import com.example.timewarp.feature.moderate.ModerateScreen
@@ -126,6 +127,13 @@ fun AppNavHost() {
 
 
         // Dynamic routes.
+        deepComposable(Screen.InviteLottery.route) { lotteryId ->
+            InviteLotteryScreen(
+                screen = Screen.InviteLottery,
+                lotteryId = lotteryId,
+                navController = navController
+            )
+        }
         deepComposable(Screen.DirectMessage.route) { targetUserId ->
             DirectMessageScreen(
                 screen = Screen.DirectMessage,
